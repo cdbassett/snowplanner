@@ -1,0 +1,191 @@
+Alaska
+	North Port
+        Service Hub (0.7,0.7 SE ?)
+            Service Spare Parts [1]
+	White Valley
+        Service Hub (0.1,0.7 SW ?)
+            Service Spare Parts [1]
+        Log Station (0.9,0.9 SE ?)
+            Long Logs
+            Wooden Planks [1]
+        Airdrome (0.5,0.9 S ?)
+            Consumables [1]
+            Drilling Equipment [4]
+            Oversized Cargo [4]
+       Oil Rig Service Site (farrish but road after fixing bridge)
+            Drilling Spare Parts [1]
+  Almaty Region
+	Zherbai Quarries
+        Concrete Products Plant (requires unlocking)
+            Cement [1]
+            Concrete Slab [2]
+        Warehouse 
+            Medium Planks [2]
+            Special Cargo [2]
+            Wooden Planks [1]
+        Fuel Station Warehouse (mid but roads)
+            Oil Barrels [1]
+        Repair Workshop Warehouse (mid but roads)
+            Vehicle Spare Parts [1]
+        Metalworks (farrish but roads)
+            Metal Beams [2]
+            Metal Rolls [1]
+            Small Pipes [2]
+Amur
+    Cosmodrome
+        Farm Warehouse (mid and a little mud clearing after landslide)
+            Large Pipe [4]
+            Service Spare Parts [1]
+	Chernokamensk (garage requires unlocking)
+        Warehouse (requires unlocking)
+            Metal Beams [2]
+            Oversized Cargo [4]
+            Packaged Sand [1]
+            Small Pipes [2]
+Austria
+	nothing
+Belozersk Glades
+	Crossroads
+        General Store (farrish but roads)
+            Bricks [1]
+            Cement [1]
+            Wooden Planks [1]
+	Harvestcorp (garage requires unlocking)
+        Corporate Warehouse (requires unlocking, mid dirt roads)
+            Metal Beams [2]
+            Metal Rolls [1]
+            Service Spare Parts [1]
+	Heartlands (All 3 locations close together, mid dirt roads)
+        Junkyard Storage (requires unlocking)
+            Vehicle Spare Parts [1]
+        Railway Warehouse (requires unlocking)
+            Concrete Blocks [1]
+            Drilling Spare Parts [1]
+            Solar Panels [1]
+            Wooden Planks [1]
+        Lumber Mill
+            Long Logs
+            Medium Logs
+British Columbia
+	Duncan Bay
+        Railway terminal (0.5, 0.8 S ?) (super close, requires unlocking)
+            Drilling Equipment [4]
+            Metal Beams [2]
+            Oil Rig Drill [5]
+            Oversized Cargo [4]
+        Warehouse (0.65, 0.85 S ?) (requires unlocking, other side of unlockable ferry)
+            Cargo Container [2]
+            Large Pipe [4]
+            Small Pipes [2]
+        Service Hub (0.6, 0.8 S ?) (other side of unlockable ferry)
+            Service Spare Parts [1]
+            Vehicle Spare Parts [1]
+Don
+	Factory Grounds
+        River Port (mid)
+            Bricks [1]
+            Cargo Container [2]
+            Metal Beams [2]
+Kola Peninsula
+	Lake Kovd
+        Dock Storage
+            Metal Beams [2]
+    Imandra
+        Warehouse (mid with mud snow, tree, pit))
+            Fuel [1]
+            Cargo Container [2]            
+            Vehicle Spare Parts [1]
+Maine
+	nothing
+Michigan
+	Black River
+		Farm
+			Consumables
+		Warehouse (mid)
+			Bricks [1]
+			Concrete Blocks [1]
+			Metal Beams [2]
+			Service Spare Parts [1]			
+	Smithville Dam
+        Service Hub
+            Service Spare Parts [1]
+            Vehicle Spare Parts [1]
+        Warehouse (farrish but mostly roads)
+            Bricks [1]
+            Concrete Slab [2]
+North Carolina
+	Flatland
+        Pipeworks (mid but roads)
+            Medium Pipes [2]
+            Service Spare Parts [1]
+            Small Pipes [2]
+	Reactive Zone
+        Warehouse
+            Oil Barrels [1]
+Ontario
+	nothing
+Quebec
+	Harbor
+	Lake Ribiere
+Scandinavia
+	nothing
+Taymyr
+	Drowned Lands
+        Log Station
+            Long Logs
+            Medium Logs
+        Railway Station
+            Cargo Container [2]
+            Cement [1]
+            Oil Barrels [1]
+            Service Spare Parts [1]
+        Oil Rig Drill
+            Oil Rig Drill [5]
+	Quarry
+        Quarry (mid, requires changing area and getting in and out of quarry)
+            Concrete Slab [2]
+	Zimnegorsk
+        Warehouse (super close)
+            Oversized Cargo [4]
+Tennessee
+	nothing
+Trials
+	The Slope
+	Tumannaya Pass
+Washington
+	Selten River National Park
+		**both together, mid, should be faster after railroad repair**
+        Warehouse (.6,.87 S ?)
+            Bricks [1]
+            Cabin [2]
+		Rail Shop [1mb 2wp]
+			Rail Section [5]
+Wisconsin
+	Grainwoods River
+        Rail production plant (0.5,0.55 C ?)
+            Rail Section [5] (2mb 4wp)
+        Hangar A (0.75,0.6 E ?) (mid)
+            Service Spare Parts [1]
+Yukon
+	Big Salmon Peak
+        Cabin construction site [1 cargo container, 2wp]
+            Cabin [2]
+        Rolled Steel Factory (mid, roundabout roads) [1 metal roll/cargo slot]
+            Cargo Container [2]
+            Large Pipe [4]
+            Medium Pipes [2]
+            Metal Beams [2]
+            Small Pipes [2]
+	Flooded Foothills
+        Warehouse
+            Metal Beams [2]
+        Concrete Plant [1 cement/cargo slot]
+            Concrete Blocks [1]
+            Concrete Slab [2]
+Zurdania
+	Zurdanian Valley
+        Factory (mid after repairing bridge)
+            Metal Beams [2]
+            Metal Rolls [1]
+        Solar Panels (mid dirt roads and marsh)
+            Solar Panels [1]

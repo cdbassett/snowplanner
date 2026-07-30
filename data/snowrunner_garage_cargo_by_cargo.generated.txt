@@ -1,0 +1,214 @@
+Bricks [1]
+    Belozersk Glades, Crossroads
+        General Store (farrish but roads)
+    Don, Factory Grounds
+        River Port (mid)
+    Michigan, Black River
+        Warehouse (mid)
+    Michigan, Smithville Dam
+        Warehouse (farrish but mostly roads)
+    Washington, Selten River National Park
+        Warehouse (.6,.87 S ?)
+Cabin [2]
+    Washington, Selten River National Park
+        Warehouse (.6,.87 S ?)
+    Yukon, Big Salmon Peak
+        Cabin construction site [1 cargo container, 2wp]
+Cargo Container [2]
+    British Columbia, Duncan Bay
+        Warehouse (0.65, 0.85 S ?) (requires unlocking, other side of unlockable ferry)
+    Don, Factory Grounds
+        River Port (mid)
+    Kola Peninsula, Imandra
+        Warehouse (mid with mud snow, tree, pit))
+    Taymyr, Drowned Lands
+        Railway Station
+    Yukon, Big Salmon Peak
+        Rolled Steel Factory (mid, roundabout roads) [1 metal roll/cargo slot]
+Cement [1]
+    Almaty Region, Zherbai Quarries
+        Concrete Products Plant (requires unlocking)
+    Belozersk Glades, Crossroads
+        General Store (farrish but roads)
+    Taymyr, Drowned Lands
+        Railway Station
+Concrete Blocks [1]
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Railway Warehouse (requires unlocking)
+    Michigan, Black River
+        Warehouse (mid)
+    Yukon, Flooded Foothills
+        Concrete Plant [1 cement/cargo slot]
+Concrete Slab [2]
+    Almaty Region, Zherbai Quarries
+        Concrete Products Plant (requires unlocking)
+    Michigan, Smithville Dam
+        Warehouse (farrish but mostly roads)
+    Taymyr, Quarry
+        Quarry (mid, requires changing area and getting in and out of quarry)
+    Yukon, Flooded Foothills
+        Concrete Plant [1 cement/cargo slot]
+Consumables
+    Michigan, Black River
+        Farm
+Consumables [1]
+    Alaska, White Valley
+        Airdrome (0.5,0.9 S ?)
+Drilling Equipment [4]
+    Alaska, White Valley
+        Airdrome (0.5,0.9 S ?)
+    British Columbia, Duncan Bay
+        Railway terminal (0.5, 0.8 S ?) (super close, requires unlocking)
+Drilling Spare Parts [1]
+    Alaska, Oil Rig Service Site (farrish but road after fixing bridge)
+        Airdrome (0.5,0.9 S ?)
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Railway Warehouse (requires unlocking)
+Fuel [1]
+    Kola Peninsula, Imandra
+        Warehouse (mid with mud snow, tree, pit))
+Large Pipe [4]
+    Amur, Cosmodrome
+        Farm Warehouse (mid and a little mud clearing after landslide)
+    British Columbia, Duncan Bay
+        Warehouse (0.65, 0.85 S ?) (requires unlocking, other side of unlockable ferry)
+    Yukon, Big Salmon Peak
+        Rolled Steel Factory (mid, roundabout roads) [1 metal roll/cargo slot]
+Long Logs
+    Alaska, White Valley
+        Log Station (0.9,0.9 SE ?)
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Lumber Mill
+    Taymyr, Drowned Lands
+        Log Station
+Medium Logs
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Lumber Mill
+    Taymyr, Drowned Lands
+        Log Station
+Medium Pipes [2]
+    North Carolina, Flatland
+        Pipeworks (mid but roads)
+    Yukon, Big Salmon Peak
+        Rolled Steel Factory (mid, roundabout roads) [1 metal roll/cargo slot]
+Medium Planks [2]
+    Almaty Region, Zherbai Quarries
+        Warehouse
+Metal Beams [2]
+    Almaty Region, Zherbai Quarries
+        Metalworks (farrish but roads)
+    Amur, Chernokamensk (garage requires unlocking)
+        Warehouse (requires unlocking)
+    Belozersk Glades, Harvestcorp (garage requires unlocking)
+        Corporate Warehouse (requires unlocking, mid dirt roads)
+    British Columbia, Duncan Bay
+        Railway terminal (0.5, 0.8 S ?) (super close, requires unlocking)
+    Don, Factory Grounds
+        River Port (mid)
+    Kola Peninsula, Lake Kovd
+        Dock Storage
+    Michigan, Black River
+        Warehouse (mid)
+    Yukon, Big Salmon Peak
+        Rolled Steel Factory (mid, roundabout roads) [1 metal roll/cargo slot]
+    Yukon, Flooded Foothills
+        Warehouse
+    Zurdania, Zurdanian Valley
+        Factory (mid after repairing bridge)
+Metal Rolls [1]
+    Almaty Region, Zherbai Quarries
+        Metalworks (farrish but roads)
+    Belozersk Glades, Harvestcorp (garage requires unlocking)
+        Corporate Warehouse (requires unlocking, mid dirt roads)
+    Zurdania, Zurdanian Valley
+        Factory (mid after repairing bridge)
+Oil Barrels [1]
+    Almaty Region, Zherbai Quarries
+        Fuel Station Warehouse (mid but roads)
+    North Carolina, Reactive Zone
+        Warehouse
+    Taymyr, Drowned Lands
+        Railway Station
+Oil Rig Drill [5]
+    British Columbia, Duncan Bay
+        Railway terminal (0.5, 0.8 S ?) (super close, requires unlocking)
+    Taymyr, Drowned Lands
+        Oil Rig Drill
+Oversized Cargo [4]
+    Alaska, White Valley
+        Airdrome (0.5,0.9 S ?)
+    Amur, Chernokamensk (garage requires unlocking)
+        Warehouse (requires unlocking)
+    British Columbia, Duncan Bay
+        Railway terminal (0.5, 0.8 S ?) (super close, requires unlocking)
+    Taymyr, Zimnegorsk
+        Warehouse (super close)
+Packaged Sand [1]
+    Amur, Chernokamensk (garage requires unlocking)
+        Warehouse (requires unlocking)
+Rail Section [5]
+    Washington, Selten River National Park
+        Rail Shop [1mb 2wp]
+Rail Section [5] (2mb 4wp)
+    Wisconsin, Grainwoods River
+        Rail production plant (0.5,0.55 C ?)
+Service Spare Parts [1]
+    Alaska, North Port
+        Service Hub (0.7,0.7 SE ?)
+    Alaska, White Valley
+        Service Hub (0.1,0.7 SW ?)
+    Amur, Cosmodrome
+        Farm Warehouse (mid and a little mud clearing after landslide)
+    Belozersk Glades, Harvestcorp (garage requires unlocking)
+        Corporate Warehouse (requires unlocking, mid dirt roads)
+    British Columbia, Duncan Bay
+        Service Hub (0.6, 0.8 S ?) (other side of unlockable ferry)
+    Michigan, Black River
+        Warehouse (mid)
+    Michigan, Smithville Dam
+        Service Hub
+    North Carolina, Flatland
+        Pipeworks (mid but roads)
+    Taymyr, Drowned Lands
+        Railway Station
+    Wisconsin, Grainwoods River
+        Hangar A (0.75,0.6 E ?) (mid)
+Small Pipes [2]
+    Almaty Region, Zherbai Quarries
+        Metalworks (farrish but roads)
+    Amur, Chernokamensk (garage requires unlocking)
+        Warehouse (requires unlocking)
+    British Columbia, Duncan Bay
+        Warehouse (0.65, 0.85 S ?) (requires unlocking, other side of unlockable ferry)
+    North Carolina, Flatland
+        Pipeworks (mid but roads)
+    Yukon, Big Salmon Peak
+        Rolled Steel Factory (mid, roundabout roads) [1 metal roll/cargo slot]
+Solar Panels [1]
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Railway Warehouse (requires unlocking)
+    Zurdania, Zurdanian Valley
+        Solar Panels (mid dirt roads and marsh)
+Special Cargo [2]
+    Almaty Region, Zherbai Quarries
+        Warehouse
+Vehicle Spare Parts [1]
+    Almaty Region, Zherbai Quarries
+        Repair Workshop Warehouse (mid but roads)
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Junkyard Storage (requires unlocking)
+    British Columbia, Duncan Bay
+        Service Hub (0.6, 0.8 S ?) (other side of unlockable ferry)
+    Kola Peninsula, Imandra
+        Warehouse (mid with mud snow, tree, pit))
+    Michigan, Smithville Dam
+        Service Hub
+Wooden Planks [1]
+    Alaska, White Valley
+        Log Station (0.9,0.9 SE ?)
+    Almaty Region, Zherbai Quarries
+        Warehouse
+    Belozersk Glades, Crossroads
+        General Store (farrish but roads)
+    Belozersk Glades, Heartlands (All 3 locations close together, mid dirt roads)
+        Railway Warehouse (requires unlocking)

@@ -1,0 +1,782 @@
+RU_02_01		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	0	
+RU_02_01		semitrailer_gooseneck_4	UI_SEMITRAILER_GOOSENECK_3_NAME	Gooseneck Semi-Trailer	1	
+RU_02_01		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	2	
+RU_02_01		trailer_flatbed_2	UI_TRAILER_FLATBED_2_NAME	Flatbed Trailer	3	
+RU_02_01		trailer_flatbed_2	UI_TRAILER_FLATBED_2_NAME	Flatbed Trailer	4	
+RU_02_01	HTRUCK_REFUEL_TRUCK	dan_96320	UI_VEHICLE_DAN_96320_NAME	DAN 96320	5	
+RU_02_01	DON_REFUEL_TRUCK	don_71	UI_VEHICLE_DON_71_NAME	DON 71	6	
+RU_02_01	HIGHZIKZ_REPAIR_TRUCK	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	7	
+RU_02_01	HERMIT_RESCUE_TRUCK	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	8	
+RU_02_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	9	
+RU_02_01	SERVHUB_RESTORE_OILTANK	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	10	
+RU_02_01	FIREWATCH_OILTANK	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+RU_02_01	OILRIG_OILTANK_SAMPLE	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	12	
+RU_02_01	EXAMINE_SOUTH_SERVTRAILER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	13	
+RU_02_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	1	
+RU_02_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	2	
+RU_02_02		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	3	
+RU_02_02	RU_02_02_STUCK_TRUCK_01_TRK	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	4	
+RU_02_02	RU_02_02_STUCK_TRUCK_02_TRK	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	5	
+RU_02_02	RU_02_02_STUCK_TRUCK_03_TRK	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	6	
+RU_02_02	RU_02_02_STUCK_TRUCK_04_TRK	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	7	
+RU_02_02	RU_02_02_STUCK_TRUCK_05_TRK	voron_d53233	UI_VEHICLE_VORON_D53233_NAME	Voron D-53233	8	
+RU_02_02	RU_02_02_DAMAGED_TRUCK_01_TRK	voron_ae4380	UI_VEHICLE_VORON_AE4380_NAME	Voron AE-4380	9	
+RU_02_02	RU_02_02_DAMAGED_TRUCK_02_TRK	don_71	UI_VEHICLE_DON_71_NAME	DON 71	10	
+RU_02_02	RU_02_02_DAMAGED_TRUCK_03_TRK	don_71	UI_VEHICLE_DON_71_NAME	DON 71	11	
+RU_02_02	RU_02_02_DAMAGED_TRUCK_04_TRK	tayga_6436	UI_VEHICLE_TAYGA_6436_NAME	Tayga 6436	12	
+RU_02_02	RU_02_02_LOST_CARGO_01_OILTANK	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	13	
+RU_02_02	RU_02_02_RAILWAY_OILTANK	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	14	
+RU_02_02	RU_02_02_LOST_TRAILER	scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	15	
+RU_02_03		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	2	
+RU_02_03	RU_02_03_TRUCK_ZIL	step_310e	UI_VEHICLE_STEP_310E_NAME	Step 310Е	3	
+RU_02_03	RU_02_03_TRUCK_TUZ	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	4	
+RU_02_03		tuz_420_tatarin	UI_VEHICLE_TUZ_420_TATARIN_NAME	TUZ 420 \"Tatarin\"	5	
+RU_02_04		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	0	
+RU_02_04		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	1	
+RU_02_04	ZIKZ_REPAIR_TRUCK	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	2	
+RU_02_04	LOAF_RECOVER_TRUCK	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	3	
+RU_02_04	APC_RECOVER_TRUCK	tuz_420_tatarin	UI_VEHICLE_TUZ_420_TATARIN_NAME	TUZ 420 \"Tatarin\"	4	
+RU_02_04	SERVICE_TRAILER_RECOVER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	5	
+RU_02_04	FUEL_TRAILER_RECOVER	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	6	
+RU_02_04	MTRUCK_REFUEL_TRUCK	step_310e	UI_VEHICLE_STEP_310E_NAME	Step 310Е	7	
+RU_02_04	SUPPLY_TRAILER_RECOVER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	8	
+RU_02_04		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	9	
+RU_02_04		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	10	
+RU_02_04		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+RU_02_04		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	12	
+RU_02_04		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	13	
+RU_03_01	CAMP_GAS_DELIVERY_TRAILER	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	0	
+RU_03_01	MOBILE_TOWER_RECOVERY_TRAILER	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	1	
+RU_03_01	CABIN_NW_CAMP	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	2	
+RU_03_01	CABIN_S_CAMP	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	3	
+RU_03_01	ON_THIN_ICE_TRUCK	don_71	UI_VEHICLE_DON_71_NAME	DON 71	4	
+RU_03_01	ANTIQUE_TRUCK	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	5	
+RU_03_01		tuz_16_actaeon	UI_VEHICLE_TUZ_16_ACTAEON_NAME	TUZ 16 \"Actaeon\"	6	
+RU_03_01		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	7	
+RU_03_01	SNOWED_IN_TRUCK	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	8	
+RU_03_01	FOREIGNER_TRUCK	ford_f750	UI_VEHICLE_FORD_F750_NAME	Ford F 750	9	
+RU_03_01	METEO_REPAIR_TRUCK	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	10	
+RU_03_02	ru_03_02_trailer_antique	scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	0	
+RU_03_02	03_02_garage_repair_car	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	1	
+RU_03_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	2	
+RU_03_02		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	3	
+RU_03_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	4	
+RU_03_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	5	
+RU_03_02	ru_03_02_cabin_1	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	6	
+RU_03_02	ru_03_02_cabin	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	7	
+RU_03_02		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	8	
+RU_03_02	03_02_trailer_quest	scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	9	
+RU_03_02	03_02_car_delivery	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	10	
+RU_03_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+RU_03_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	12	
+RU_03_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	13	
+RU_03_02	ru_03_02_damage_car	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	14	
+RU_03_02		tuz_108_warthog	UI_VEHICLE_TUZ_108_WARTHOG_NAME	TUZ 108 \"Warthog\"	15	
+RU_03_02	03_02_stepdeck_plane	semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	16	
+RU_03_02		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	17	
+RU_03_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	18	
+RU_03_02		semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	19	
+RU_04_01	rocket_objective_semitrailer	semitrailer_rocket	UI_SEMITRAILER_ROCKET_NAME	Assembled rocket	0	
+RU_04_01	FUELTRAILER	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	1	
+RU_04_01	LOST_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	2	
+RU_04_01	LOST_02	semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	3	
+RU_04_01	SCOUT_ON_HILL	don_71	UI_VEHICLE_DON_71_NAME	DON 71	4	
+RU_04_01	YAR	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	5	
+RU_04_01	HOUSE	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	6	1 ForkliftCaravanContainer
+RU_04_01		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	7	
+RU_04_01	TROUBLE	khan_317_sentinel	UI_VEHICLE_KHAN_317_SENTINEL_H2_NAME	KHAN 317 Sentinel	8	
+RU_04_01	HELP	trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	9	1 Concrete Blocks [1]|1 Concrete Slab [2]|1 Bricks [1]
+RU_04_01	TUNNEL_TOOLS	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	10	
+RU_04_02	rocket_train_platform_truck	trailer_train_rocket	UI_ROCKET_TRAIN_NAME	Rocket Carrier Platform	0	
+RU_04_02	mission_control_maintainer_trailer	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	1	
+RU_04_02	CRASHED_KHAN	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	2	
+RU_04_02	FISHERMAN_SCOUT	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	3	
+RU_04_02	TOWN_SUPPLY_1	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	4	
+RU_04_02	TOWN_SUPPLY_2	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	5	
+RU_04_02		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	6	
+RU_04_02	DELIVERY_TRUCK_RECOVERY	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	7	
+RU_04_02	TOWN_SUPPLY_3	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	8	
+RU_04_02	ABANDONED_TRUCK	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	9	
+RU_04_02		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	10	1 Fuel [1]
+RU_04_02	FUEL_CONTEST_RESTOCK	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+RU_04_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	12	
+RU_04_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	13	
+RU_04_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	14	
+RU_04_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	15	2 Cement [1]
+RU_04_02		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	16	
+RU_04_02	DON_RECOVER	don_71	UI_VEHICLE_DON_71_NAME	DON 71	17	
+RU_04_02		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	18	1 Wooden Planks [1]
+RU_04_02		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	19	1 Medium Logs
+RU_04_02		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	20	1 Medium Logs
+RU_04_02	RESCUE_ZIKZ	zikz_605r	UI_VEHICLE_ZIKZ_605R_NAME	ZiKZ 605R	21	
+RU_04_03	town_helper_2	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	0	2 Wooden Planks [1]
+RU_04_03	town_helper_1	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	1	1 Metal Beams [2]
+RU_04_03	rocket_trailer	semitrailer_for_rocket	UI_SEMITRAILER_FOR_ROCKET_NAME	Rocket Carrier Semi-trailer	2	
+RU_04_03	lost_b	don_71	UI_VEHICLE_DON_71_NAME	DON 71	3	
+RU_04_03	RU_04_03_OILTANK_1	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	4	
+RU_04_03	kung_lake	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	5	
+RU_04_03	khan_pit	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	6	
+RU_04_03	heavy_tr_base	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	7	
+RU_04_03		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	8	
+RU_04_04	DREAM_CAR	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	0	
+RU_04_04	GOLD	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	1	
+RU_04_04	HELP_NEIGHBOR	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	2	
+RU_04_04	BIG	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	3	
+RU_04_04	BROKEN	khan_39_marshall	UI_VEHICLE_KHAN_39_MARSHALL_NAME	KHAN 39 Marshall	4	
+RU_04_04	REALLY_BIG_ONE	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	5	5 Vehicle Spare Parts [1]
+RU_04_04	FAMILY_BUSINESS	don_71	UI_VEHICLE_DON_71_NAME	DON 71	6	
+RU_04_04	DANGEROUS_ROAD	trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	7	1 Medium Logs
+RU_04_04	UNLUCKY_BOY	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	8	
+RU_04_04		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	9	
+RU_04_04		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	10	
+RU_04_04		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	11	
+RU_05_01	service_2	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	0	
+RU_05_01	tatra_1	tatra_force_t815_7	UI_VEHICLE_TATRA_FORCE_T815_7_NAME	Tatra FORCE T815-7	1	
+RU_05_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	2	
+RU_05_01		semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	3	2 Wooden Planks [1]
+RU_05_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	4	
+RU_05_01		scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	5	
+RU_05_01	delivery_01	azov_4220_antarctic	UI_VEHICLE_AZOV_4220_ANTARCTIC_NAME	Azov 42-20 Antarctic	6	
+RU_05_01	service_3	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	7	
+RU_05_02	service_1	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	0	
+RU_05_02	don_1	tatra_phoenix	UI_VEHICLE_TATRA_PHOENIX_NAME	Tatra PHOENIX	1	
+RU_05_02	HEAVY_1	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	2	
+RU_05_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	3	
+RU_05_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	4	
+RU_05_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	5	
+RU_05_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+RU_05_02	HEAVY_2	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	7	
+RU_08_01		tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	0	
+RU_08_01	RU_08_01_SUPPLIES_FOR_WATCHERS_TRAILER	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	1	1 Consumables [1]
+RU_08_01	RU_08_01_LOST_EVACUATION_CAR	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	2	
+RU_08_01	RU_08_01_EXPEDITION_HELP_TRAILER	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	3	
+RU_08_01	RU_08_01_ILLEGAL_BUSINESS	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	4	
+RU_08_01	RU_08_01_RAILWAY_WORKERS	azov_73210	UI_VEHICLE_AZOV_73210_NAME	Azov 73210	5	
+RU_08_01		semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	6	
+RU_08_01	RU_08_01_KIROVEC	kirovets_k700	UI_VEHICLE_KIROVETS_K700_NAME	Kirovets K-700	7	
+RU_08_01		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	8	
+RU_08_01		tayga_6436	UI_VEHICLE_TAYGA_6436_NAME	Tayga 6436	9	
+RU_08_01		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	10	
+RU_08_01		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+RU_08_01	RU_08_01_VILLAGE_SUPPLIES_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	12	
+RU_08_01	harvester	trailer_harvester	UI_TRAILER_HARVESTER_NAME	Potato Harvester	13	
+RU_08_01	planter	trailer_planter	UI_TRAILER_PLANTER_NAME	Multi-row Planter	14	
+RU_08_01	cultivator	trailer_cultivator	UI_TRAILER_CULTIVATOR_NAME	Cultivator	15	
+RU_08_01		trailer_harvester	UI_TRAILER_HARVESTER_NAME	Potato Harvester	16	
+RU_08_01	RU_08_01_WIND_POWER_BLADE	semitrailer_wind_blade	UI_SEMITRAILER_ROCKET_NAME	Assembled rocket	17	
+RU_08_01	WIND_01	semitrailer_wind_blade	UI_SEMITRAILER_ROCKET_NAME	Assembled rocket	18	
+RU_08_01		trailer_harvester	UI_TRAILER_HARVESTER_NAME	Potato Harvester	19	
+RU_08_01		trailer_planter	UI_TRAILER_PLANTER_NAME	Multi-row Planter	20	
+RU_08_01	ELEVATOR_STUFF_SP	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	21	
+RU_08_01		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	22	
+RU_08_01		chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	23	
+RU_08_01		trailer_cultivator	UI_TRAILER_CULTIVATOR_NAME	Cultivator	24	
+RU_08_02	RU_08_02_JUNK_TRUCK_01	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	0	
+RU_08_02	RU_08_02_JUNK_TRUCK_02	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	1	
+RU_08_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	2	
+RU_08_02	RU_08_02_POSTMAN_DELIVERY	don_71	UI_VEHICLE_DON_71_NAME	DON 71	3	
+RU_08_02		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	4	
+RU_08_02		don_71	UI_VEHICLE_DON_71_NAME	DON 71	5	
+RU_08_02		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	6	
+RU_08_02	CONTRACT_SOLAR_STATION_PANEL	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	7	
+RU_08_02		trailer_cultivator	UI_TRAILER_CULTIVATOR_NAME	Cultivator	8	
+RU_08_02		trailer_planter	UI_TRAILER_PLANTER_NAME	Multi-row Planter	9	
+RU_08_02	RU_08_02_HARVESTER_TASK	trailer_harvester	UI_TRAILER_HARVESTER_NAME	Potato Harvester	10	
+RU_08_02	RU_08_02_CONTRACT_SERVICE_TRAILER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+RU_08_02	RU_08_02_CONTRACT_TUBING	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	12	
+RU_08_02	for_repair	step_39331_pike	UI_VEHICLE_STEP_39331_PIKE_NAME	Step 39331 \"Pike\"	13	
+RU_08_03	TASK_CARGO_DELIVERY_TRUCK	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	0	
+RU_08_03	TASK_PRODUCT_DELIVERY	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	1	
+RU_08_03	TASK_TRANSPORT_EVACUATION	ank_mk38	UI_VEHICLE_ANK_MK38_NAME	ANK MK38	2	
+RU_08_03	TASK_HAUL_TRANSPORT	kirovets_k7m	UI_VEHICLE_KIROVETS_K7M_NAME	Kirovets K-7М	3	
+RU_08_03	TASK_TRAILER_MATERIALS_DELIVERY_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	4	
+RU_08_03	TASK_TRAILER_MATERIALS_DELIVERY_02	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	5	
+RU_08_03	GENERATOR	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	6	
+RU_08_03		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	7	
+RU_08_04	CONNECT_01	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	0	
+RU_08_04	fishing_01	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	1	
+RU_08_04	LOST_2	semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	2	
+RU_08_04	LOST_1	royal_bm17	UI_VEHICLE_ROYAL_BM17_NAME	Royal BM17	3	
+RU_08_04	SPECIAL_01	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	4	
+RU_13_01	RU_13_01_SHEPHERD_TROUBLE_CAR	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	0	
+RU_13_01	RU_13_01_LOGS_FOR_HOUSE_TRAILER	trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	1	1 Medium Logs
+RU_13_01	RU_13_01_NOT_A_ROLLER_COASTER_TRUCK	plad_450	UI_VEHICLE_PLAD_450_NAME	PLAD 450	2	
+RU_13_01	RU_13_01_NOT_A_ROLLER_COASTER_TRAILER	semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	3	1 Oversized Cargo [4]
+RU_13_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	4	
+RU_13_01	RU_13_01_BORAT_TRUCK	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	5	1 ForkliftCaravanContainer
+RU_13_01	RU_13_01_TOURIST_LIST_CAR	don_71	UI_VEHICLE_DON_71_NAME	DON 71	6	
+RU_13_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	7	
+RU_13_01	RU_13_GEN_02	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	8	
+RU_13_01	RU_13_GEN_01	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	9	
+RU_13_01	GEO_RADAR_ADDON	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	10	
+RU_13_01	RU_13_CAREER_02	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	11	
+RU_13_01	RU_13_CAREER_01	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	12	
+RU_13_01	RU_13_01_GREAT_DEAL_TRUCK	aac_58dw	UI_VEHICLE_AAC_58DW_NAME	AAC-58DW	13	
+RU_13_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	14	
+RU_13_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	15	
+RU_13_01	RU_13_01_WATER_SHARES_STONE_TRUCK	trailer_watertank	UI_TRAILER_WATERTANK_NAME	Water Carrier Trailer	16	
+RU_17_01	RU_17_01_SCOUT_02	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	0	
+RU_17_01	RU_17_01_DRILLING_01	trailer_drilling_machine	UI_TRAILER_DRILL_NAME	Driller Trailer	1	
+RU_17_01	RU_17_01_FIELD_TRAILER_01	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	2	
+RU_17_01	RU_17_02_CABLE_TRUCK	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	3	
+RU_17_01	RU_17_01_SCOUT_01	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	4	
+RU_17_01	RU_17_01_DRILLING_02	trailer_drilling_machine	UI_TRAILER_DRILL_NAME	Driller Trailer	5	
+RU_17_01	RU_17_01_TRAILER_GENERATOR	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	6	
+RU_17_01	RU_17_01_TRUCK_01	jangsu_rx600	UI_VEHICLE_JANGSU_RX600_NAME	Jangsu RX600	7	
+RU_17_01	RU_17_01_SCOUT_TRAILER_01	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	8	
+RU_17_01	RU_17_02_BUILD_TRAILER	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	9	
+RU_17_01		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	10	4 Fertilizer
+RU_17_01	RU_17_01_TRUCK_FERTILIZER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	11	
+RU_17_01	RU_17_01_TRUCK_02	chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	12	
+RU_17_01	RU_17_01_TRAILER_01	trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	13	
+RU_17_01		trailer_watertank	UI_TRAILER_WATERTANK_NAME	Water Carrier Trailer	14	
+RU_17_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	15	2 Bricks [1]
+RU_17_02	RU_17_02_TRUCK_MONASTERY	azov_73210	UI_VEHICLE_AZOV_73210_NAME	Azov 73210	0	
+RU_17_02	RU_17_02_LUMBER_SUPPLY_TRAILER	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	1	
+RU_17_02	RU_17_02_ASPHALT_BLOCKAGE_TRUCK	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	2	
+RU_17_02	RU_17_02_TRUCK_04	zikz_5368	UI_VEHICLE_ZIKZ_5368_NAME	ZiKZ 5368	3	
+RU_17_02	RU_17_02_TRAIN	train_dlc_17	UI_TRAIN_NAME	Diesel Locomotive	4	
+RU_17_02		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	5	1 Medium Logs
+RU_17_02	RU_17_02_TRUCK_03	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	6	
+RU_17_02	RU_17_02_VILLAGE_SUPPLY_01_TRUCK	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	7	
+RU_17_02	RU_17_02_SAN_BUILD_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	8	
+RU_17_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	9	2 Metal Beams [2]|1 Vehicle Spare Parts [1]
+RU_17_02	RU_17_02_TRUCK_02	voron_g5352	UI_VEHICLE_VORON_G5352_NAME	Voron G-5352	10	
+RU_17_02	RU_17_02_SCANER	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	11	
+RU_17_02	RU_17_02_TRAILER_02	semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	12	
+RU_17_02	RU_17_02_TRUCK_01	don_71	UI_VEHICLE_DON_71_NAME	DON 71	13	
+RU_17_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	14	1 Wooden Planks [1]
+RU_17_02	RU_17_02_TRAILER_01_02	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	15	
+RU_17_02	RU_17_02_PARTS_TRAILER	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	16	
+US_01_01		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	0	
+US_01_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	1	2 Wooden Planks [1]
+US_01_01		gmc_9500	UI_VEHICLE_GMC_9500_NAME	GMC MH9500	2	
+US_01_01		international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	3	
+US_01_01		chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	4	
+US_01_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	5	
+US_01_01		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	6	
+US_01_01		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	7	2 Bricks [1]
+US_01_01		trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	8	4 Concrete Blocks [1]
+US_01_01		international_fleetstar_f2070a	UI_VEHICLE_FLEETSTAR_F2070A_NAME	Fleetstar F2070A	9	
+US_01_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	10	1 Bricks [1]|1 Service Spare Parts [1]
+US_01_01	MISSED_OILTANK	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	11	
+US_01_01	FARMERS_FUEL	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	12	
+US_01_01	FUEL_FACTORY	semitrailer_heavy_oiltank	UI_SEMITRAILER_HEAVY_OILTANK_NAME	Heavy Fuel Tanker Semi-Trailer	13	
+US_01_01	FARMER_TRUCK_01	gmc_9500	UI_VEHICLE_GMC_9500_NAME	GMC MH9500	14	
+US_01_01	FARMER_TRUCK_02	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	15	
+US_01_01	FARMER_TRUCK_03	chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	16	
+US_01_01	TOOLS_FOR_FARMERS	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	17	
+US_01_01	STUCK_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	18	
+US_01_01		semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	19	3 Service Spare Parts [1]|1 Vehicle Spare Parts [1]|1 Bricks [1]
+US_01_01	MOTEL_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	20	
+US_01_01		trailer_flatbed_2	UI_TRAILER_FLATBED_2_NAME	Flatbed Trailer	21	1 Metal Beams [2]
+US_01_01	DRILING_SPECIAL	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	22	
+US_01_01	SERVICE_OIL_TRAILER	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	23	
+US_01_01		chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	24	
+US_01_02		chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	0	
+US_01_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	1	1 Metal Beams [2]
+US_01_02		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	2	
+US_01_02	OLD_TRUCK	ws_4964_white	UI_VEHICLE_WS_4964_WHITE_NAME	White Western Star 4964	3	
+US_01_02	REP_TRUCK	gmc_9500	UI_VEHICLE_GMC_9500_NAME	GMC MH9500	4	
+US_01_02	TRAILER_CROSSING	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	5	
+US_01_02	LUMBER_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	6	
+US_01_02	SCOUT_OILTANK_DR	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	7	
+US_01_02	FISHERMAN_CAR	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	8	
+US_01_02	TRAILER_BRICKS	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	9	
+US_01_02		trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	10	2 Cargo Container [2]
+US_01_02		international_transtar_4070a	UI_VEHICLE_INTERNATIONAL_TRANSTAR_4070A_NAME	International Transtar 4070A	11	
+US_01_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	12	5 Wooden Planks [1]
+US_01_02		trailer_flatbed_2	UI_TRAILER_FLATBED_2_NAME	Flatbed Trailer	13	2 Wooden Planks [1]
+US_01_02		trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	14	2 Metal Beams [2]
+US_01_02		trailer_flatbed_2	UI_TRAILER_FLATBED_2_NAME	Flatbed Trailer	15	2 Vehicle Spare Parts [1]
+US_01_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	16	2 Service Spare Parts [1]
+US_01_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	0	
+US_01_03		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	1	2 Concrete Blocks [1]|1 Metal Beams [2]
+US_01_03		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	2	2 Metal Beams [2]
+US_01_03	us_01_03_twin_repair	ws_6900xd_twin	UI_VEHICLE_WS_6900XD_TWIN_NAME	Western Star 6900 TwinSteer	3	
+US_01_03		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	4	
+US_01_03		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	5	
+US_01_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+US_01_03		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	7	
+US_01_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	8	
+US_01_03		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	9	
+US_01_03		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	10	1 Service Spare Parts [1]|1 Metal Beams [2]
+US_01_03		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+US_01_03	dropped_vechicle_2	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	12	
+US_01_03	dropped_vechicle_1	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	13	
+US_01_04		pacific_p16	UI_VEHICLE_PACIFIC_P16_NAME	Pacific P16	0	
+US_01_04		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	1	
+US_01_04		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	2	2 Wooden Planks [1]
+US_01_04		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	3	1 Metal Beams [2]
+US_01_04		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	4	2 Concrete Slab [2]
+US_01_04		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	5	1 Metal Beams [2]
+US_01_04		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	6	
+US_01_04		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	7	1 Concrete Slab [2]
+US_01_04		trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	8	1 Metal Beams [2]|1 Concrete Slab [2]
+US_01_04	us_01_04_dropped_car	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	9	
+US_01_04	us_01_04_special	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	10	
+US_01_04		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+US_02_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	0	
+US_02_01		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	1	
+US_02_01		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	2	
+US_02_01		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	3	
+US_02_01	LOST_TRAILER	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	4	
+US_02_01	HUMMER	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	5	
+US_02_01	EQUIPMENT	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	6	
+US_02_01	STUCK_SCOUT_R	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	7	
+US_02_01	SERVICE	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	8	
+US_02_01		scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	9	1 Service Spare Parts [1]
+US_02_01	WASTE	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	10	
+US_02_01	SUPPLIES_A	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	11	
+US_02_01		trailer_flatbed_2	UI_TRAILER_FLATBED_2_NAME	Flatbed Trailer	12	
+US_02_01	US_02_01_RIG	semitrailer_oil_rig	UI_SEMITRAILER_OIL_RIG_NAME	Oil Rig Salvage Semi-Trailer	13	
+US_02_01		trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	14	
+US_02_01		royal_bm17	UI_VEHICLE_ROYAL_BM17_NAME	Royal BM17	15	
+US_02_02		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	0	
+US_02_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	1	
+US_02_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	2	
+US_02_02	SERVICE_TRUCK	international_paystar_5070	UI_VEHICLE_INTERNATIONAL_PAYSTAR_5070_NAME	International Paystar 5070	3	
+US_02_02	WORKING_STIFF	cat_745c	UI_VEHICLE_CAT_745C_NAME	Caterpillar 745С	4	
+US_02_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	5	
+US_02_02		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	6	
+US_02_02	US_02_02_RIG	semitrailer_oil_rig	UI_SEMITRAILER_OIL_RIG_NAME	Oil Rig Salvage Semi-Trailer	7	
+US_02_02	US_02_02_ECOGROUP	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	8	
+US_02_03	DERRY_LONGHORN_3194	derry_longhorn_3194	UI_VEHICLE_DERRY_LONGHORN_3194_NAME	Derry Longhorn 3194	0	
+US_02_03		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	1	
+US_02_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	2	
+US_02_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	3	
+US_02_03	STUCK_SCOUT	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	4	
+US_02_03	STOLEN_OIL	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	5	
+US_02_03	BOAT_CAR	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	6	
+US_02_03	METEO_LAB	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	7	
+US_02_03	OIL_FOR_FISHERS	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	8	
+US_02_03	OUT_SCOUT	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	9	
+US_02_03	US_02_03_RIG	semitrailer_oil_rig	UI_SEMITRAILER_OIL_RIG_NAME	Oil Rig Salvage Semi-Trailer	10	
+US_02_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+US_02_03		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	12	
+US_02_03		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	13	2 Service Spare Parts [1]
+US_02_03		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	14	1 Metal Beams [2]
+US_02_04		semitrailer_gooseneck_4	UI_SEMITRAILER_GOOSENECK_3_NAME	Gooseneck Semi-Trailer	0	2 Metal Beams [2]
+US_02_04		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	1	
+US_02_04		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	2	
+US_02_04	us_02_04_dropped	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	3	
+US_02_04		ank_mk38	UI_VEHICLE_ANK_MK38_NAME	ANK MK38	4	
+US_02_04	us_02_04_fragile	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	5	
+US_02_04	us_02_04_sideboard	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	6	
+US_02_04	us_02_04_main_delivery	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	7	
+US_03_01	US_03_01_TSK_02_TRUCK	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	0	
+US_03_01	US_03_01_TSK_03_TRUCK_01	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	1	2 Vehicle Spare Parts [1]
+US_03_01	US_03_01_TSK_03_TRUCK_02	khan_lo4f	UI_VEHICLE_KHAN_LO4F_NAME	KHAN Lo4F	2	
+US_03_01	US_03_01_TSK_04_TRUCK	chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	3	
+US_03_01	US_03_01_TSK_06_TRUCK	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	4	
+US_03_01	US_03_01_TSK_07_TRUCK	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	5	
+US_03_01	US_03_01_TSK_08_TRUCK	ws_4964_white	UI_VEHICLE_WS_4964_WHITE_NAME	White Western Star 4964	6	
+US_03_01	US_03_01_TSK_09_TRUCK	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	7	
+US_03_01	US_03_01_TSK_10_TRUCK	trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	8	1 Medium Logs
+US_03_01		trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	9	
+US_03_01		pacific_p512	UI_VEHICLE_PACIFIC_P512_NAME	Pacific P512 PF	10	
+US_03_02	TRAIN	train	UI_TRAIN_NAME	Diesel Locomotive	0	
+US_03_02	FUEL_TANK	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	1	
+US_03_02	SCOUTTRAILER	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	2	2 Consumables [1]
+US_03_02	TOR	pacific_p12w	UI_VEHICLE_PACIFIC_P12W_NAME	Pacific P12	3	
+US_03_02	CELL	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	4	1 Oversized Cargo [4]
+US_03_02	LOST_TRUCK_01	derry_longhorn_4520	UI_VEHICLE_DERRY_LONGHORN_4520_NAME	Derry Longhorn 4520	5	
+US_03_02	TRUCKINRIVER	ws_4964_white	UI_VEHICLE_WS_4964_WHITE_NAME	White Western Star 4964	6	
+US_03_02		paystar_5600ts	UI_VEHICLE_INTERNATIONAL_PAYSTAR_5600TS_NAME	International Paystar 5600TS	7	
+US_03_02	LOST_TRUCK_TRAILER_01	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	8	
+US_04_01	US_04_01_CAT770G	cat_770g	UI_VEHICLE_CAT_770G_NAME	Caterpillar 770G	0	
+US_04_01	US_04_01_CAT770_TRAILER	semitrailer_special_w_cat_770	UI_SEMITRAILER_SPECIAL_W_CAT_770_NAME	Disassembled Caterpillar 770G	1	
+US_04_01	US_04_01_CATTH357	cat_th357	UI_VEHICLE_CAT_TH357_NAME	Caterpillar TH357	2	
+US_04_01	US_04_01_TSK_01_TRAILER	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	3	
+US_04_01	US_04_01_TSK_02_TRUCK	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	4	
+US_04_01	US_04_01_TSK_05_TRAILER	scout_trailer_flatbed_1	UI_TRAILER_SCOUT_FLATBED_1_NAME	Small Scout Flatbed	5	1 Fuel [1]
+US_04_01	US_04_01_TSK_06_TRUCK	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	6	
+US_04_01	US_04_01_TSK_07_TRUCK	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	7	
+US_04_01	US_04_01_TSK_08_TRUCK	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	8	
+US_04_01	US_04_01_TSK_09_TRUCK	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	9	
+US_04_01	US_04_01_TSK_10_TRAILER	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	10	2 Wooden Planks [1]
+US_04_01	US_04_01_TSK_12_TRUCK	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+US_04_01	US_04_01_TSK_13_TRUCK	chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	12	
+US_04_01		trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	13	
+US_04_01	US_04_01_TSK_14_TRUCK	don_71	UI_VEHICLE_DON_71_NAME	DON 71	14	
+US_04_01	US_04_01_CAT_SEMITRAILER	semitrailer_cat770g	UI_SEMITRAILER_CAT770G_NAME	Heavy Rock Trailer	15	
+US_04_01	US_04_01_TUBING_TRUCK	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	16	
+US_04_01	US_04_01_CAT_SEMITRAILER_02	semitrailer_cat770g	UI_SEMITRAILER_CAT770G_NAME	Heavy Rock Trailer	17	
+US_04_02	OILRESERVUARS	semitrailer_oil_refinery	UI_SEMITRAILER_OIL_REFINERY_NAME	Turbo Generator Stator	0	
+US_04_02	DROWNSCOUT	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	1	
+US_04_02		cat_th357	UI_VEHICLE_CAT_TH357_NAME	Caterpillar TH357	2	
+US_04_02	TOOLS	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	3	
+US_04_02	TITAN	ws_6900xd_twin	UI_VEHICLE_WS_6900XD_TWIN_NAME	Western Star 6900 TwinSteer	4	
+US_04_02	HEAVYTANK	semitrailer_heavy_oiltank	UI_SEMITRAILER_HEAVY_OILTANK_NAME	Heavy Fuel Tanker Semi-Trailer	5	
+US_04_02	TRAILERWAREHOUSE	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	6	
+US_04_02	SCOUTFUEL	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	7	
+US_04_02	BROKENTRUCK	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	8	
+US_04_02	INSPECTTRIALER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	9	
+US_04_02		trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	10	2 Medium Pipes [2]
+US_06_01	US_06_01_GAS_CONT_TANK	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	0	
+US_06_01	US_06_01_TSK_10_TRUCK	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	1	2 Consumables [1]
+US_06_01	US_06_01_TSK_02_TRUCK	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	2	
+US_06_01	US_06_01_TSK_04_TRUCK	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	3	
+US_06_01	US_06_01_TSK_05_TRUCK	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	4	2 Cement [1]
+US_06_01	US_06_01_TSK_07_TRUCK	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	5	5 Bricks [1]
+US_06_01	US_06_01_TSK_08_TRUCK	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	6	5 Wooden Planks [1]
+US_06_01	US_06_01_TSK_09_TRUCK	don_71	UI_VEHICLE_DON_71_NAME	DON 71	7	
+US_06_01		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	8	
+US_06_01		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	9	
+US_06_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	10	
+US_06_01		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	11	
+US_06_01	US_06_01_TSK_11_TRUCK	aramatsu_forester	UI_VEHICLE_ARAMATSU_FORESTER__NAME	Aramatsu Forester	12	
+US_06_02	CABIN_01	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	0	
+US_06_02	CABIN_02	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	1	
+US_06_02	CABIN_03	cargo_cabin_01	UI_TRAILER_CARGO_CABIN_01_NAME	Portable Cabin	2	
+US_06_02	SCOUT_01	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	3	
+US_06_02	OILTRUCK	international_paystar_5070	UI_VEHICLE_INTERNATIONAL_PAYSTAR_5070_NAME	International Paystar 5070	4	
+US_06_02	OILTRAILER	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	5	
+US_06_02	06_02BROKENTRUCK	ank_mk38	UI_VEHICLE_ANK_MK38_NAME	ANK MK38	6	
+US_06_02	TURNEDSCOUT	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	7	
+US_06_02	TURNEDTRAILER	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	8	
+US_06_02	06_02_LOADSTAR	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	9	
+US_06_02	FIREWORKSTRAILER	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	10	
+US_06_02	FUELST_01	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+US_06_02	FUELST_02	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	12	
+US_06_02	TRAILER_01	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	13	
+US_06_02	06_02SCOUTTRAILER2	scout_trailer_offroad	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	14	2 Vehicle Spare Parts [1]
+US_06_02	06_02SCOUTTRAILER1	scout_trailer_offroad	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	15	2 Vehicle Spare Parts [1]
+US_06_02	LUMBERTRAILER	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	16	
+US_06_02	KARTERTRAILER	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	17	
+US_07_01	GEN_01	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	0	
+US_07_01	SPEC_01	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	1	
+US_07_01	RIDER_01	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	2	
+US_07_01	RIDER_02	chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	3	
+US_07_01		semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	4	
+US_07_01	EVA_02	tayga_6436	UI_VEHICLE_TAYGA_6436_NAME	Tayga 6436	5	
+US_07_01	EVA_03	voron_grad	UI_VEHICLE_VORON_GRAD_NAME	Voron Grad	6	
+US_07_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	7	
+US_07_01	RACING_1	azov_43_191_sprinter	UI_VEHICLE_AZOV_42_191_SPRINTER__NAME	Azov 43-191 \"Sprinter\"	8	
+US_07_01	BUGGY_01	gor_by4	UI_VEHICLE_GOR_BY4_NAME	Gor BY-4	9	
+US_07_01		semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	10	
+US_07_01	CONNECT	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+US_07_01	CAREER_01	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	12	
+US_07_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	13	
+US_07_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	14	
+US_07_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	15	
+US_07_01	RIDER_03	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	16	
+US_07_01	RIDER_04	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	17	
+US_07_01	CAREER_02	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	18	
+US_07_01	EVA_01	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	19	
+US_07_01		trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	20	
+US_09_01	WORKER_SCOUT	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	0	
+US_09_01		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	1	
+US_09_01	GOLD_TRUCK_01	cat_745c	UI_VEHICLE_CAT_745C_NAME	Caterpillar 745С	2	
+US_09_01	GOLD_TRUCK_02	ws_6900xd_twin	UI_VEHICLE_WS_6900XD_TWIN_NAME	Western Star 6900 TwinSteer	3	
+US_09_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	4	
+US_09_01		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	5	
+US_09_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+US_09_01	FIRE_STATION_TRUCK_09	derry_special_15c177	UI_VEHICLE_DERRY_SPECIAL_15C177_NAME	Derry Special 15C-177	7	
+US_09_01		trailer_watertank	UI_TRAILER_WATERTANK_NAME	Water Carrier Trailer	8	
+US_09_01	TRAILER_BAGS_09	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	9	2 Cement [1]
+US_09_01	RANGER_SCOUT	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	10	
+US_09_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	11	1 Small Pipes [2]
+US_09_01		cat_th357	UI_VEHICLE_CAT_TH357_NAME	Caterpillar TH357	12	
+US_09_02	FORGOTTEN_TRAILER_09	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	0	
+US_09_02	ZIKZ_VEHICLE_09	zikz_566a	UI_VEHICLE_ZIKZ_566A_NAME	ZiKZ 566A	1	
+US_09_02		freightliner_114sd	UI_VEHICLE_FREIGHTLINER_114SD_NAME	Freightliner 114SD	2	
+US_09_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	3	
+US_09_02	DON_SCOUT_09	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	4	
+US_09_02		semitrailer_gooseneck_4	UI_SEMITRAILER_GOOSENECK_3_NAME	Gooseneck Semi-Trailer	5	
+US_09_02	LOGS_VEHICLE_09	international_fleetstar_f2070a	UI_VEHICLE_FLEETSTAR_F2070A_NAME	Fleetstar F2070A	6	
+US_09_02		ank_mk38_ht	UI_VEHICLE_ANK_MK38_CIVILIAN_NAME	ANK MK38 CIVILIAN	7	
+US_09_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	8	
+US_09_02	CRASH_VEHICLE_09_02	cat_ct680	UI_VEHICLE_CAT_CT680_NAME	Caterpillar CT680	9	
+US_09_02	CRASH_VEHICLE_09_01	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	10	
+US_09_02		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	11	
+US_09_02		trailer_log_pole	UI_TRAILER_LOGPOLE_NAME	Log Carrier Rear	12	
+US_09_02	TATRA_FARM_09	freightliner_m916a1	UI_VEHICLE_FREIGHTLINER_M916A1_NAME	Freightliner M916A1	13	
+US_09_02	RENEGADE_SCOUT_09	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	14	
+US_09_02		gmc_9500	UI_VEHICLE_GMC_9500_NAME	GMC MH9500	15	
+US_09_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	16	
+US_10_01		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	0	
+US_10_01	US_10_01_NEW_TRUCK_01	kenworth_963	UI_VEHICLE_KENWORTH_963_NAME	Kenworth 963	1	
+US_10_01	US_10_01_OIL_TANK_04	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	2	
+US_10_01	TRUCK_10_01_01	ford_clt9000	UI_VEHICLE_FORD_CLT9000_NAME	Ford CLT9000	3	
+US_10_01	US_10_01_OIL_TANK_03	trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	4	
+US_10_01	US_10_01_OIL_TANK_02	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	5	
+US_10_01	US_10_01_DELIVERY_TRAILER_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	6	
+US_10_01	US_10_01_DELIVERY_TRAILER_02	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	7	
+US_10_01	US_10_01_HEAVY_SEMITRAILER_01	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	8	
+US_10_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	9	
+US_10_01		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	10	
+US_10_01		ws_4964_white	UI_VEHICLE_WS_4964_WHITE_NAME	White Western Star 4964	11	
+US_10_01	US_10_01_TRAILER_GENERATOR	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	12	
+US_10_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	13	
+US_10_01		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	14	
+US_10_01		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	15	
+US_10_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	16	
+US_10_01		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	17	
+US_10_02	US_10_02_TRUCK_01	international_fleetstar_f2070a	UI_VEHICLE_FLEETSTAR_F2070A_NAME	Fleetstar F2070A	0	
+US_10_02		tayga_6436	UI_VEHICLE_TAYGA_6436_NAME	Tayga 6436	1	
+US_10_02	US_10_02_OILTANK_1	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	2	
+US_10_02	US_10_02_DELIVERY_TRUCK_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	3	
+US_10_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	4	
+US_10_02	US_10_02_SCOUT_CARGO_01	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	5	
+US_10_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	6	
+US_10_02	US_10_02_SCOUT_OILTANK_01	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	7	
+US_10_02	US_10_02_FOOD_TRAILER_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	8	
+US_10_02	US_10_02_FOOD_TRAILER_02	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	9	
+US_10_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	10	
+US_10_02	US_10_02_TRUCK_03	mack_defense_m917	UI_VEHICLE_MACK_DEFENSE_M917_NAME	Mack Defense M917	11	
+US_10_02	US_10_02_BOAT_01	semitrailer_fishing_boat	UI_SEMITRAILER_FISHING_BOAT_NAME	Semi-Trailer with a fishing boat	12	
+US_10_02	US_10_02_TRUCK_02	international_transtar_4070a	UI_VEHICLE_INTERNATIONAL_TRANSTAR_4070A_NAME	International Transtar 4070A	13	
+US_10_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	14	
+US_10_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	15	
+US_11_01	STRUCK_NOT_BROKEN_01	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	0	
+US_11_01	LOST_TRAILERS_01	semitrailer_stepdeck_5	UI_SEMITRAILER_STEPDECK_4_NAME	Stepdeck Semi-Trailer	1	
+US_11_01	TAMER_TROLLS	burlak_6x6	UI_VEHICLE_BURLAK_6X6_NAME	Burlak 6x6	2	
+US_11_01	MISTAKES_HAPPEN_01	trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	3	
+US_11_01	CORNERED_01	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	4	
+US_11_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	5	
+US_11_01	CABLE_CAR	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	6	
+US_11_01	CITY_CONSTRUCTION	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	7	
+US_11_01	WRONG_TURN_01	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	8	
+US_11_01	FRIENDLY_HELP_01	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	9	
+US_11_01	US_11_01_REPAIR_WAREHOUSE	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	10	
+US_11_01	FAILED_MOVE_01	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	11	
+US_11_01	FRIENDLY_HELP_02	chevrolet_kodiakc70	UI_VEHICLE_CHEVROLET_KODIAKC70_NAME	Chevrolet Kodiak C70	12	
+US_11_01	REQUIRED_TOOLS	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	13	
+US_11_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	14	2 Cement [1]
+US_11_01	WRONG_TURN_TRUCK	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	15	
+US_11_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	16	
+US_11_01	US_11_01_LOST_CARGO	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	17	2 Service Spare Parts [1]
+US_11_01	TEST_MOUNTAIN	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	18	
+US_11_01		semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	19	2 Wooden Planks [1]
+US_11_01	LEFT	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	20	
+US_11_01	RECHARGING_01	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	21	
+US_11_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	0	
+US_11_02		voron_ae4380	UI_VEHICLE_VORON_AE4380_NAME	Voron AE-4380	1	
+US_11_02	DELIVER_02	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	2	
+US_11_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	3	
+US_11_02		scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	4	
+US_11_02	MOVIE_01	semitrailer_star	UI_SEMITRAILER_STAR_NAME	Movie Star's Trailer	5	
+US_11_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	6	
+US_11_02		semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	7	
+US_11_02		scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	8	
+US_11_02	DELIVER_03	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	9	
+US_11_02		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	10	
+US_11_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	11	
+US_11_02	DELIVER_01	tuz_166	UI_VEHICLE_TUZ_166_NAME	TUZ 166	12	
+US_11_02	GENERATOR_01	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	13	
+US_11_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	14	
+US_11_02	PLANE_01	semitrailer_stepdeck_plane_01	UI_SEMITRAILER_STEPDECK_PLANE_NAME	Wide Flatbed Semi-Trailer	15	1 Part of the airplane fuselage [5]
+US_11_02	NEO_FALCON	neo_falcon_2000	UI_VEHICLE_NEO_FALCON_2000_NAME	Neo Falcon 2000	16	
+US_11_02	SEARCH_01	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	17	
+US_12_01		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	0	
+US_12_01		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	1	
+US_12_01	TRANSFORM	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	2	
+US_12_01	LEFT_LOAD	cat_ct680	UI_VEHICLE_CAT_CT680_NAME	Caterpillar CT680	3	
+US_12_01		semitrailer_stepdeck_5	UI_SEMITRAILER_STEPDECK_4_NAME	Stepdeck Semi-Trailer	4	4 Cement [1]
+US_12_01	TELESCOPE_TRUCKS	semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	5	4 Consumables [1]
+US_12_01		don_71	UI_VEHICLE_DON_71_NAME	DON 71	6	
+US_12_01	STATOR_01	semitrailer_reactor_starter	UI_SEMITRAILER_REACTOR_STARTER_NAME	Turbo Generator Stator	7	
+US_12_01		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	8	
+US_12_01	SWAMP	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	9	
+US_12_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	10	
+US_12_01	SCIENTIFIC_MACHINE_01	mtb_8106	UI_VEHICLE_MTB_8106_NAME	MTB 8106 (Rock Grinder)	11	
+US_12_01	SCIENTIFIC_MACHINE_02	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	12	
+US_12_01	GEN_BRIDGE	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	13	
+US_12_01		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	14	1 Medium Logs
+US_12_01		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	15	1 Medium Logs
+US_12_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	16	
+US_12_01	BRIDGE_SPEC	semitrailer_special_w_cat_770	UI_SEMITRAILER_SPECIAL_W_CAT_770_NAME	Disassembled Caterpillar 770G	17	
+US_12_02	TUBING_01	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	0	
+US_12_02	DELIVERY_TOOLS_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	1	
+US_12_02	ENGINEERING_WORKS_01	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	2	
+US_12_02	DANGEROUS_01	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	3	
+US_12_02	SAD_RIDE_01	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	4	
+US_12_02	FALL_BRIDGE_01	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	5	
+US_12_02		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	6	1 Medium Logs
+US_12_02	BOILER_01	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	7	1 Industrial boiler [5]
+US_12_02	REPAIR_TRAILER_01	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	8	
+US_12_02	NIGHT_ERROR_01	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	9	
+US_12_02		semitrailer_watertank	UI_SEMITRAILER_WATERTANK_NAME	Heavy Water Carrier Trailer	10	
+US_12_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+US_12_02		semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	12	
+US_12_02	STUCK_MUD_01	semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	13	
+US_12_03	US_12_03_SCOUT_01	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	0	
+US_12_03	US_12_03_SCOUT_TRAILER_01	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	1	
+US_12_03	US_12_03_SCOUT_02	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	2	
+US_12_03	US_12_03_TRAILER_OIL_01	semitrailer_oil_refinery	UI_SEMITRAILER_OIL_REFINERY_NAME	Turbo Generator Stator	3	
+US_12_03	US_12_03_TRAILER_01	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	4	
+US_12_03	US_12_03_TRAILER_PARK_01	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	5	
+US_12_03	US_12_03_SCOUT_TRAILER_02	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	6	
+US_12_03	US_12_03_TRUCK_01	western_star_49x	UI_VEHICLE_WESTERN_STAR_49X_NAME	Western Star 49X	7	
+US_12_03	US_12_03_TRAILER_ENERGY	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	8	
+US_12_03	US_12_03_SCOUT_REPAIR_01	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	9	
+US_12_03	US_12_03_SERVICE_TOWER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	10	
+US_12_04	LOGS_PROBLEM_12	trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	0	1 Medium Logs
+US_12_04		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	1	
+US_12_04	FOREST_VECHICLE_12	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	2	
+US_12_04	FESTIVAL_PREPARING_12	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	3	
+US_12_04	WRONG_TURN_12	yar_87	UI_VEHICLE_YAR_87_NAME	YAR 87	4	
+US_12_04	UNFINISHED_BUSINESS_12	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	5	
+US_12_04	SLIPPERY_ROAD_12	international_paystar_5070	UI_VEHICLE_INTERNATIONAL_PAYSTAR_5070_NAME	International Paystar 5070	6	
+US_12_04	OIL_PROBLEMS_12	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	7	
+US_12_04	USEFUL_SEMITRAILER_12	semitrailer_stepdeck_plane_02	UI_SEMITRAILER_STEPDECK_PLANE_02_NAME	Wide Flatbed 3-Axle Semi	8	
+US_12_04	FEMM_DELIVERY	femm_37at	UI_VEHICLE_FEMM_37AT_NAME	FEMM 37-AT	9	1 Metal Beams [2]|1 Concrete Slab [2]
+US_12_04	ANTENNA_BUILDING_12	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	10	
+US_12_04	BAD_PARKING_PLACE_12	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	11	
+US_12_04		scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	12	2 Service Spare Parts [1]
+US_12_04	METAL_GENERATOR	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	13	
+US_12_04		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	14	1 ForkliftCaravanContainer
+US_12_04	OIL_PROBLEMS_TRAILER_12	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	15	
+US_14_01	US_14_01_ELEMENTAL_POWER_01	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	0	
+US_14_01	US_14_01_WAREHOUSE_01	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	1	
+US_14_01	US_14_01_STARTING_WORK	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	2	
+US_14_01	US_14_01_PIPES_02	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	3	
+US_14_01	US_14_01_CULTIVATOR	trailer_cultivator	UI_TRAILER_CULTIVATOR_NAME	Cultivator	4	
+US_14_01	US_14_01_SCOUT_FARM	earthroamer_lti	UI_VEHICLE_EARTHROMER_LTI_NAME	EarthRoamer LTi	5	
+US_14_01	US_14_01_PROBLEM	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	6	
+US_14_01	US_14_01_REPAIR_PROBLEM_01	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	7	
+US_14_01	US_14_01_MAKE_HASTE_01	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	8	
+US_14_01	US_14_01_HELP_FROM_01	ankatra_1160	UI_VEHICLE_ANKATRA_1160_NAME	Ankatra 1160	9	
+US_14_01	US_14_01_REPAIR_AREA_01	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	10	
+US_14_01	US_14_01_HELP_FROM_02	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	11	
+US_14_01		trailer_harvester	UI_TRAILER_HARVESTER_NAME	Potato Harvester	12	
+US_14_01	US_14_01_FORTRESS	semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	13	4 Bricks [1]
+US_14_01	US_14_01_EMERGENCY_01	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	14	
+US_14_01	US_14_01_PLANTER	trailer_planter	UI_TRAILER_PLANTER_NAME	Multi-row Planter	15	
+US_14_01	US_14_01_PROBLEM_WITH_TURNING_01	semitrailer_watertank	UI_SEMITRAILER_WATERTANK_NAME	Heavy Water Carrier Trailer	16	
+US_14_01	US_14_01_PROBLEM_WITH_TURNING_02	royal_bm17	UI_VEHICLE_ROYAL_BM17_NAME	Royal BM17	17	
+US_14_01	US_14_01_FUEL	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	18	
+US_14_01	US_14_01_LET	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	19	
+US_14_01	US_14_01_SHARP_TURN_01	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	20	
+US_14_02	US_14_02_TRUCK_04	international_fleetstar_f2070a	UI_VEHICLE_FLEETSTAR_F2070A_NAME	Fleetstar F2070A	0	
+US_14_02	US_14_02_HARVESTER	trailer_harvester	UI_TRAILER_HARVESTER_NAME	Potato Harvester	1	
+US_14_02	US_14_02_CULTIVATOR	trailer_cultivator	UI_TRAILER_CULTIVATOR_NAME	Cultivator	2	
+US_14_02	US_14_02_PLANTER	trailer_planter	UI_TRAILER_PLANTER_NAME	Multi-row Planter	3	
+US_14_02	US_14_02_TRACTOR	futom_7290ra	UI_VEHICLE_FUTOM_7290RA_NAME	Futom 7290RA	4	
+US_14_02	US_14_02_TRUCK_01	cat_ct680	UI_VEHICLE_CAT_CT680_NAME	Caterpillar CT680	5	
+US_14_02	US_14_02_SCOUT_TRAILER_02	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+US_14_02	US_14_02_SCOUT_TRAILER_01	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	7	
+US_14_02	US_14_02_TRUCK_03	earthroamer_sx	UI_VEHICLE_EARTHROAMER_SX_NAME	EarthRoamer SX	8	
+US_14_02	US_14_02_SERVICE_TRUCK_01	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	9	
+US_14_02	US_14_02_TRAILER_LOG	trailer_log_short	UI_TRAILER_LOGTRAILER_SHORT_NAME	Futom-S Logging Trailer	10	
+US_14_02		trailer_oiltank	UI_TRAILER_OILTANK_NAME	Fuel Carrier Trailer	11	
+US_14_02	US_14_02_TRAILER_SIDEBOARD	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	12	
+US_14_02	US_14_02_TRUCK_02	international_paystar_5070	UI_VEHICLE_INTERNATIONAL_PAYSTAR_5070_NAME	International Paystar 5070	13	
+US_14_02	US_14_02_TRAILER_HELP_01	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	14	
+US_14_02	US_14_02_TRUCK_HELP_01	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	15	
+US_14_02		trailer_log	UI_TRAILER_LOGTRAILER_NAME	Log Trailer	16	
+US_14_02	US_14_02_TRAILER_01	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	17	
+US_15_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	0	
+US_15_01	DELIVERY_TASK_02	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	1	
+US_15_01		semitrailer_flatbed_3	UI_SEMITRAILER_FLATBED_3_NAME	Short Flatbed Semi-Trailer with Parts	2	
+US_15_01	LIGHTHOUSE_01	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	3	
+US_15_01	DELIVERY_TASK_03	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	4	
+US_15_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	5	
+US_15_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+US_15_01	US_15_01_NEW_TRUCK_01	sleiter_mfk816	UI_VEHICLE_SLEITER_MFK816_NAME	Sleiter ST 816 \"Elephant\"	7	
+US_15_01	DELIVERY_TASK_01	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	8	
+US_15_01		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	9	
+US_15_01	PLATFORM_03	semitrailer_anchor	UI_SEMITRAILER_ANCHOR_NAME	Oil Platform Anchor	10	
+US_15_01	US_15_01_CABLE_TRAILER	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	11	
+US_15_02		trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	0	
+US_15_02	US_15_02_PLATFORM_01	semitrailer_oil_rig	UI_SEMITRAILER_OIL_RIG_NAME	Oil Rig Salvage Semi-Trailer	1	
+US_15_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	2	
+US_15_02	US_15_02_UNDER_ICE_01	scout_trailer_fishing_1	UI_TRAILER_SCOUT_FISHING_NAME	Fishing Trailer	3	
+US_15_02	US_15_02_HELP_TRUCK_01	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	4	
+US_15_02	US_15_02_UNDER_ICE_02	scout_trailer_fishing_2	UI_TRAILER_SCOUT_FISHING_NAME	Fishing Trailer	5	
+US_15_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+US_15_02	US_15_02_NEW_TRUCK	mercer_k520	UI_VEHICLE_MERCER_K520_NAME	Mercer K520	7	
+US_15_02	US_15_02_HIGHWAY_01	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	8	
+US_15_02	US_15_02_UNDER_ICE_03	scout_trailer_fishing_1	UI_TRAILER_SCOUT_FISHING_NAME	Fishing Trailer	9	
+US_15_02		semitrailer_flatbed_6	UI_SEMITRAILER_FLATBED_6_NAME	Flatbed Semi-Trailer Loaded with Parts	10	
+US_15_02	US_15_02_TRUCK_HELP_04	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	11	
+US_15_02	US_15_02_TUNNEL_01	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	12	
+US_15_02	US_15_02_TRAILER_RADAR	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	13	
+US_15_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	14	
+US_15_02	US_TRAILER_HELP_03	semitrailer_flatbed_3	UI_SEMITRAILER_FLATBED_3_NAME	Short Flatbed Semi-Trailer with Parts	15	
+US_15_02	US_15_02_BRICKS	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	16	
+US_15_02	US_15_02_HELP_TRUCK_02	royal_bm17	UI_VEHICLE_ROYAL_BM17_NAME	Royal BM17	17	1 Metal Beams [2]
+US_15_02	US_15_02_STUCK_TRUCK	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	18	
+US_15_02	US_15_02_SCOUT_TRAILER_WINTER_NEED	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	19	
+US_15_02		semitrailer_log_double_hinge	UI_SEMITRAILER_DOUBLE_LOG_NAME	Double Logging Semi-Trailer	20	
+US_16_01	US_16_01_CRANE_TRAILER	semitrailer_big_crane	UI_SEMITRAILER_BIG_CRANE_NAME	Special Crane Trailer	0	
+US_16_01	US_16_01_TRAILER_02	semitrailer_foldable_log	UI_TRAILER_FOLDABLE_LOGS_NAME	Foldable Logging Semi-Trailer	1	
+US_16_01	US_16_01_TRUCK_02	ank_mk38	UI_VEHICLE_ANK_MK38_NAME	ANK MK38	2	
+US_16_01	US_16_01_TRUCK_01	plad_440	UI_VEHICLE_PLAD_440_NAME	PLAD 440 “BUDDY”	3	
+US_16_01	US_16_01_SCOUT_02	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	4	
+US_16_01	GIANT_NEED_01	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	5	
+US_16_01	US_16_01_TRUCK_FACTORY	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	6	
+US_16_01	US_16_01_SCOUT_TRAILER_01	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	7	
+US_16_01	US_16_01_LOST_TRAILER	semitrailer_flatbed_3	UI_SEMITRAILER_FLATBED_3_NAME	Short Flatbed Semi-Trailer with Parts	8	
+US_16_01	US_16_01_LOST_TRUCK	ford_clt9000	UI_VEHICLE_FORD_CLT9000_NAME	Ford CLT9000	9	
+US_16_01	US_16_01_TRAILER_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	10	
+US_16_01	US_16_01_SCOUT_01	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	11	
+US_16_01	US_16_01_WATER_TRUCK	trailer_watertank	UI_TRAILER_WATERTANK_NAME	Water Carrier Trailer	12	
+US_16_01	US_16_01_TUNNEL_TRUCK	trailer_watertank	UI_TRAILER_WATERTANK_NAME	Water Carrier Trailer	13	
+US_16_02	WATER_MILL_01_TRUCK	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	0	
+US_16_02	US_16_02_HELIPAD_OILTANK	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	1	
+US_16_02	BAD_CURIOSITY_01	hib_billert_1980	UI_VEHICLE_HIB_BILLERT_1980_NAME	HIB Billert 1980	2	
+US_16_02	FUEL_TANK_01	semitrailer_oiltank	UI_SEMITRAILER_OILTANK_NAME	Fuel Carrier Semi-Trailer	3	
+US_16_02	US_16_02_RAILWAY_BRIDGE	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	4	
+US_16_02	POTEST_TAMEN_01	semitrailer_log_double_ls	UI_SEMITRAILER_LONG_DOUBLE_LOG_NAME	Forwood-LS Logging Semi-Trailer	5	
+US_16_02	SAWMILL_01	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	6	
+US_16_02	BROKEN_GATE_01	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	7	
+US_16_02	SHARP_TURN_01	international_loadstar_1700	UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME	International Loadstar 1700	8	
+US_16_02	CROOKED_PIT_01	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	9	2 Wooden Planks [1]
+US_16_02		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	10	
+US_16_03	US_16_03_TRAILER_HELP_01	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	0	
+US_16_03	US_16_03_NEW_TRUCK	sleiter_st833_chimera	UI_VEHICLE_SLEITER_ST833_CHIMERA_NAME	Sleiter ST 833 “Chimera”	1	
+US_16_03	US_16_03_FISHING_FARM_TRUCK	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	2	
+US_16_03	US_16_03_HELIPAD_FLATBAD	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	3	
+US_16_03	TREE_BLOCKAGE_TRAILER	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	4	
+US_16_03		semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	5	
+US_16_03	US_16_03_HELIPAD_FLATBAD_02	trailer_addon_maintainer	UI_TRAILER_MAINTAINER_NAME	Maintenance Trailer	6	
+US_16_03	US_16_03_GENERATOR_01	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	7	
+US_16_03	US_16_03_GENERATOR_02	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	8	
+US_16_03	16_03_TRUCK_HELP_02	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	9	
+US_16_03	WINTER_UPDATE_01	semitrailer_flatbed_5	UI_SEMITRAILER_FLATBED_5_NAME	Flatbed Semi-Trailer	10	
+US_16_03	US_16_03_BRIDGE_TRAILER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	11	
+US_16_03	US_16_03_TUBES_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	12	
+US_16_03	US_16_03_TRAILER_HELP_02	semitrailer_flatbed_6	UI_SEMITRAILER_FLATBED_6_NAME	Flatbed Semi-Trailer Loaded with Parts	13	
+US_16_03	US_16_03_ROCK_01	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	14	
+US_16_03	US_16_03_CONCRETE_DELIVERY_TRAILER	semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	15	2 Concrete Blocks [1]|1 Concrete Slab [2]
+US_16_03	US_16_03_POWERLINES_TRAILER	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	16	
+US_16_03		scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	17	
+US_16_03	16_03_TRUCK_HELP_01	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	18	
+US_16_03	US_16_03_TECHNICAL_TRAILER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	19	
+US_16_03	US_16_03_TRUCK_GATE	semitrailer_heavy_construction_equipment	UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME	Construction Rig Semi-Trailer	20	
+US_18_01	US_18_01_CHANGE_TRUCK	hib_billert_m816	UI_VEHICLE_HIB_BILLERT_M816_NAME	HIB Billert M816	0	1 Chemical Barrels [1]
+US_18_01	US_18_01_TOWER_SUPPLY_TRAILER	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	1	
+US_18_01	US_18_02_MAIN_CARGO_02	semitrailer_steam_turbine	UI_SEMITRAILER_STEAM_TURBINE_NAME	Steam Turbine	2	
+US_18_01	US_18_02_MAIN_CARGO_01	semitrailer_steam_turbine	UI_SEMITRAILER_STEAM_TURBINE_NAME	Steam Turbine	3	
+US_18_01	US_18_01_TREASURE_NATION_TRAILER	trailer_flatbed_special_2	UI_TRAILER_FLATBED_SPECIAL_2_NAME	Curtainside Trailer	4	
+US_18_01	US_18_01_TRAILER_DELIVERY_02	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	5	
+US_18_01	US_18_01_SCOUT_DELIVERY_01	international_scout_800	UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME	Scout 800	6	
+US_18_01		trailer_flatbed_ramps_4	UI_TRAILER_FLATBED_RAMPS_3_NAME	Ramped Flatbed Trailer	7	3 Tetrapod
+US_18_01	US_18_01_WATCHTOWERS_SUPPLY_SCOUT_TRAILER	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	8	
+US_18_01	US_18_01_TRAILER_DELIVERY_01	scout_trailer_heavy_repair	UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME	Large Service Scout Trailer	9	
+US_18_01	US_18_01_HOUSE_ALONE_SCOUT_TRAILER	scout_trailer_flatbed_2	UI_TRAILER_SCOUT_FLATBED_2_NAME	Scout Flatbed	10	2 Consumables [1]
+US_18_01	US_18_01_BEACH_SUPPLY_SCOUT_TRAILER	scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+US_18_01	US_18_01_LIGHTHOUSE_SUPPLY_SCOUT_TRAILER	trailer_sideboard_2	UI_TRAILER_SIDEBOARD_2_NAME	Sideboard Trailer	12	2 Service Spare Parts [1]
+US_18_01	US_18_01_OLD_FRIEND_TRAILER	semitrailer_stepdeck_plane_02	UI_SEMITRAILER_STEPDECK_PLANE_02_NAME	Wide Flatbed 3-Axle Semi	13	
+US_18_01	US_18_01_SCOUT_DELIVERY_02	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	14	
+US_18_01		semitrailer_flatbed_3	UI_SEMITRAILER_FLATBED_3_NAME	Short Flatbed Semi-Trailer with Parts	15	
+US_18_01	US_18_01_CROCODILE_FARM_SCOUT_TRAILER	scout_trailer_light_repair	UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME	Service Scout Trailer	16	
+US_18_02	US_18_02_BEACH_TRAILER	scout_trailer_offroad_cargo	UI_TRAILER_SCOUT_OFFROAD_NAME	Offroad Scout Trailer	0	
+US_18_02	US_18_02_STAR_TRAILER	semitrailer_star_dlc_18	UI_SEMITRAILER_STAR_DLC_18_NAME	Trailer Home	1	
+US_18_02	US_18_02_NEW_LAUNCH_TANK	trailer_watertank	UI_TRAILER_WATERTANK_NAME	Water Carrier Trailer	2	
+US_18_02	US_18_02_GARDEN_TRAILER	scout_trailer_offroad_tent	UI_TRAILER_SCOUT_OFFROAD_TENT_NAME	Curtainside Scout Trailer	3	
+US_18_02	US_18_02_UNFORTUNATE_OIL_TANK	semitrailer_heavy_oiltank	UI_SEMITRAILER_HEAVY_OILTANK_NAME	Heavy Fuel Tanker Semi-Trailer	4	
+US_18_02	US_18_02_CAR_FISHING	hummer_h2	UI_VEHICLE_HUMMER_H2_NAME	Hummer H2	5	
+US_18_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	6	
+US_18_02	US_18_02_HELICOPTER_TRAILER	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	7	
+US_18_02	US_18_02_CURSED_ISLAND_TRUCK	international_fleetstar_f2070a	UI_VEHICLE_FLEETSTAR_F2070A_NAME	Fleetstar F2070A	8	
+US_18_02	US_18_02_RACING_TRUCK	chevrolet_ck1500	UI_VEHICLE_CHEVROLET_CK1500_NAME	Chevrolet CK1500	9	
+US_18_02	US_18_02_POOR_LOGISTICS_TRAILER	semitrailer_sideboard_5	UI_SEMITRAILER_SIDEBOARD_4_NAME	Sideboard Semi-Trailer	10	
+US_18_02		scout_trailer_oiltank	UI_TRAILER_SCOUT_OILTANK_NAME	Scout Fuel Carrier	11	
+US_18_02	US_18_02_FERTILIZERS_GENERATOR	trailer_generator	UI_TRAILER_GENERATOR_NAME	Generator	12	
+US_18_02	US_18_02_PORTABLE_RADAR	scout_trailer_radar	UI_SCOUT_TRAILER_RADAR_NAME	Prototype Exploration Unit	13	
+US_18_02	US_18_02_TRANSFORMER_TRAILER	semitrailer_coiled_tubing	UI_SEMITRAILER_COILED_TUBING_NAME	Coiled Tubing Semi-Trailer	14	
+US_18_02	US_18_02_ANTENNA_TRUCK	trailer_service_2	UI_TRAILER_SERVICE_2_NAME	Service Trailer	15	
+US_18_02	US_18_02_NEW_TRUCK	mercer_6x6r_230	UI_VEHICLE_MERCER_6X6_R230_NAME	Mercer R230	16	

@@ -1,0 +1,1011 @@
+Bricks [1]
+    Alaska
+        Mountain River
+            US_02_02_WAREHOUSE_02
+        North Port
+            US_02_01_WAREHOUSE_01
+            US_02_01_WAREHOUSE_02
+    Amur
+        Cosmodrome
+            RU_04_02_WAREHOUSE
+        Urska River
+            RU_04_01_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_PORT
+    British Columbia
+        North Peak National Park
+            US_10_02_FACTORY_01
+    Maine
+        Yellowrock National Forest
+            US_06_02_WAREHOUSE_04
+    Michigan
+        Black River
+            US_01_01_WAREHOUSE
+        Smithville Dam
+            US_01_02_WAREHOUSE_01
+    Quebec
+        Lake Ribiere
+            US_15_02_OLD_FACTORY
+    Scandinavia
+        Mountain Ridge
+            US_11_01_WAREHOUSE_02
+    Washington
+        Selten River National Park
+            US_16_02_WAREHOUSE_02
+    Yukon
+        Flooded Foothills
+            US_04_01_WARE_01
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_RAILWAY_STORAGE
+            RU_17_02_WAREHOUSE_STORAGE
+Burnt logs
+    Ontario
+        The Albany River
+            US_09_01_BL_STORAGE
+Cabin [2]
+    Austria
+        Foothills
+            US_14_02_PORT
+    Washington
+        Selten River National Park
+            US_16_02_WAREHOUSE_02
+Cargo Container [2]
+    Alaska
+        North Port
+            US_02_01_PORT
+    Amur
+        Urska River
+            RU_04_01_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_WAREHOUSE_01_BIG
+    British Columbia
+        Duncan Bay
+            US_10_01_Factory_02
+        North Peak National Park
+            US_10_02_WAREHOUSE_01
+    Kola Peninsula
+        Imandra
+            RU_03_02_WAREHOUSE_LOADING
+    Maine
+        The Lowland
+            US_06_01_PIER_PUP
+    Michigan
+        Island Lake
+            US_01_03_RETRANSLATOR
+    Quebec
+        Harbor
+            US_15_01_PORT
+            US_15_01_PORT
+    Taymyr
+        Drowned Lands
+            RU_02_02_RAILWAY
+    Washington
+        Solace Bay
+            US_16_01_PORT
+    Wisconsin
+        Black Badger Lake
+            US_03_01_WAREHOUSE_02
+    Yukon
+        Flooded Foothills
+            US_04_01_RAILWAY
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_RAILWAY_PLATFORM
+Cement [1]
+    Alaska
+        Mountain River
+            US_02_02_WAREHOUSE_01
+            US_02_02_WAREHOUSE_02
+        North Port
+            US_02_01_WAREHOUSE_02
+        White Valley
+            US_02_03_WAREHOUSE
+    Amur
+        Chernokamensk
+            RU_04_04_WAREHOUSE_02
+    Austria
+        Foothills
+            US_14_02_CITY_WAREHOUSE
+    Belozersk Glades
+        Crossroads
+            RU_08_01_WEREHOUSE_2
+    Don
+        Antonovskiy Nature Reserve
+            RU_05_02_RAILWAY
+    Maine
+        The Lowland
+            US_06_01_WH_01
+    North Carolina
+        Flatland
+            US_12_03_WAREHOUSE
+    Quebec
+        Harbor
+            US_15_01_WAREHOUSE
+        Lake Ribiere
+            US_15_02_WAREHOUSE_01
+    Scandinavia
+        By the Lake
+            US_11_02_CONCRETE_01
+    Taymyr
+        Drowned Lands
+            RU_02_02_RAILWAY
+        Rift
+            RU_02_04_SUPPLY_PICKUP
+    Washington
+        Solace Bay
+            US_16_01_CONCRETE
+    Yukon
+        Flooded Foothills
+            US_04_01_WARE_01
+Concrete Blocks [1]
+    Alaska
+        Pedro Bay
+            US_02_04_WAREHOUSE_LOADING
+        White Valley
+            US_02_03_FACTORY
+            US_02_03_WAREHOUSE
+    Amur
+        Chernokamensk
+            RU_04_04_WAREHOUSE_02
+        Urska River
+            RU_04_01_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_PORT
+    British Columbia
+        North Peak National Park
+            US_10_02_FACTORY_02
+    Don
+        Factory Grounds
+            RU_05_01_SMALL_PORT
+    Michigan
+        Black River
+            US_01_01_WAREHOUSE
+        Smithville Dam
+            US_01_02_WAREHOUSE_02
+    Quebec
+        Lake Ribiere
+            US_15_02_WAREHOUSE_01
+    Wisconsin
+        Black Badger Lake
+            US_03_01_RAILWAY
+Concrete Slab [2]
+    Alaska
+        Mountain River
+            US_02_02_WAREHOUSE_01
+            US_02_02_WAREHOUSE_02
+    Amur
+        Cosmodrome
+            RU_04_02_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_PORT
+    British Columbia
+        North Peak National Park
+            US_10_02_FACTORY_02
+    Don
+        Factory Grounds
+            RU_05_01_SMALL_PORT
+    Michigan
+        Smithville Dam
+            US_01_02_WAREHOUSE_01
+    Quebec
+        Lake Ribiere
+            US_15_02_WAREHOUSE_01
+    Taymyr
+        Drowned Lands
+            RU_02_02_FACTORY
+        Quarry
+            RU_02_01_PICKUP_QUARRY
+    Wisconsin
+        Black Badger Lake
+            US_03_01_RAILWAY
+Consumables [1]
+    Alaska
+        Mountain River
+            US_02_02_SERVICE
+        North Port
+            US_02_01_PORT
+        White Valley
+            US_02_03_AIRPORT
+    Austria
+        Foothills
+            US_14_02_FARM
+            US_14_02_FARM_FLOODED
+    Belozersk Glades
+        Crossroads
+            RU_08_01_RAILROAD
+        The Institute
+            RU_08_02_STORAGE
+    British Columbia
+        Duncan Bay
+            US_10_01_FARM
+        North Peak National Park
+            US_10_02_FARM_01
+    Maine
+        The Lowland
+            US_06_01_PIER_PUP
+    Michigan
+        Black River
+            US_01_01_FARM
+        Smithville Dam
+            US_01_02_FARM
+    Quebec
+        Harbor
+            US_15_01_WAREHOUSE
+        Lake Ribiere
+            US_15_02_WAREHOUSE_PARKING
+    Washington
+        Solace Bay
+            US_16_01_CITY
+    Yukon
+        Big Salmon Peak
+            US_04_02_WAREHOUSE_4
+        Flooded Foothills
+            US_04_01_WARE_01
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_FOOD_RAILWAY
+Drilling Equipment [4]
+    Alaska
+        Mountain River
+            US_02_02_OIL_SERVICE
+        North Port
+            US_02_01_PORT
+        White Valley
+            US_02_03_AIRPORT
+    Michigan
+        Island Lake
+            US_01_03_ABANDONED_DS_03
+    Quebec
+        Lake Ribiere
+            US_15_02_QUARRY
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_CHEMICAL_STATION
+Drilling Spare Parts [1]
+    Alaska
+        Mountain River
+            US_02_02_OIL_SERVICE
+        North Port
+            US_02_01_OIL_SERVICE
+        White Valley
+            US_02_03_OIL_SERVICE
+    Quebec
+        Lake Ribiere
+            US_15_02_WAREHOUSE_PARKING
+Empty Container
+    Washington
+        Solace Bay
+            US_16_01_PORT
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_RAILWAY_PLATFORM
+Fertilizer [1]
+    Austria
+        Foothills
+            US_14_02_FARM
+        Unterfeld
+            US_14_01_FARM_CARGO_03
+    Washington
+        Solace Bay
+            US_16_01_MINE
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_OLD_FARM_STORAGE
+Fuel [1]
+    Alaska
+        Mountain River
+            US_02_02_GAS_01_PICKUP
+            US_02_02_GAS_02_PICKUP
+        North Port
+            US_02_01_FUEL_PICKUP_01
+            US_02_01_FUEL_PICKUP_02
+        White Valley
+            US_02_03_DRILL_SITE
+            US_02_03_GAS_PICKUP
+    Amur
+        Cosmodrome
+            RU_04_02_FUEL_STORAGE
+        Urska River
+            RU_04_01_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_WAREHOUSE_01_BIG
+    Kola Peninsula
+        Imandra
+            RU_03_02_WAREHOUSE_LOADING
+    Maine
+        Yellowrock National Forest
+            US_06_02_WAREHOUSE_04
+    Michigan
+        Smithville Dam
+            US_01_02_BARRELS_LOADING
+            US_01_02_DRILLING
+    North Carolina
+        Reactive Zone
+            US_12_02_GAS_STATION
+    Ontario
+        The Albany River
+            US_09_01_GAS_STATION
+    Quebec
+        Harbor
+            US_15_01_OIL_FACTORY
+    Taymyr
+        Drowned Lands
+            RU_02_02_GAS_01
+        Quarry
+            RU_02_01_BLD_GAS
+    Tennessee
+        Burning Mill
+            US_07_01_FUEL_02
+    Washington
+        Solace Bay
+            US_16_01_CITY_OIL
+            US_16_01_TOWN
+    Wisconsin
+        Black Badger Lake
+            US_03_01_FUEL_STORAGE
+        Grainwoods River
+            US_03_02_FUEL_BASE_01
+    Yukon
+        Flooded Foothills
+            US_04_01_WARE_01
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_CHEMICAL_STATION
+Garbage [2]
+    Washington
+        Solace Bay
+            US_16_01_WAREHOUSE_02
+Hay Bale [1]
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_FARM_CENTER
+Industrial Chiller
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_CITY
+Industrial boiler [5]
+    North Carolina
+        Reactive Zone
+            US_12_02_WAREHOUSE_03
+Large Pipe [4]
+    Alaska
+        North Port
+            US_02_01_FACTORY_01
+            US_02_01_PORT
+        White Valley
+            US_02_03_WAREHOUSE
+    Amur
+        Cosmodrome
+            RU_04_02_WAREHOUSE_FARM
+    Washington
+        Solace Bay
+            US_16_01_PORT
+Long Logs
+    Alaska
+        North Port
+            US_02_01_LOG_STATION_02
+        White Valley
+            US_02_03_LOGS_01
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_LOGS_FELLING
+    Amur
+        Chernokamensk
+            US_04_04_LOGS_01
+        Urska River
+            RU_04_01_LOGSTATION
+    Austria
+        Foothills
+            US_14_02_LOG_STATION_BIG
+    Belozersk Glades
+        Heartlands
+            RU_08_03_LOG
+    Don
+        Antonovskiy Nature Reserve
+            RU_05_02_LOG
+    Kola Peninsula
+        Lake Kovd
+            RU_03_01_LOGS_01
+    Maine
+        The Lowland
+            US_06_01_LOGS_04
+    Michigan
+        Black River
+            US_01_01_LOG_STATION
+        Drummond Island
+            US_01_04_LOG_STATION
+    North Carolina
+        Oviro Hills
+            US_12_04_LOGS_BIG
+    Ontario
+        Burned Forest
+            US_09_02_LOGS
+    Scandinavia
+        By the Lake
+            US_11_02_LOG_02
+            US_11_02_LOG_03
+    Taymyr
+        Drowned Lands
+            RU_02_02_LOGS_03
+        Quarry
+            RU_02_01_LOGS_01
+    Wisconsin
+        Black Badger Lake
+            US_03_01_LOGS_04
+    Yukon
+        Big Salmon Peak
+            US_04_02_LOG_STATION
+        Flooded Foothills
+            US_04_01_LOGS_02_01
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_LOGGING_STORAGE_01
+Medium Logs
+    Alaska
+        North Port
+            US_02_01_LOG_STATION_02
+        White Valley
+            US_02_03_LOGS_02
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_LOGS_FELLING
+    Amur
+        Chernokamensk
+            US_04_04_LOGS_02
+            US_04_04_LOGS_03
+        Urska River
+            RU_04_01_LOGSTATION
+    Austria
+        Foothills
+            US_14_02_LOG_STATION_MIDDLE
+    Belozersk Glades
+        Crossroads
+            RU_08_01_LOG_STATION
+        Heartlands
+            RU_08_03_LOG
+        The Institute
+            RU_08_02_LOG_STORAGE
+    British Columbia
+        Duncan Bay
+            US_10_01_LOG_STATION_02
+        North Peak National Park
+            US_10_02_FACTORY_01
+    Don
+        Antonovskiy Nature Reserve
+            RU_05_02_LOG
+    Kola Peninsula
+        Lake Kovd
+            RU_03_01_LOGS_01
+    Maine
+        The Lowland
+            US_06_01_LOGS_04
+    Michigan
+        Black River
+            US_01_01_LOG_STATION
+        Island Lake
+            US_01_03_LOG_STATION
+        Smithville Dam
+            US_01_02_LOGSTATION
+    North Carolina
+        Oviro Hills
+            US_12_04_LOGS_BIG
+            US_12_04_LOGS_SMALL
+    Ontario
+        Burned Forest
+            US_09_02_LOGS
+    Scandinavia
+        By the Lake
+            US_11_02_LOG_01
+            US_11_02_LOG_03
+    Taymyr
+        Drowned Lands
+            RU_02_02_LOGS_03
+        Quarry
+            RU_02_01_LOGS_01
+    Washington
+        Selten River Mountains
+            US_16_03_LOG_STORAGE
+    Wisconsin
+        Black Badger Lake
+            US_03_01_LOGS_04
+        Grainwoods River
+            US_03_02_LOG_STATION_A
+    Yukon
+        Big Salmon Peak
+            US_04_02_LOG_STATION
+        Flooded Foothills
+            US_04_01_LOGS_01_01
+            US_04_01_LOGS_02_01
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_LOGGING_STORAGE_01
+Medium Pipes [2]
+    Alaska
+        Mountain River
+            US_02_02_WAREHOUSE_01
+            US_02_02_WAREHOUSE_02
+        North Port
+            US_02_01_WAREHOUSE_01
+            US_02_01_WAREHOUSE_02
+        White Valley
+            US_02_03_WAREHOUSE
+    North Carolina
+        Flatland
+            US_12_03_FACTORY_01
+    Washington
+        Solace Bay
+            US_16_01_PORT
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_CITY
+Medium Planks [2]
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_STOCK
+Metal Beams [2]
+    Alaska
+        Mountain River
+            US_02_02_FACTORY
+        North Port
+            US_02_01_FACTORY_01
+            US_02_01_FACTORY_02
+        White Valley
+            US_02_03_FACTORY
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_METAL_FACTORY_CARGO
+    Amur
+        Cosmodrome
+            RU_04_02_TOWN_STORAGE
+    Austria
+        Foothills
+            US_14_02_WAREHOUSE_01_BIG
+        Unterfeld
+            US_14_01_METAL_PLANE_01
+    Belozersk Glades
+        HarvestCorp
+            RU_08_04_COMPLEX
+    British Columbia
+        Duncan Bay
+            US_10_01_Factory_01
+        North Peak National Park
+            US_10_02_FACTORY_02
+    Kola Peninsula
+        Imandra
+            RU_03_02_METAL_CARGO
+        Lake Kovd
+            RU_03_01_PORT_PICKUP
+    Michigan
+        Black River
+            US_01_01_TOWN_STORAGE
+            US_01_01_WAREHOUSE
+        Island Lake
+            US_01_03_METAL_LOADING
+        Smithville Dam
+            US_01_02_WAREHOUSE_02
+    North Carolina
+        Flatland
+            US_12_03_FACTORY_02
+    Quebec
+        Lake Ribiere
+            US_15_02_OLD_FACTORY
+    Taymyr
+        Drowned Lands
+            RU_02_02_WAREHOUSE
+        Rift
+            RU_02_04_METAL_PICKUP
+        Zimnegorsk
+            RU_02_03_ABANDONED_FACTORY_PICKUP
+    Washington
+        Solace Bay
+            US_16_01_FACTORY
+    Yukon
+        Flooded Foothills
+            US_04_01_WARE_03
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_METAL_FACTORY
+Metal Rolls [1]
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_METAL_FACTORY_CARGO
+    Amur
+        Chernokamensk
+            RU_04_04_LIMITED_CARGO_01
+        Urska River
+            RU_04_01_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_WAREHOUSE_01_BIG
+        Unterfeld
+            US_14_01_METAL_PLANE_01
+    Belozersk Glades
+        HarvestCorp
+            RU_08_04_COMPLEX
+    British Columbia
+        North Peak National Park
+            US_10_02_FACTORY_02
+    Don
+        Factory Grounds
+            RU_05_01_SMALL_PORT
+    Maine
+        Yellowrock National Forest
+            US_06_02_WAREHOUSE_03
+    North Carolina
+        Flatland
+            US_12_03_FACTORY_02
+    Washington
+        Solace Bay
+            US_16_01_FACTORY
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_METAL_FACTORY
+Oil Barrels [1]
+    Alaska
+        North Port
+            US_02_01_DRILLING_SITE
+        White Valley
+            US_02_03_DRILL_SITE
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_GAS_STATION_CARGO
+    Amur
+        Chernokamensk
+            RU_04_04_WAREHOUSE_02
+    Belozersk Glades
+        Crossroads
+            RU_08_01_RAILROAD
+    North Carolina
+        Reactive Zone
+            US_12_02_WAREHOUSE_01
+            US_12_02_WAREHOUSE_03
+    Quebec
+        Harbor
+            US_15_01_OIL_FACTORY
+    Taymyr
+        Drowned Lands
+            RU_02_02_RAILWAY
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_GAS_STORAGE
+        Zurdanian Valley
+            RU_17_01_CHEMICAL_STATION
+Oil Rig Drill [5]
+    Michigan
+        Smithville Dam
+            US_01_02_SERVICE_HUB
+    Quebec
+        Lake Ribiere
+            US_15_02_QUARRY
+Oversized Cargo [4]
+    Alaska
+        North Port
+            US_02_01_PORT
+        White Valley
+            US_02_03_AIRPORT
+    Amur
+        Cosmodrome
+            RU_04_02_TOWN_STORAGE
+    Maine
+        The Lowland
+            US_06_01_PIER_PUP
+    North Carolina
+        Reactive Zone
+            US_12_02_WAREHOUSE_03
+    Quebec
+        Harbor
+            US_15_01_PORT
+    Taymyr
+        Quarry
+            RU_02_01_PICKUP_SHIPWRECK
+    Washington
+        Solace Bay
+            US_16_01_PORT
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_RAILWAY_PLATFORM
+Packaged Sand [1]
+    Austria
+        Foothills
+            US_14_02_CITY_WAREHOUSE
+    Belozersk Glades
+        Crossroads
+            RU_08_01_FACTORY_WEREHOUSE
+    North Carolina
+        Reactive Zone
+            US_12_02_WAREHOUSE_03
+    Washington
+        Solace Bay
+            US_16_01_SAND
+Rail Section [5]
+    Belozersk Glades
+        Crossroads
+            RU_08_01_RAILROAD
+    Don
+        Factory Grounds
+            RU_05_01_RAILWAY
+    Scandinavia
+        By the Lake
+            US_11_02_RECYCLING_02
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_RAILWAY_STORAGE
+Secure Container [1]
+    Taymyr
+        Drowned Lands
+            RU_02_02_GORLAG
+Service Spare Parts [1]
+    Alaska
+        Mountain River
+            US_02_02_SERVICE
+        North Port
+            US_02_01_SERVICE_HUB
+            US_02_01_WAREHOUSE_01
+            US_02_01_WAREHOUSE_02
+        White Valley
+            US_02_03_SERVICE_HUB
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_HELICOPTER_CARGO
+    Amur
+        Cosmodrome
+            RU_04_02_WAREHOUSE_FARM
+        Urska River
+            RU_04_01_WAREHOUSE
+    Belozersk Glades
+        HarvestCorp
+            RU_08_04_COMPLEX
+    British Columbia
+        Duncan Bay
+            US_10_01_SERVHUB_01
+            US_10_01_SERVHUB_02
+        North Peak National Park
+            US_10_02_FARM_01
+            US_10_02_SERVHUB_01
+    Don
+        Factory Grounds
+            RU_05_01_SMALL_PORT
+    Kola Peninsula
+        Lake Kovd
+            RU_03_01_TRAIN_STATION
+    Maine
+        Yellowrock National Forest
+            US_06_02_WAREHOUSE_01
+    Michigan
+        Black River
+            US_01_01_WAREHOUSE
+        Smithville Dam
+            US_01_02_SERVICE_HUB
+    North Carolina
+        Flatland
+            US_12_03_FACTORY_01
+        Pineline Bay
+            US_12_01_CAR_WORKSHOP
+    Quebec
+        Harbor
+            US_15_01_PORT
+    Scandinavia
+        By the Lake
+            US_11_02_RECYCLING_02
+    Taymyr
+        Drowned Lands
+            RU_02_02_FACTORY
+            RU_02_02_RAILWAY
+    Washington
+        Selten River National Park
+            US_16_02_WAREHOUSE_01
+        Solace Bay
+            US_16_01_WAREHOUSE_01
+    Wisconsin
+        Grainwoods River
+            US_03_02_STATION_HANGAR_01
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_WAREHOUSE_STORAGE
+        Zurdanian Valley
+            RU_17_01_REPAIR_01
+Short Logs
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_LOGS_FELLING
+    Amur
+        Chernokamensk
+            US_04_04_LOGS_02
+        Urska River
+            RU_04_01_LOGSTATION
+    Austria
+        Foothills
+            US_14_02_LOG_STATION_SMALL
+    Belozersk Glades
+        Crossroads
+            RU_08_01_LOG_STATION
+    British Columbia
+        Duncan Bay
+            US_10_01_LOG_STATION_01
+    Don
+        Antonovskiy Nature Reserve
+            RU_05_02_LOG
+    Maine
+        The Lowland
+            US_06_01_LOGS_04
+    North Carolina
+        Oviro Hills
+            US_12_04_LOGS_SMALL
+    Ontario
+        Burned Forest
+            US_09_02_LOGS
+    Scandinavia
+        By the Lake
+            US_11_02_LOG_01
+            US_11_02_LOG_02
+        Mountain Ridge
+            US_11_01_LOGS
+    Washington
+        Selten River Mountains
+            US_16_03_LOG_STORAGE
+    Zurdania
+        The Valley of Falling Rocks
+            RU_17_02_LOGGING_STORAGE_02
+Slate Blocks [2]
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_SHALE
+Small Pipes [2]
+    Alaska
+        Mountain River
+            US_02_02_WAREHOUSE_01
+            US_02_02_WAREHOUSE_02
+        White Valley
+            US_02_03_WAREHOUSE
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_METAL_FACTORY_CARGO
+    Austria
+        Foothills
+            US_14_02_WAREHOUSE_01_BIG
+    North Carolina
+        Flatland
+            US_12_03_FACTORY_01
+    Washington
+        Solace Bay
+            US_16_01_PORT
+    Yukon
+        Flooded Foothills
+            US_04_01_WARE_01
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_CITY
+Solar Panels [1]
+    Austria
+        Foothills
+            US_14_02_WAREHOUSE_03
+    North Carolina
+        Pineline Bay
+            US_12_01_PORT
+    Washington
+        Solace Bay
+            US_16_01_WAREHOUSE_03
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_SOLAR_MAGAZINE
+Special Cargo [2]
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_STOCK
+    Austria
+        Foothills
+            US_14_02_PORT
+Transformer
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_RAILWAY_PLATFORM
+Vehicle Spare Parts [1]
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_SERVICE_CARGO
+    Belozersk Glades
+        Crossroads
+            RU_08_01_WEREHOUSE_1
+    British Columbia
+        Duncan Bay
+            US_10_01_SERVHUB_01
+            US_10_01_SERVHUB_02
+            US_10_01_WAREHOUSE_01
+        North Peak National Park
+            US_10_02_SERVHUB_01
+    Kola Peninsula
+        Imandra
+            RU_03_02_WAREHOUSE_LOADING
+    Maine
+        The Lowland
+            US_06_01_WH_02
+        Yellowrock National Forest
+            US_06_02_WAREHOUSE_04
+    Michigan
+        Smithville Dam
+            US_01_02_SERVICE_HUB
+    North Carolina
+        Reactive Zone
+            US_12_02_WAREHOUSE_03
+    Quebec
+        Harbor
+            US_15_01_WAREHOUSE
+        Lake Ribiere
+            US_15_02_WAREHOUSE_PARKING
+    Scandinavia
+        By the Lake
+            US_11_02_RECYCLING_02
+    Taymyr
+        Drowned Lands
+            RU_02_02_FACTORY
+            RU_02_02_WAREHOUSE
+    Washington
+        Solace Bay
+            US_16_01_REPAIR_02
+            US_16_01_WAREHOUSE_01
+    Zurdania
+        Zurdanian Valley
+            RU_17_01_REPAIR_01
+Wooden Planks [1]
+    Alaska
+        Mountain River
+            US_02_02_MILL
+        North Port
+            US_02_01_LOG_STATION
+            US_02_01_LUMBER_MILL
+        Pedro Bay
+            US_02_04_STOCK_LOADING
+        White Valley
+            US_02_03_LOG_STATION_01
+            US_02_03_LOG_STATION_02
+            US_02_03_MILL
+    Almaty Region
+        Zherbai Quarries
+            RU_13_01_STOCK
+    Amur
+        Cosmodrome
+            RU_04_02_WAREHOUSE
+    Austria
+        Foothills
+            US_14_02_FARM
+    Belozersk Glades
+        Crossroads
+            RU_08_01_WEREHOUSE_2
+    British Columbia
+        Duncan Bay
+            US_10_01_SAWMILL
+        North Peak National Park
+            US_10_02_WAREHOUSE_01
+    Kola Peninsula
+        Imandra
+            RU_03_02_WOOD_CARGO
+        Lake Kovd
+            RU_03_01_WAREHOUSE
+    Maine
+        The Lowland
+            US_06_01_WH_03
+    Michigan
+        Black River
+            US_01_01_LUMBER_MILL
+        Drummond Island
+            US_01_04_LOG_LOADING
+        Island Lake
+            US_01_03_METAL_LOADING
+        Smithville Dam
+            US_01_02_WAREHOUSE_02
+    Taymyr
+        Drowned Lands
+            RU_02_02_LUMBER_MILL
+        Quarry
+            RU_02_01_OLD_LUMBERMILL
+        Rift
+            RU_02_04_PLANKS_PICKUP
+    Yukon
+        Flooded Foothills
+            US_04_01_LUMBER
