@@ -234,10 +234,15 @@ async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
     generic_items = [s for s in ["logs", "pipes", "planks", "concrete", "metal"] if sum(int(s.casefold() in srch) for srch in srch_items)>1]
     ic(generic_items)
     items = generic_items + found_items
+    ic(items)
 
-    with ui.list().props('dense separator') as filter_cargo_items:
-        for item in items:
-            ui.item(item, on_click=lambda list_item=item: filter_list_item_clicked(list_item))
+    with ui.column().classes('w-72 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
+        ui.label('Cargo Filter').classes('font-bold text-sm mb-1')
+        with ui.scroll_area().classes('flex-1 w-full border bg-white'):
+            with ui.list().props('dense separator') as filter_cargo_items:
+                for item in items:
+                    with ui.item(on_click=lambda list_item=item: filter_list_item_clicked(list_item)):
+                        ui.label(item)
 
     return filter_cargo_items
 
@@ -623,43 +628,45 @@ async def region(region_slug: str):
     def __REGION_CODE__(): pass
     print("region:", region_slug)
 
-    with ui.row(align_items='top').classes('gap-1 w-screen h-dvh'):
-        with ui.column().classes('min-h-0 bg-blue-100 h-full p-2') as side_panel:
-            with ui.row(align_items='center').classes('gap-1'):
-                ui.icon('refresh', color='primary').on('click', update_obj_tree).classes('text-3xl')
-                obj_filter = ui.input('Objective filter', on_change=filter_changed).props('clearable')
+    with ui.column().classes('w-full h-screen flex flex-col no-wrap overflow-hidden'):
+        with ui.row().classes('w-full flex-1 no-wrap gap-2 p-2 flex flex-row overflow-hidden bg-gray-100'):
+            # Left Panel: Objective Tree
+            with ui.column().classes('w-96 h-full bg-blue-100 p-2 flex flex-col shrink-0 min-h-0 shadow rounded'):
+                with ui.row(align_items='center').classes('gap-1 w-full'):
+                    ui.icon('refresh', color='primary').on('click', update_obj_tree).classes('text-3xl cursor-pointer')
+                    obj_filter = ui.input('Objective filter', on_change=filter_changed).props('clearable').classes('flex-1')
 
-                with ui.column().classes('gap-0'):
-                    switch_completed_objs = ui.switch("Completed", on_change=update_obj_tree).props("dense")
+                    with ui.column().classes('gap-0'):
+                        switch_completed_objs = ui.switch("Completed", on_change=update_obj_tree).props("dense")
 
-            tree_nodes, tree_ticked_ids, tree_ids, expanded = await build_obj_tree_data()
+                tree_nodes, tree_ticked_ids, tree_ids, expanded = await build_obj_tree_data()
 
-#            with ui.scroll_area().classes('h-220 border'):
-            with ui.scroll_area().classes('h-full border'):
-                obj_tree = ui.tree(tree_nodes, tick_strategy='strict', on_tick=handle_tree_tick, on_select=obj_tree_selected).props("dense").classes("overflow-auto h-full")
+                with ui.scroll_area().classes('flex-1 w-full border bg-white mt-2'):
+                    obj_tree = ui.tree(tree_nodes, tick_strategy='strict', on_tick=handle_tree_tick, on_select=obj_tree_selected).props("dense").classes("w-full")
 
-            setup_obj_tree(obj_tree)
-            obj_tree.tick(tree_ticked_ids)
-            obj_tree.expand(["contracts", "tasks"] + expanded)
-#            obj_filter.bind_value_to(obj_tree, 'filter')
-            obj_filter.bind_value_to(obj_tree, 'filter')
+                setup_obj_tree(obj_tree)
+                obj_tree.tick(tree_ticked_ids)
+                obj_tree.expand(["contracts", "tasks"] + expanded)
+                obj_filter.bind_value_to(obj_tree, 'filter')
 
+            # Middle Panel: Map Area with Header & Home Button
+            with ui.column().classes('flex-1 h-full flex flex-col min-h-0 bg-white p-2 shadow rounded'):
+                with ui.row().classes('items-center gap-2 mb-2 w-full'):
+                    with ui.link(target='/').classes('no-underline'):
+                        ui.icon('home', color='primary').classes('text-3xl')
+                    ui.label(f'{region_areas[0].region} Region Map').classes('font-bold text-lg text-gray-700')
 
-        with ui.link(target='/'):
-            ui.icon('home', color='primary').classes('text-4xl')
+                if 1:
+                    svg_html = ui.html(await get_region_svg(), sanitize=False).classes('w-full flex-1 overflow-auto border')
+                else:
+                    with ui.grid(columns=2).classes('gap-4 p-4'):
+                        for area_info in areas_for_region[region_slug]:
+                            with ui.link(target=f'/area/{area_info.area_slug}').classes('flex flex-col items-center gap-2 no-underline text-black'):
+                                ui.label(area_info.area).classes('font-bold text-lg')
+                                ui.image(get_image_name_ex(area_info, "icon")).classes('w-100 rounded shadow-md')
 
-        if 1:
-            svg_html = ui.html(await get_region_svg(), sanitize=False).classes('h-fullflex-1')
-        else:
-                # Create a responsive grid (2 columns)
-            with ui.grid(columns=2).classes('gap-4 p-4'):
-                for area_info in areas_for_region[region_slug]:
-                    with ui.link(target=f'/area/{area_info.area_slug}').classes('flex flex-col items-center gap-2 no-underline text-black'):
-                            # Nest ui.image inside ui.link to make it clickable
-                            ui.label(area_info.area).classes('font-bold text-lg')
-                            ui.image(get_image_name_ex(area_info, "icon")).classes('w-100 rounded shadow-md')
-
-        filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked)
+            # Right Panel: Cargo Filter List
+            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked)
 
     region_client_alive_checker = obj_tree
     tree_updated.subscribe(update_obj_tree_event)
