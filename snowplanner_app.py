@@ -217,8 +217,8 @@ reward_map_items = {
 async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
     filter_cargo_items = set()
 
-        # if cargo is only present in a source, why show it?
-    for map_item in await MapItem.filter(Q(area_id__in=region_area_ids) & ~(Q(item_type="source") | Q(item_type="craft"))).prefetch_related("cargo_items"):
+    # if cargo is only present in a source, we DO want to show it to allow filtering by all available cargo.
+    for map_item in await MapItem.filter(Q(area_id__in=region_area_ids)).prefetch_related("cargo_items"):
         if not map_item.completed:
             for cargo_item in map_item.cargo_items:
                 if (ccnt := current_cargo_count(cargo_item)) != 0:
@@ -1375,7 +1375,7 @@ async def area(area_slug: str):
                 initialize_d3()
                 svg_html.on('dblclick', svg_double_clicked)
 
-            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked)
+            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked)
 
         area_client_alive_checker = save_button
         tree_updated.subscribe(update_obj_tree_event)
