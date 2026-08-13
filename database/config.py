@@ -12,7 +12,6 @@ DB_PATH = snowplanner_db_filename
 TORTOISE_CONFIG = {
     "connections": {
         "default": snowplanner_db_url,
-        # "default": r"sqlite://C:\Users\cbassett\Documents\Game notes\SnowRunner\SnowPlanner\snowplanner.sqlite",
     },
     "apps": {
         "models": { # app name
