@@ -1,11 +1,11 @@
-# SnowMapper
-SnowMapper is a visual tool to plan deliveries in the game SnowRunner. Other tools (and SnowRunner itself) let you see one objective at a time, SnowMapper lets you see all in area or even region. If you've ever been frustrated by missing opportunites to combine trips, this could be just the tool for you.
+# SnowPlanner
+SnowPlanner is a visual tool to plan deliveries in the game SnowRunner. Other tools (and SnowRunner itself) let you see one objective at a time, SnowPlanner lets you see all in and area or even region. If you've ever been frustrated by missing opportunities to combine trips, this could be just the tool for you.
 
 Note that the default view with no objectives marked as complete can be pretty busy. There are buttons to hide categories at the top, and objectives and limited sources can be marked as complete, which by default hides them from the objectives tree and the map view. Specific objectives or cargo items can be highlighted in the map view.
 
-Lines are drawn from trucks, trailers etc to their drop-off location. Objectives that are blocked because prerequisite objectives have not been marked as complete are displayed in darker colors one the map and in dark red in the obejctives tree. Clicking a listed blocking objective in the tree navigates to that objective.
+Lines are drawn from trucks, trailers etc to their drop-off location. Objectives that are blocked because prerequisite objectives have not been marked as complete are displayed in darker colors on the map and in dark red in the objectives tree. Clicking a listed blocking objective in the tree navigates to that objective.
 
-This is a work in progress. I made this to help my own playstyle. It has evolved from indidivual script and text data files to a web application with a SQLite database. Some parts are still pretty rough. But it is functional enough for me to complete multiple regions with it. I'm open to suggestions and code contributions, but bear in mind that it doesn't yet have everything I want to put in it. I'm putting it on GitHub so that likeminded indivduals can benefit.
+This is a work in progress. I made this to help my own play-style. It has evolved from individual scripts and text data files to a web application with a SQLite database. Some parts are still pretty rough. But it is functional enough for me to complete multiple regions with it. I'm open to suggestions and code contributions, but bear in mind that it doesn't yet have everything I want to put in it. I'm putting it on GitHub so that like-minded individuals can benefit.
 
 # Installation instructions
 
