@@ -10,7 +10,7 @@ import drawsvg as draw
 from tortoise.expressions import Q
 from tortoise import Tortoise, run_async
 
-from snowplanner_utils import * 
+from snowplanner_utils import *
 from utils.iter_utils import arithtuple, first_true, flatten
 from utils.correct_overlaps import Rectangle, correct_rect_overlaps
 from database.models import *

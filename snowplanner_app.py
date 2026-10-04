@@ -528,6 +528,16 @@ async def region(region_slug: str):
     best_offsets, x_tiles = await calculate_area_offsets_for_region(region, areas)
     ic(x_tiles)
 
+    # Compute prev/next regions
+    other_regions = [r_slug for r_slug, r_name in regions_slugs if r_slug != region_slug]
+    prev_region, next_region = None, None
+    if other_regions:
+        for a, b in pairwise(regions_slugs + regions_slugs[:1]):
+            if b[0] == region_slug:
+                prev_region = a
+            if a[0] == region_slug:
+                next_region = b
+
     async def get_region_svg():
         nonlocal location_items
 #        ic("get_svg()", img_type, cur_area_info.area, highlight_ids)
@@ -535,17 +545,16 @@ async def region(region_slug: str):
         use_svg_classes = dict(svg_classes.items())
         hide_types = set()
 
-#        for title, cb in checkboxes.items():
-#            if not cb.value:
-##                    ic("hide", title)
-#                hide_types.add(title)
+        for title, cb in checkboxes.items():
+            if not cb.value:
+                hide_types.add(title)
 
         img_type = "icon"
 
         img_paths = [get_image_name_ex(area_info, typ="icon") for area_info in region_areas]
         hlinks = [f'/area/{area_info.area_slug}' for area_info in region_areas]
 #        highlight_ids = []
-        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=False, fix_overlaps=False, selected_ids=highlight_ids)
+        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=False, selected_ids=highlight_ids)
 
     def filter_list_item_clicked(item):
         ic(filter_list_item_clicked, item)
@@ -628,7 +637,85 @@ async def region(region_slug: str):
     def __REGION_CODE__(): pass
     print("region:", region_slug)
 
+    def make_class_toggler(search_class, add_class):
+        search_class = "." + search_class
+        def toggler(e):
+            ic("toggle", e.value, search_class, add_class)
+            if e.value: # e.value is True if checked, False if unchecked
+                ui.query(search_class).classes(remove=add_class)
+            else:
+                ui.query(search_class).classes(add=add_class)
+
+        return toggler
+
+
+    def make_visibility_toggler(search_class):
+        return make_class_toggler(search_class, "hide-me")
+
+    checkboxes = {}
+    checkbox_all = None
+    checkbox_overlap = None
+    checkbox_detail = None
+
+    def checkbox(text, **kw):
+        return ui.checkbox(text, **kw).props("dense")
+
+    def create_map_header(region_name, partial_title, prev_item, next_item, is_region=False):
+        nonlocal checkboxes, checkbox_all, checkbox_overlap, checkbox_detail
+        with ui.row(align_items='center').classes('gap-1 no-wrap flex-none'):
+            if is_region:
+                ui.button(icon='refresh', on_click=update_svg).classes('m-0')
+            else:
+                ui.button(icon='menu', on_click=toggle_panel)
+                ui.button(icon='refresh', on_click=update_svg).classes('m-0')
+
+            with ui.link(target='/'):
+                ui.icon('home', color='primary').classes('text-4xl')
+
+            with ui.column().classes('gap-0'):
+                ui.label(f'{region_name}: {partial_title}').classes(f'font-bold text-xl text-blue').classes('m-0').props("dense")
+
+                if prev_item:
+                    prev_slug, prev_name = prev_item
+                    with ui.row().classes('gap-2'):
+                        target_url = f'/region/{prev_slug}' if is_region else f'/area/{prev_slug}'
+                        ui.link(("<<" if next_item else "") + prev_name, target_url).classes('m-0')
+
+                        if next_item:
+                            next_slug, next_name = next_item
+                            next_target_url = f'/region/{next_slug}' if is_region else f'/area/{next_slug}'
+                            ui.link(next_name + ">>", next_target_url).classes('m-0')
+
+            if not is_region:
+                checkbox_map_type = checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).props("dense").bind_value(app.storage.tab, 'Icons')
+                
+                with ui.column().classes('gap-0'):
+                    checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Overlap')
+                    checkbox_detail = checkbox("Det", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Detail')
+
+                with ui.column().classes('gap-0'):
+                    checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
+                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+
+                with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
+                    checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
+
+                save_button = ui.button('Edit', on_click=lambda: edit_save_locations())
+                (group_button := ui.button('Group', on_click=lambda: group_locations())).set_visibility(False)
+                (cancel_button := ui.button('Cancel', on_click=lambda: cancel_save_locations())).set_visibility(False)
+            else:
+                with ui.column().classes('gap-0'):
+                    checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
+                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+
+                with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
+                    checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
+
     with ui.column().classes('w-full h-screen flex flex-col no-wrap overflow-hidden'):
+        prev_region_item = (prev_region[0], prev_region[1]) if prev_region else None
+        next_region_item = (next_region[0], next_region[1]) if next_region else None
+        create_map_header(region_areas[0].region, "Region Map", prev_region_item, next_region_item, is_region=True)
+
         with ui.row().classes('w-full flex-1 no-wrap gap-2 p-2 flex flex-row overflow-hidden bg-gray-100'):
             # Left Panel: Objective Tree
             with ui.column().classes('w-96 h-full bg-blue-100 p-2 flex flex-col shrink-0 min-h-0 shadow rounded'):
@@ -651,11 +738,6 @@ async def region(region_slug: str):
 
             # Middle Panel: Map Area with Header & Home Button
             with ui.column().classes('flex-1 h-full flex flex-col min-h-0 bg-white p-2 shadow rounded'):
-                with ui.row().classes('items-center gap-2 mb-2 w-full'):
-                    with ui.link(target='/').classes('no-underline'):
-                        ui.icon('home', color='primary').classes('text-3xl')
-                    ui.label(f'{region_areas[0].region} Region Map').classes('font-bold text-lg text-gray-700')
-
                 if 1:
                     svg_html = ui.html(await get_region_svg(), sanitize=False).classes('w-full flex-1 overflow-auto border')
                 else:
@@ -1253,6 +1335,65 @@ async def area(area_slug: str):
     def make_visibility_toggler(search_class):
         return make_class_toggler(search_class, "hide-me")
 
+    checkboxes = {}
+    checkbox_all = None
+    checkbox_overlap = None
+    checkbox_detail = None
+
+    def checkbox(text, **kw):
+        return ui.checkbox(text, **kw).props("dense")
+
+    def create_map_header(region_name, partial_title, prev_item, next_item, is_region=False):
+        nonlocal checkboxes, checkbox_all, checkbox_overlap, checkbox_detail
+        with ui.row(align_items='center').classes('gap-1 no-wrap flex-none'):
+            if is_region:
+                ui.button(icon='refresh', on_click=update_svg).classes('m-0')
+            else:
+                ui.button(icon='menu', on_click=toggle_panel)
+                ui.button(icon='refresh', on_click=update_svg).classes('m-0')
+
+            with ui.link(target='/'):
+                ui.icon('home', color='primary').classes('text-4xl')
+
+            with ui.column().classes('gap-0'):
+                ui.label(f'{region_name}: {partial_title}').classes(f'font-bold text-xl text-blue').classes('m-0').props("dense")
+
+                if prev_item:
+                    prev_slug, prev_name = prev_item
+                    with ui.row().classes('gap-2'):
+                        target_url = f'/region/{prev_slug}' if is_region else f'/area/{prev_slug}'
+                        ui.link(("<<" if next_item else "") + prev_name, target_url).classes('m-0')
+
+                        if next_item:
+                            next_slug, next_name = next_item
+                            next_target_url = f'/region/{next_slug}' if is_region else f'/area/{next_slug}'
+                            ui.link(next_name + ">>", next_target_url).classes('m-0')
+
+            if not is_region:
+                checkbox_map_type = checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).props("dense").bind_value(app.storage.tab, 'Icons')
+                
+                with ui.column().classes('gap-0'):
+                    checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Overlap')
+                    checkbox_detail = checkbox("Det", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Detail')
+
+                with ui.column().classes('gap-0'):
+                    checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
+                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+
+                with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
+                    checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
+
+                save_button = ui.button('Edit', on_click=lambda: edit_save_locations())
+                (group_button := ui.button('Group', on_click=lambda: group_locations())).set_visibility(False)
+                (cancel_button := ui.button('Cancel', on_click=lambda: cancel_save_locations())).set_visibility(False)
+            else:
+                with ui.column().classes('gap-0'):
+                    checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
+                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+
+                with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
+                    checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
+
 
     def get_image_name(typ, actual=False):
         return get_image_name_ex(cur_area_info, typ, actual=actual)
@@ -1301,41 +1442,9 @@ async def area(area_slug: str):
 #    with ui.column().classes('gap-0 w-screen h-dvh flex flex-col'):
     with ui.column().classes('gap-0 w-dvw h-dvh flex flex-col no-wrap'):
             # Header row
-#        with ui.row(align_items='center').classes('gap-1 no-wrap flex'):
-        with ui.row(align_items='center').classes('gap-1 no-wrap flex-none'):
-            ui.button(icon='menu', on_click=toggle_panel) #.classes('m-2')
-            ui.button(icon='refresh', on_click=update_svg).classes('m-0')
-
-            with ui.link(target='/'):
-                ui.icon('home', color='primary').classes('text-4xl')
-
-                # actual menu was not as useful, limited in height
-            with ui.column().classes('gap-0'):
-                ui.label(f'{cur_area_info.region}: {cur_area_info.partial_abbrev}').classes(f'font-bold text-xl text-blue').classes('m-0').props("dense")
-
-                if prev_area:
-                    with ui.row().classes('gap-2'):
-                        ui.link(("<<" if next_area else "") + prev_area.partial_abbrev, f'/area/{prev_area.area_slug}').classes('m-0')
-
-                        if next_area:
-                            ui.link(next_area.partial_abbrev + ">>", f'/area/{next_area.area_slug}').classes('m-0')
-
-            checkbox_map_type = checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).props("dense").bind_value(app.storage.tab, 'Icons')
-            
-            with ui.column().classes('gap-0'):
-                checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Overlap')
-                checkbox_detail = checkbox("Det", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Detail')
-
-            with ui.column().classes('gap-0'):
-                checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
-                checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
-
-            with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
-                checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
-
-            save_button = ui.button('Edit', on_click=lambda: edit_save_locations())
-            (group_button := ui.button('Group', on_click=lambda: group_locations())).set_visibility(False)
-            (cancel_button := ui.button('Cancel', on_click=lambda: cancel_save_locations())).set_visibility(False)
+        prev_area_item = (prev_area.area_slug, prev_area.partial_abbrev) if prev_area else None
+        next_area_item = (next_area.area_slug, next_area.partial_abbrev) if next_area else None
+        create_map_header(cur_area_info.region, cur_area_info.partial_abbrev, prev_area_item, next_area_item, is_region=False)
 
             # Container holding both the side panel and content
 #        with ui.row().classes('w-full h-full no-wrap gap-0 overflow-hidden gap-1'):
