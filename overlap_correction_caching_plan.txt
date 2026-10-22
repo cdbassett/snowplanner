@@ -1,0 +1,38 @@
+ Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Cache overlap-correction results
+
+ Context
+
+ correct_rect_overlaps (utils/correct_overlaps.py:283) is an iterative O(n²)-per-step loop (up to 1000 steps) and runs on every update_svg in the region view (render_area_svg_objects, snowrunner_gen_map_text_svg.py ~line 584). Filter edits that only change highlighting/colour, or that merely remove objects, redo the whole correction. Goal: reuse previous corrections whenever the geometry allows, recompute only when it doesn't.
+
+ Key insight
+
+ The correction depends only on the input rectangle geometry and the bounds. So cache by geometry, not by filter state: this automatically covers highlight-only changes (same rects), and any other change that leaves rects identical.
+
+ - Rect key: (left, top, width, height) of the original rect (grouped rects when group_rectangles, else individual).
+ - Cached layout: {rect_key: (deltax, deltay)} plus the bounds and group_rectangles flag.
+
+ Lookup order (new helper correct_rect_overlaps_cached in utils/correct_overlaps.py)
+
+ 1. Exact hit: cached key set == current key set (same bounds) → apply stored deltas, no correction.
+ 2. Subset hit: every current key exists in a cached layout (objects were filtered out) → apply stored deltas for the survivors. An overlap-free layout stays overlap-free when rects are removed, so this is always valid (just not minimal). Pick the cached layout with the fewest extra rects.
+ 3. Miss (new rects, or a group's size/composition changed so its key differs): run correct_rect_overlaps as today, then store the result.
+
+ Applying deltas: rect.left = rect.original_left - dx; rect.top = rect.original_top - dy (matches deltax/deltay properties on Rectangle).
+
+ Cache storage
+
+ - Module-level small LRU (~32 entries) in utils/correct_overlaps.py, key = (bounds, group_rectangles) → list of layouts. Shared across clients (pure function of geometry), bounded memory, safe under asyncio (correction is synchronous).
+ - Don't store a layout that is a subset of an existing one for the same bounds; do evict supersets-of-nothing via LRU only.
+
+ Changes
+
+ - utils/correct_overlaps.py: add correct_rect_overlaps_cached(rectangles, max_x, max_y) + LRU store; leave correct_rect_overlaps untouched.
+ - snowrunner_gen_map_text_svg.py (~line 586): call the cached helper instead of correct_rect_overlaps; log hit type (exact/subset/miss) inside the existing Timer.
+
+ Caveats to flag to user
+
+ - A subset hit keeps markers displaced where the larger layout put them, even if they'd no longer need to move. Could add a "stale" threshold later (recompute if survivors < N% of cached) if layouts look sparse.
+ - A group whose member count changes gets a new rect size → miss for the whole set (correction moves all rects together). Partial recompute of only changed groups is possible but more complex; not included.
+ - Gate lines aren't rectangles and are unaffected.

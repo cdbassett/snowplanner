@@ -293,4 +293,43 @@ def correct_rect_overlaps(rectangles, max_x=None, max_y=None, max_tries = 1000):
 #    print(Rectangle.total_movement(stepper.rectangles))
 
 
+# Cache of finished corrections, keyed by geometry only so that highlight/filter changes which leave
+# the rectangles identical (or remove some of them) don't redo the expensive correction.
+_layout_cache = {}  # (max_x, max_y, group flag) -> list of {original rect tuple: (deltax, deltay)}, most recent last
+_LAYOUTS_PER_BOUNDS = 32
 
+def _rect_key(rect):
+    return (rect.original_left, rect.original_top, rect.width, rect.height)
+
+def _apply_delta(rect, delta):
+    rect.left = rect.original_left - delta[0]
+    rect.top = rect.original_top - delta[1]
+
+def correct_rect_overlaps_cached(rectangles, max_x=None, max_y=None, group_key=None):
+    """Like correct_rect_overlaps, reusing a cached layout when possible. Returns "exact", "subset" or "miss"."""
+    layouts = _layout_cache.setdefault((max_x, max_y, group_key), [])
+    keys = [_rect_key(r) for r in rectangles]
+    key_set = set(keys)
+
+    if len(key_set) == len(keys): # duplicate geometry can't be told apart, so don't cache those
+        best = None
+
+        for layout in layouts:
+            if key_set <= layout.keys() and (best is None or len(layout) < len(best)):
+                best = layout
+
+        if best is not None:
+            for rect, key in zip(rectangles, keys):
+                _apply_delta(rect, best[key])
+
+            layouts.remove(best)
+            layouts.append(best) # LRU refresh
+            return "exact" if len(best) == len(keys) else "subset"
+
+    correct_rect_overlaps(rectangles, max_x, max_y)
+
+    if len(key_set) == len(keys):
+        layouts.append({key: (r.deltax, r.deltay) for r, key in zip(rectangles, keys)})
+        del layouts[:-_LAYOUTS_PER_BOUNDS]
+
+    return "miss"

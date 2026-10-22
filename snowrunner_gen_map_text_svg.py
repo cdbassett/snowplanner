@@ -12,7 +12,7 @@ from tortoise import Tortoise, run_async
 
 from snowplanner_utils import *
 from utils.iter_utils import arithtuple, first_true, flatten
-from utils.correct_overlaps import Rectangle, correct_rect_overlaps
+from utils.correct_overlaps import Rectangle, correct_rect_overlaps, correct_rect_overlaps_cached
 from database.models import *
 from utils.timer_utils import Timer
 from database.config import snowplanner_db_url
@@ -584,7 +584,8 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
     if fix_overlaps:
 #        ic("correcting", area_id)
         with Timer("correcting " + desc):
-            correct_rect_overlaps(grouped_rectangles if group_rectangles else rectangles, *(bounds or (W, H)))
+            hit = correct_rect_overlaps_cached(grouped_rectangles if group_rectangles else rectangles, *(bounds or (W, H)), group_key=group_rectangles)
+            ic(hit)
 #        ic("done correcting", area_id)
 
         # separate loop to draw underneath rectangles
