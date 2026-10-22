@@ -1471,10 +1471,10 @@ async def area(area_slug: str):
 #        with ui.row().classes('w-full h-full no-wrap gap-0 overflow-hidden gap-1'):
 #        with ui.row().classes('w-full h-full no-wrap gap-1 grow overflow-y-auto'):
 #        with ui.row().classes('w-full h-full no-wrap gap-1 flex-1'):
-        with ui.row().classes('w-full no-wrap gap-1 flex-1 flex flew-row'):
+        with ui.row().classes('w-full no-wrap gap-1 flex-1 flex flex-row min-h-0 overflow-hidden'):
             # The Sliding Panel, Use transition to animate the width change
 #            with ui.column().classes('h-full bg-blue-100 transition-all duration-300 ease-in-out w-0 overflow-hidden') as side_panel:
-            with ui.column().classes('h-full bg-blue-100 transition-all duration-300 ease-in-out w-100') as side_panel:
+            with ui.column().classes('h-full bg-blue-100 transition-all duration-300 ease-in-out w-100 flex flex-col shrink-0 min-h-0') as side_panel:
 #            side_panel.bind_visibility_from(menu, 'value')
                 with ui.row(align_items='center').classes('gap-1'):
     #                    ui.button(icon='cached', on_click=update_obj_tree).classes('m-0')
@@ -1489,8 +1489,8 @@ async def area(area_slug: str):
                 tree_nodes, tree_ticked_ids, tree_ids, expanded = await build_obj_tree_data()
 
 #                with ui.scroll_area().classes('h-205 border'):
-                with ui.scroll_area().classes('h-full border'):
-                    obj_tree = ui.tree(tree_nodes, tick_strategy='strict', on_tick=handle_tree_tick, on_select=obj_tree_selected).props("dense").classes("overflow-auto h-full")
+                with ui.scroll_area().classes('flex-1 w-full border bg-white min-h-0'):
+                    obj_tree = ui.tree(tree_nodes, tick_strategy='strict', on_tick=handle_tree_tick, on_select=obj_tree_selected).props("dense").classes("w-full")
 
                 setup_obj_tree(obj_tree)
                 obj_tree.tick(tree_ticked_ids)
