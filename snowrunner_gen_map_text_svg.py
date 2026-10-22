@@ -412,7 +412,7 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
 
 async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps=False, size=main_scale, text_height = 8, loc_mode = False,
         location_items=None, group_rectangles=True,
-        map_id = "map_svg_image", x_ofs=0, y_ofs=0, overall_group=None, desc=None):
+        map_id = "map_svg_image", x_ofs=0, y_ofs=0, overall_group=None, desc=None, bounds=None):
     multi_area = overall_group is not None
     cargo_by_pos, gate_lines = objects
 
@@ -584,7 +584,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
     if fix_overlaps:
 #        ic("correcting", area_id)
         with Timer("correcting " + desc):
-            correct_rect_overlaps(grouped_rectangles if group_rectangles else rectangles, W, H)
+            correct_rect_overlaps(grouped_rectangles if group_rectangles else rectangles, *(bounds or (W, H)))
 #        ic("done correcting", area_id)
 
         # separate loop to draw underneath rectangles
@@ -773,7 +773,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True)
 
 #    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, map_id = "map_svg_image_"+area_id, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region)
-    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region)
+    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
     d.append(overall_group)
 
         # draw hlink text on top of everything (inter-area lines)

@@ -571,7 +571,7 @@ async def region(region_slug: str):
         img_paths = [get_image_name_ex(area_info, typ="icon") for area_info in region_areas]
         hlinks = [f'/area/{area_info.area_slug}' for area_info in region_areas]
 #        highlight_ids = []
-        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=False, selected_ids=highlight_ids)
+        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=checkbox_overlap.value, selected_ids=highlight_ids)
 
     def filter_list_item_clicked(item):
         ic(filter_list_item_clicked, item)
@@ -722,6 +722,7 @@ async def region(region_slug: str):
                 (cancel_button := ui.button('Cancel', on_click=lambda: cancel_save_locations())).set_visibility(False)
             else:
                 with ui.column().classes('gap-0'):
+                    checkbox_overlap = checkbox("Ovl", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'RegionOverlap')
                     checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
                     checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
 
