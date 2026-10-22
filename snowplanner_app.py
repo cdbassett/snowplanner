@@ -157,7 +157,7 @@ def get_image_name_ex(area_info, typ="normal", actual=False):
 
 class __TREE_FUNCTIONS__: pass
 
-top_level_nodes = ["contracts", "tasks", "trucks", "sources"]
+top_level_nodes = ["contracts", "tasks", "trucks", "sources", "gates"]
 
 def select_single_top_tree_node(obj_tree, id):
     for node in top_level_nodes:
@@ -311,7 +311,7 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
 #        all_objs = False
 
     tree_nodes = [{ "id": id, "label": id.title(), "children": list(), "noTick": True } for id in top_level_nodes]
-    contract_children, task_children,  truck_children, source_children = map(itemgetter("children"), tree_nodes)
+    contract_children, task_children,  truck_children, source_children, gate_children = map(itemgetter("children"), tree_nodes)
     ticked, expanded = [], []
     ids = [] # no point in keeping a dict, the list of nodes in actual widget is different (unless we wanted to replace entire content again)
         # we need to also show objectives that start here or are delivering here, so just grag the ids
@@ -434,6 +434,23 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
     for map_item in await MapItem.filter(base_map_filter & (Q(item_type="source") | Q(item_type="craft"))).prefetch_related("cargo_items", "obj_locker").order_by("name"):
         if (node := build_map_item(map_item, "S_", "SPR_")):
             source_children.append(node)
+
+        # gates
+    for map_item in await MapItem.filter(base_map_filter & Q(item_type="gate")).prefetch_related("obj_locker").order_by("name"):
+        g_id = "G_" + map_item.id
+        label = get_area_desc(map_item.name, map_item.area_id)
+
+        if map_item.to_area_id in area_infos_by_area_id:
+            label += " -> " + area_infos_by_area_id[map_item.to_area_id].abbrev
+
+        gate_node = {"id": g_id, "label": label, "noTick": True, "children": []}
+
+        if (prereq_obj := map_item.obj_locker) and not prereq_obj.completed:
+            gate_node["header"] = "blocked"
+            gate_node["children"].append({"id": "GPR_" + "|".join((map_item.id, prereq_obj.id)), "label": get_area_desc(prereq_obj.name, prereq_obj.area_id), "header": "prereq", "noTick": True})
+
+        ids.append(g_id)
+        gate_children.append(gate_node)
 
     return tree_nodes, ticked, ids, expanded
 
@@ -688,7 +705,7 @@ async def region(region_slug: str):
 
             if not is_region:
                 checkbox_map_type = checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).props("dense").bind_value(app.storage.tab, 'Icons')
-                
+
                 with ui.column().classes('gap-0'):
                     checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Overlap')
                     checkbox_detail = checkbox("Det", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Detail')
@@ -1205,8 +1222,11 @@ async def area(area_slug: str):
 
             if typ == "gate":
                 if (map_item := await MapItem.filter(id=id).prefetch_related("obj_locker").first()):
-                    if map_item.obj_locker:
+                    if map_item.obj_locker and not map_item.obj_locker.completed:
                         await select_objective(map_item.obj_locker)
+                    else:
+                        select_single_top_tree_node(obj_tree, "gates")
+                        await select_tree_node("G_" + id, id)
             elif typ == "truck":
                 node_id = "T_" + id
                 ic(node_id)
@@ -1371,7 +1391,7 @@ async def area(area_slug: str):
 
             if not is_region:
                 checkbox_map_type = checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).props("dense").bind_value(app.storage.tab, 'Icons')
-                
+
                 with ui.column().classes('gap-0'):
                     checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Overlap')
                     checkbox_detail = checkbox("Det", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Detail')
@@ -1486,7 +1506,7 @@ async def area(area_slug: str):
 
             filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked)
 
-        area_client_alive_checker = save_button
+        area_client_alive_checker = obj_tree
         tree_updated.subscribe(update_obj_tree_event)
         map_updated.subscribe(update_svg_event)
 
