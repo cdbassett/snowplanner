@@ -596,18 +596,19 @@ async def region(region_slug: str):
         return to_highlight_ids
 
     async def get_vis_nodes_from_tree(obj_tree):
-        filter = obj_tree.filter.upper()
-        ic("get_vis_nodes_from_tree", filter)
-        to_highlight_ids = []
+        if obj_tree:
+            filter = obj_tree.filter.upper()
+            ic("get_vis_nodes_from_tree", filter)
+            to_highlight_ids = []
 
-        for tree_node in obj_tree.nodes():
-            if not "_" in (tree_id := tree_node["id"]):
-                continue
+            for tree_node in obj_tree.nodes():
+                if not "_" in (tree_id := tree_node["id"]):
+                    continue
 
-            if filter in tree_node["label"].upper():
-                to_highlight_ids.append(tree_id)
+                if filter in tree_node["label"].upper():
+                    to_highlight_ids.append(tree_id)
 
-        return to_highlight_ids + await get_cargo_highlight_ids(region_area_ids, filter, False)
+            return to_highlight_ids + await get_cargo_highlight_ids(region_area_ids, filter, False)
 
     async def filter_changed(e):
         ic("filter_changed", e)
