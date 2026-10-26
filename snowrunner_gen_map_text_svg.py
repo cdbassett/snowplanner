@@ -562,12 +562,14 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 g.append(draw.Text(t, text_height, tx, ty + text_height * n, fill=entry.fore, dominant_baseline="hanging"))
 
             rect = Rectangle(map_pos_x, map_pos_y, entry.width, h - 1) # slightly decrease the height because overlapping one pixel on borders is A-OK
+            rect.fixed = entry.typ == "gate" # gates must stay at their real location
             rectangles.append(rect)
 
             if grouped_rect:
                 grouped_rect.combine(rect)
             else:
                 grouped_rect = Rectangle(rect.left, rect.top, rect.width, rect.height)
+                grouped_rect.fixed = rect.fixed
                 grouped_rectangles.append(grouped_rect)
 
             rects_and_objects.append((entry, rect, grouped_rect, g, scale_pos, (x, y), rec))

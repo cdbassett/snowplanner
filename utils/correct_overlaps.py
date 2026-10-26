@@ -18,6 +18,7 @@ class Rectangle:
         # So we can track how far the rectangle moved from original position
         self.original_left = self.left
         self.original_top  = self.top
+        self.fixed = False # fixed rectangles (e.g. gates) are never moved by overlap correction
 
     @property
     def right(self):
@@ -106,6 +107,7 @@ class Rectangle:
         self.height = max(self.bottom, other.bottom) - self.top
         self.original_left = min(self.original_left, other.original_left)
         self.original_top = min(self.original_top, other.original_top)
+        self.fixed = self.fixed or other.fixed
         return self
 
     def as_tuple(self):
@@ -117,7 +119,7 @@ class Rectangle:
     @staticmethod
     def has_overlaps(rectangles):
         for (r1, r2) in itertools.combinations(rectangles, 2):
-            if r1.overlap(r2):
+            if not (r1.fixed and r2.fixed) and r1.overlap(r2):
                 return True
         return False
 
@@ -182,7 +184,8 @@ class Separation(BaseStrategy):
     def translate_vector(self, idx):
         rect = self.rectangles[idx]
 
-        overlap_vectors = [rect.center_vec(r) for i, r in enumerate(self.rectangles)
+        # identical centers give no direction, so break the tie by index (keeps one of them from staying stuck on a fixed rect)
+        overlap_vectors = [(rect.center_vec(r) if any(rect.center_vec(r)) else ((0, 1) if idx < i else (0, -1))) for i, r in enumerate(self.rectangles)
                 if i != idx and rect.overlap(r)]
 
         if len(overlap_vectors) == 0:
@@ -203,6 +206,8 @@ class Separation(BaseStrategy):
         vecs = [self.normalize(self.translate_vector(i)) for i in range(len(self.rectangles))]
 
         for i, r in enumerate(self.rectangles):
+            if r.fixed:
+                continue
 #            r.left += vecs[i][0]
 #            r.top += vecs[i][1]
             r.left += round(vecs[i][0])
@@ -280,12 +285,40 @@ strategy = Separation
 #strategy = Annealing
 
 
+def push_off_fixed(rectangles, max_x=None, max_y=None):
+    """Neighbors can squeeze a rect back onto a fixed one and stall the stepper, so finish by moving the
+    rect out of any fixed rect along the shortest way, accepting small overlaps with other movable rects."""
+    fixed = [r for r in rectangles if r.fixed]
+
+    for rect in rectangles:
+        if rect.fixed:
+            continue
+
+        for _ in range(len(fixed) + 1): # moving out of one fixed rect may land in another
+            hit = next((f for f in fixed if rect.overlap(f)), None)
+
+            if hit is None:
+                break
+
+            options = [(hit.right - rect.left, hit.right - rect.left, 0), (rect.right - hit.left, hit.left - rect.right, 0),
+                    (hit.bottom - rect.top, 0, hit.bottom - rect.top), (rect.bottom - hit.top, 0, hit.top - rect.bottom)]
+
+            if max_x is not None: # skip directions that leave the bounds
+                options = [o for o in options if 0 <= rect.left + o[1] and rect.right + o[1] <= max_x and 0 <= rect.top + o[2] and rect.bottom + o[2] <= max_y] or options
+
+            _, dx, dy = min(options)
+            rect.left += dx
+            rect.top += dy
+
+
 def correct_rect_overlaps(rectangles, max_x=None, max_y=None, max_tries = 1000):
     stepper = strategy(rectangles, max_x, max_y)
 
     for t in range(max_tries):
         if Rectangle.has_overlaps(stepper.check_rectangles):
             stepper.step()
+
+    push_off_fixed(rectangles, max_x, max_y)
 
 #    ic(Rectangle.has_overlaps(stepper.rectangles))
 #    ic(Rectangle.has_overlaps(stepper.check_rectangles))
@@ -299,7 +332,7 @@ _layout_cache = {}  # (max_x, max_y, group flag) -> list of {original rect tuple
 _LAYOUTS_PER_BOUNDS = 32
 
 def _rect_key(rect):
-    return (rect.original_left, rect.original_top, rect.width, rect.height)
+    return (rect.original_left, rect.original_top, rect.width, rect.height, rect.fixed)
 
 def _apply_delta(rect, delta):
     rect.left = rect.original_left - delta[0]
