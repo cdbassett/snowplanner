@@ -536,9 +536,32 @@ async def region(region_slug: str):
         ic(ticked_ids)
         ui.notify("does nothing yet")
 
+    async def highlight_cargo_highlight_ids(cargo_item_name):
+        set_highlighted_ids(await get_cargo_highlight_ids(region_area_ids, cargo_item_name, not switch_completed_objs.value))
+
     async def obj_tree_selected(e):
         if (tree_id := e.value):
             ic(tree_id)
+
+            if not "_" in tree_id:
+                return
+
+            prefix, id = tree_id.split("_", 1)
+
+            if prefix in ("PR", "SPR", "TPR", "TO"):
+                set_highlighted_ids(id.split("|")[1])
+            elif prefix == "C":
+                if (cargo_item := (await SourceCargoItem.filter(id=id).first())):
+                    await highlight_cargo_highlight_ids(cargo_item.name)
+            elif prefix == "OI":
+                if (obj_item := (await ObjectiveItem.filter(id=id).first())):
+                    await highlight_cargo_highlight_ids(obj_item.name)
+            else:
+                set_highlighted_ids(id)
+        else:
+            set_highlighted_ids(None)
+
+        await update_svg()
 
     location_items = None
     areas = [area_info.area for area_info in region_areas]
