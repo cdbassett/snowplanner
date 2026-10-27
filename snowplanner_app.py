@@ -169,11 +169,20 @@ def select_single_top_tree_node(obj_tree, id):
 def scroll_to_node(node_id):
     # Scroll into view via JavaScript
     # Note: Requires selecting the correct DOM node using the node ID
+    # The tree re-lays out after collapse/expand (and the node may not be rendered yet), so retry
+    # a few times with instant scrolling; smooth scrolling gets cut short by the shifting layout.
     ui.run_javascript(f'''
-        var node = document.querySelector('[data-id="{node_id}"]');
-        if (node) {{
-            node.scrollIntoView({{behavior: "smooth", block: "center"}});
-        }}
+        var tries = 0;
+        var timer = setInterval(function() {{
+            // Quasar's QTree puts no data-id on its nodes, so fall back to the selected node's header.
+            var node = document.querySelector('[data-id="{node_id}"]') || document.querySelector('.q-tree__node--selected');
+            if (node) {{
+                node.scrollIntoView({{behavior: "instant", block: "center"}});
+            }}
+            if (++tries >= 8) {{
+                clearInterval(timer);
+            }}
+        }}, 100);
     ''')
 
 def setup_obj_tree(obj_tree):
@@ -549,7 +558,16 @@ async def region(region_slug: str):
             prefix, id = tree_id.split("_", 1)
 
             if prefix in ("PR", "SPR", "TPR", "TO"):
-                set_highlighted_ids(id.split("|")[1])
+                id = id.split("|")[1]
+
+                if (pre_req_obj := (await Objective.filter(id=id).first())):
+                    select_single_top_tree_node(obj_tree, pre_req_obj.obj_type + "s")
+
+                node_id = "O_" + id
+                obj_tree.select(node_id)
+                scroll_to_node(node_id)
+                obj_tree.expand([node_id])
+                set_highlighted_ids(id)
             elif prefix == "C":
                 if (cargo_item := (await SourceCargoItem.filter(id=id).first())):
                     await highlight_cargo_highlight_ids(cargo_item.name)
