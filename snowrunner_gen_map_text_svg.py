@@ -540,18 +540,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 rec = location_items[id] = DrawRec(*(entry + (id, list(scale_pos), [scale_pos[0] + x - pre_x, scale_pos[1] + y_map - y])))
 
             if entry.selected:
-                g.append((dr := draw.Rectangle(x, y, entry.width, h, fill=entry.back, stroke='black')))
-                select_color = "mediumorchid" if entry.blocked else "violet"
-#                g.append((dr := draw.Rectangle(x, y, entry.width, h, fill="none", stroke="red", stroke_width=2 if entry.selected else 1, stroke_dasharray=f'{entry.width*2+h*2}', class_name='animated-rect')))
-                dr.add_key_frame(0, fill=entry.back)
-                dr.add_key_frame(1, fill=select_color)
-                dr.add_key_frame(2, fill=entry.back)
-                dr.add_key_frame(3, fill=select_color)
-                dr.add_key_frame(4, fill=entry.back)
-
-#                g.append((dr := draw.Rectangle(x, y, entry.width, h, fill="none", stroke="violet", stroke_width=3, stroke_dasharray='5,9')))
-#                dr.add_key_frame(0, stroke_dashoffset=0)
-#                dr.add_key_frame(4, stroke_dashoffset=56)
+                g.append(draw.Rectangle(x, y, entry.width, h, fill=entry.back, stroke='hotpink', stroke_width=4))
             else:
                 g.append(draw.Rectangle(x, y, entry.width, h, fill=entry.back, stroke='black',))
 
