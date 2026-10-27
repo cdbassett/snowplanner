@@ -4,6 +4,7 @@ from collections import defaultdict, namedtuple
 from operator import itemgetter
 from collections.abc import Iterable
 import math
+import textwrap
 
 from icecream import ic
 import drawsvg as draw
@@ -49,6 +50,12 @@ precedence = [
 precedence = dict((s, n) for n, s in enumerate(precedence))
 
 ICON_MAX_COLS = 3
+TITLE_MAX_CHARS = 12
+
+
+def wrap_title(title):
+    """Break a location/objective name into lines of about TITLE_MAX_CHARS, only between words."""
+    return textwrap.wrap(title, TITLE_MAX_CHARS, break_long_words=False, break_on_hyphens=False) or [title]
 
 
 def cargo_icon_size(text_height):
@@ -142,7 +149,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 #    text_h_margin = text_height
 
     def calc_text_width(title, lst):
-        return max(len(title) * text_width_mult, layout_cargo(lst, text_height)[1]) + text_h_margin * 3
+        return max(max(map(len, wrap_title(title))) * text_width_mult, layout_cargo(lst, text_height)[1]) + text_h_margin * 3
 
     def make_draw_item(flt, map_item_id, id, typ, disp_name, cargos, selected, blocked, back, fore="black", loc_name=None, extra=None, classes=None, arrow=None):
         if loc_mode: # icons aren't drawn when editing locations
@@ -534,7 +541,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
     def entry_height(entry):
         no_cargo = int(not entry.cargo_items)
-        return text_height + layout_cargo(entry.cargo_items, text_height)[2] + text_v_margin + no_cargo * quarter_height
+        return text_height * len(wrap_title(entry.disp_name)) + layout_cargo(entry.cargo_items, text_height)[2] + text_v_margin + no_cargo * quarter_height
 
     overlay_groups = [] # drawn after everything else so they stay on top
     overlays = {} # group id -> (css class, elements) drawn above all entries, in the group's coordinates, so they can have their own hover
@@ -597,10 +604,13 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 g.append(draw.Rectangle(x, y, entry.width, h, fill=entry.back, stroke='black',))
 
             tx, ty = x + text_h_margin, y + text_v_margin
-            g.append(draw.Text(entry.disp_name, text_height, tx, ty + no_cargo * eight_height, fill='black', font_weight='bold', dominant_baseline="hanging"))
+            title_lines = wrap_title(entry.disp_name)
+
+            for n, title_line in enumerate(title_lines):
+                g.append(draw.Text(title_line, text_height, tx, ty + no_cargo * eight_height + text_height * n, fill='black', font_weight='bold', dominant_baseline="hanging"))
 
             placements = layout_cargo(entry.cargo_items, text_height)[0]
-            cargo_y = ty + text_height
+            cargo_y = ty + text_height * len(title_lines)
             sq = cargo_icon_size(text_height)
             overlay_elements = []
 
