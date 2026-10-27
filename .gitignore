@@ -1,3 +1,4 @@
 *.kate-swp
 *.pyc
 *.sqlite*
+config.yaml

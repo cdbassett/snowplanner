@@ -12,6 +12,7 @@ from snowplanner_utils import *
 from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region
 from database import db
 from database.models import *
+from snowrunner_read_game_save import find_newest_game_save, apply_game_save
 
 
 @app.on_startup
@@ -49,6 +50,18 @@ app.add_static_files('/assets', snowplanner_base_dir / "assets")
 
 tree_updated = Event[AreaInfo]()
 map_updated = Event[AreaInfo]()
+save_loaded = Event() # fired after the DB was updated from a game save; every open view refreshes
+
+async def load_game_save():
+    try:
+        save_file = find_newest_game_save()
+        cnt = await apply_game_save(save_file)
+    except Exception as e:
+        ui.notify(f"Failed to load game save: {e}", type="negative")
+        return
+
+    ui.notify(f"Loaded {save_file.name} ({cnt} finished objectives)")
+    save_loaded.emit()
 
 d3_init_js_cache = FileCache("d3_init.js", ReadFile)
 d3_brush_selection_js_cache = FileCache("d3_brush_selection.js", ReadFile)
@@ -223,7 +236,7 @@ reward_map_items = {
     "source": "Location",
     }
 
-async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
+async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clicked):
     filter_cargo_items = set()
 
     # if cargo is only present in a source, we DO want to show it to allow filtering by all available cargo.
@@ -245,14 +258,21 @@ async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
     items = generic_items + found_items
     ic(items)
 
+    list_el.clear()
+
+    with list_el:
+        for item in items:
+            with ui.item(on_click=lambda list_item=item: filter_list_item_clicked(list_item)):
+                ui.label(item)
+
+
+async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
     with ui.column().classes('w-72 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
         ui.label('Cargo Filter').classes('font-bold text-sm mb-1')
         with ui.scroll_area().classes('flex-1 w-full border bg-white'):
-            with ui.list().props('dense separator') as filter_cargo_items:
-                for item in items:
-                    with ui.item(on_click=lambda list_item=item: filter_list_item_clicked(list_item)):
-                        ui.label(item)
+            filter_cargo_items = ui.list().props('dense separator')
 
+    await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked)
     return filter_cargo_items
 
 async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cur_area_id=None):
@@ -680,6 +700,11 @@ async def region(region_slug: str):
         svg_html.set_content(await get_region_svg())
 #        initialize_d3()
 
+    async def refresh_from_save():
+        await update_obj_tree()
+        await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked)
+        await update_svg()
+
     async def update_svg_event(area_info):
         if region_client_alive_checker.is_deleted:
             map_updated.unsubscribe(update_svg_event)
@@ -727,6 +752,8 @@ async def region(region_slug: str):
             else:
                 ui.button(icon='menu', on_click=toggle_panel)
                 ui.button(icon='refresh', on_click=update_svg).classes('m-0')
+
+            ui.button(icon='save', on_click=load_game_save).props('color=secondary').classes('m-0').tooltip('Refresh from newest game save')
 
             with ui.link(target='/'):
                 ui.icon('home', color='primary').classes('text-4xl')
@@ -813,6 +840,7 @@ async def region(region_slug: str):
     region_client_alive_checker = obj_tree
     tree_updated.subscribe(update_obj_tree_event)
     map_updated.subscribe(update_svg_event)
+    save_loaded.subscribe(refresh_from_save)
 
 
 class __AREA__: pass
@@ -1342,6 +1370,11 @@ async def area(area_slug: str):
             svg_html.set_content(await get_area_svg())
             initialize_d3()
 
+    async def refresh_from_save():
+        await update_obj_tree()
+        await fill_cargo_filter_list(filter_cargo_items, [cur_area_info.area_id], filter_list_item_clicked)
+        await update_svg()
+
     async def update_svg_event(area_info):
         ic("update_svg_event", area_id)
 
@@ -1414,6 +1447,8 @@ async def area(area_slug: str):
             else:
                 ui.button(icon='menu', on_click=toggle_panel)
                 ui.button(icon='refresh', on_click=update_svg).classes('m-0')
+
+            ui.button(icon='save', on_click=load_game_save).props('color=secondary').classes('m-0').tooltip('Refresh from newest game save')
 
             with ui.link(target='/'):
                 ui.icon('home', color='primary').classes('text-4xl')
@@ -1552,6 +1587,7 @@ async def area(area_slug: str):
         area_client_alive_checker = obj_tree
         tree_updated.subscribe(update_obj_tree_event)
         map_updated.subscribe(update_svg_event)
+        save_loaded.subscribe(refresh_from_save)
 
 ui.run(root, port=8081, title='SnowPlanner')
 
