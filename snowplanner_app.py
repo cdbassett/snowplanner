@@ -12,6 +12,7 @@ from snowplanner_utils import *
 from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region
 from database import db
 from database.models import *
+from cargo_icons import cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND
 from snowrunner_read_game_save import find_newest_game_save, apply_game_save
 
 
@@ -121,6 +122,54 @@ def root():
             background-color: LightGreen !important;  /* Change to your desired color */
             border-radius: 4px;
         }
+    ''')
+
+    # hover tooltip for cargo icons drawn in the map svg (elements carry data-cargo-* attributes)
+    ui.add_css('''
+        .cargo-tip {
+            position: fixed; z-index: 10000; pointer-events: none; display: none;
+            align-items: center; gap: 10px; padding: 6px 12px;
+            background: white; color: black; border: 1px solid #444; border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35); font-family: Arial;
+        }
+        .cargo-tip .cargo-tip-icon { font-size: 34px; line-height: 1; }
+        .cargo-tip .cargo-tip-name { font-weight: bold; font-size: 15px; }
+        .cargo-tip .cargo-tip-count { font-size: 14px; }
+    ''')
+    ui.add_head_html('''
+        <script>
+        (() => {
+            let tip = null;
+            const make = (cls, parent) => { const el = document.createElement('div'); el.className = cls; parent.appendChild(el); return el; };
+            const ensureTip = () => {
+                if (!tip) {
+                    tip = make('cargo-tip', document.body);
+                    tip.icon = make('cargo-tip-icon', tip);
+                    const text = make('', tip);
+                    tip.name = make('cargo-tip-name', text);
+                    tip.count = make('cargo-tip-count', text);
+                }
+                return tip;
+            };
+            const place = (e) => {
+                const t = ensureTip();
+                t.style.left = Math.min(e.clientX + 14, window.innerWidth - t.offsetWidth - 4) + 'px';
+                t.style.top = Math.min(e.clientY + 14, window.innerHeight - t.offsetHeight - 4) + 'px';
+            };
+            document.addEventListener('mouseover', (e) => {
+                const el = e.target.closest ? e.target.closest('[data-cargo-name]') : null;
+                if (!el) { if (tip) tip.style.display = 'none'; return; }
+                const t = ensureTip();
+                t.icon.textContent = el.dataset.cargoIcon;
+                t.name.textContent = el.dataset.cargoName;
+                const n = el.dataset.cargoCount;
+                t.count.textContent = (n === '\u221e' ? 'Unlimited \u221e' : 'Count: ' + n) + (el.dataset.cargoLoaded === '1' ? ' (loaded on trailer)' : '');
+                t.style.display = 'flex';
+                place(e);
+            });
+            document.addEventListener('mousemove', (e) => { if (tip && tip.style.display !== 'none') place(e); });
+        })();
+        </script>
     ''')
 
     # CSS for objective tree node variations
@@ -263,12 +312,23 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
     with list_el:
         for item in items:
             with ui.item(on_click=lambda list_item=item: filter_list_item_clicked(list_item)):
+                if has_cargo_style(item):
+                    emoji, fill = cargo_style(item)
+                    with ui.item_section().props('side'):
+                        ui.label(emoji).classes('items-center justify-center').style(f'display:flex; width:26px; height:26px; background:{fill}; border:1px solid #555; border-radius:4px; font-size:16px')
+
                 ui.label(item)
 
 
 async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
     with ui.column().classes('w-72 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
         ui.label('Cargo Filter').classes('font-bold text-sm mb-1')
+
+        with ui.row().classes('gap-2 items-center text-xs mb-1'):
+            for tier, desc in TIER_LEGEND:
+                ui.label().style(f'width:14px; height:14px; background:{TIER_FILLS[tier]}; border:1px solid #555; border-radius:3px')
+                ui.label(desc)
+
         with ui.scroll_area().classes('flex-1 w-full border bg-white'):
             filter_cargo_items = ui.list().props('dense separator')
 
