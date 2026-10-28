@@ -237,6 +237,10 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
         return (x, y), (ofs_x, ofs_y)
 
+    def can_link(deliver_loc, map_item):
+        """A pickup can be linked to its delivery location in the same area, or in any area shown in the region view."""
+        return deliver_loc.area_id == map_item.area_id or (multi_area and deliver_loc.area_id in offset_lookup)
+
     def have_db_pos(rec):
         if (pos_rec := override_positions.get(rec.id)):
             return pos_rec[1][0] is not None
@@ -325,7 +329,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     else:
                         arrow = None
 
-                        if obj_item.deliver_loc.area_id == map_item.area_id:
+                        if can_link(obj_item.deliver_loc, map_item):
                             if not (hide_tasks if is_task else hide_contracts):
                                 arrow = db_pos(obj_item.deliver_loc)
 
@@ -382,7 +386,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         else:
                             arrow = None
 
-                            if multi_area or obj_item.deliver_loc.area_id == map_item.area_id:
+                            if can_link(obj_item.deliver_loc, map_item):
                                 if not (hide_tasks if is_task else hide_contracts):
                                     arrow = db_pos(obj_item.deliver_loc)
 
