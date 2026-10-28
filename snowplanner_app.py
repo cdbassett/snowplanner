@@ -939,6 +939,50 @@ async def region(region_slug: str):
             # Right Panel: Cargo Filter List
             filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked)
 
+    async def select_clicked_node(node_id, id, objective_id=None):
+        if objective_id:
+            obj_tree.expand(["O_" + objective_id])
+
+        obj_tree.select(node_id)
+        scroll_to_node(node_id)
+        set_highlighted_ids(id)
+        obj_tree.expand([node_id])
+        await update_svg()
+
+    async def handle_js_click_event(e):
+        if not (rec := (location_items or {}).get(e.args['id'])) or not rec.id:
+            return
+
+        typ = rec.extra or rec.typ
+        id = rec.id
+
+        async def select_objective(objective):
+            select_single_top_tree_node(obj_tree, objective.obj_type + "s")
+            await select_clicked_node("O_" + objective.id, objective.id, objective.id)
+
+        if typ == "gate":
+            if (map_item := await MapItem.filter(id=id).prefetch_related("obj_locker").first()):
+                if map_item.obj_locker and not map_item.obj_locker.completed:
+                    await select_objective(map_item.obj_locker)
+                else:
+                    select_single_top_tree_node(obj_tree, "gates")
+                    await select_clicked_node("G_" + id, id)
+        elif typ == "truck":
+            select_single_top_tree_node(obj_tree, "trucks")
+            await select_clicked_node("T_" + id, id)
+        elif typ == "src":
+            select_single_top_tree_node(obj_tree, "sources")
+            await select_clicked_node("S_" + id, id)
+        elif typ == "pickup":
+            if (obj_item := await ObjectiveItem.filter(id=id).prefetch_related("objective").first()):
+                select_single_top_tree_node(obj_tree, obj_item.objective.obj_type + "s")
+                await select_clicked_node("OI_" + obj_item.id, obj_item.id, obj_item.objective_id)
+        elif typ == "dst":
+            if (obj_item := await ObjectiveItem.filter(deliver_loc_id=id).prefetch_related("objective").first()):
+                await select_objective(obj_item.objective)
+
+    ui.on('js_click_event', handle_js_click_event)
+
     region_client_alive_checker = obj_tree
     tree_updated.subscribe(update_obj_tree_event)
     map_updated.subscribe(update_svg_event)

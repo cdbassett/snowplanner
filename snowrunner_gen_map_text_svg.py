@@ -237,6 +237,15 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
         return (x, y), (ofs_x, ofs_y)
 
+    def pickup_tip_sub(map_item, obj_item):
+        """Hover subtitle for a pickup; says where it goes when that is in another area."""
+        sub = "Pickup"
+
+        if obj_item.deliver_loc.area_id != map_item.area_id:
+            sub += f" → {areas_by_area_id[obj_item.deliver_loc.area_id]}: {obj_item.deliver_loc.name}"
+
+        return sub
+
     def can_link(deliver_loc, map_item):
         """A pickup can be linked to its delivery location in the same area, or in any area shown in the region view."""
         return deliver_loc.area_id == map_item.area_id or (multi_area and deliver_loc.area_id in offset_lookup)
@@ -335,11 +344,9 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                             cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
                         else:
-                            # can't (yet) draw a line between 2 areas
-#                    cargo_list = [cargo_label, f"  (->{abbreviations_by_area_id[obj_item.area_id]}:{get_location_name_or_compass_of_pos(cur_pos, all_location_names[cur_area])})"]
-                            cargo_list = [vehicle_stack(map_item.name, desc), f"  (->{abbreviations_by_area_id[obj_item.deliver_loc.area_id]}:{abbreviate_line(obj_item.deliver_loc.name)})"] + cargo_items
+                            cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
 
-                        rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, "Pickup"))
+                        rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                 elif not is_spawn:
                     blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                     selected, back_color = get_selected_color("mediumpurple", map_item.id, blocked, "darkslateblue")
@@ -393,9 +400,9 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                                 spawn_stack = CargoStack(map_item.name, len(map_items), counted_cargo(len(map_items), desc)) # a spawn is the cargo itself
                                 cargo_list = [spawn_stack]
                             else:
-                                cargo_list = [CargoStack(map_item.name, len(map_items), desc), f"  (->{abbreviations_by_area_id[obj_item.deliver_loc.area_id]}:{abbreviate_line(obj_item.deliver_loc.name)})"]
+                                cargo_list = [CargoStack(map_item.name, len(map_items), desc)]
 
-                            rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, "Pickup"))
+                            rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                             cargo_by_pos[db_pos(map_item)].append(rec)
 
         # read deliveries for region and add to list
@@ -428,6 +435,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
             for _, obj_items in itertools.groupby(stage_obj_items, lambda oi: oi.deliver_loc_id if loc_mode else (oi.deliver_loc.x, oi.deliver_loc.y)):
                 cargo_list = []
+                from_notes = [] # where cargo is coming from when that is another area, shown on hover
                 obj_items = list(obj_items)
                 blocked = stage_blocked or any(not prereq.prereq_obj.completed for prereq in objective.obj_prereqs)
 
@@ -446,7 +454,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                                 # extra info if between 2 areas
                             if obj_item.map_item and obj_item.map_item.area_id != obj_item.deliver_loc.area_id:
-                                cargo_labels = [cargo_label, f"  (<-{get_compass_repr_of_pos_int((obj_item.map_item.x, obj_item.map_item.y))} {abbreviations_by_area_id[obj_item.map_item.area_id]})"]
+                                from_notes.append(f"{obj_item.name} from {get_compass_repr_of_pos_int((obj_item.map_item.x, obj_item.map_item.y))} {areas_by_area_id[obj_item.map_item.area_id]}")
 
                             cargo_list.append((obj_item.stage or -1, abbreviate_line(obj_item.name), cargo_labels))
 
@@ -466,7 +474,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         # when editing we show position then task, if more than one task in same position then join them instead of creating a new entry
                         dst_list.append(make_location_item(flt, deliver_loc_id, deliver_loc_id, obj_item.deliver_loc.name, selected, blocked, back=back_color, fore="green", extra="dst", lst = [abbr_task] + cargo_list if detail_in_loc_mode else [abbr_task], classes=klass))
                     else:
-                        dst_list.append(make_draw_item(flt, deliver_loc_id, deliver_loc_id, "dst", abbr_task, cargo_list, selected, blocked, back_color, "green", obj_item.deliver_loc.name, classes=klass, tip=("📍", obj_item.deliver_loc.name, "Objective: " + objective.name)))
+                        dst_list.append(make_draw_item(flt, deliver_loc_id, deliver_loc_id, "dst", abbr_task, cargo_list, selected, blocked, back_color, "green", obj_item.deliver_loc.name, classes=klass, tip=("📍", obj_item.deliver_loc.name, "; ".join(["Objective: " + objective.name] + from_notes))))
 
 
     gate_lines = []

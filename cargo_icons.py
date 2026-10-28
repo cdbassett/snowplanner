@@ -138,7 +138,7 @@ CARGO_STYLES = {
     "fertilizer": ("🌱", None),
     "freezer": ("🧊", None),
     "garbage": ("♻️", None),
-    "hay bale": ("🌾", None),
+    "hay bale": ("⛃", None),
     "industrial chiller": ("❄️", None),
     "industrial boiler": ("🔥", None),
     "metal beams": ("𝐈", None),
@@ -147,7 +147,7 @@ CARGO_STYLES = {
     "multistage pump": ("⛲", None),
     "oil barrels": ("🛢", None),
     "oil rig drill": ("🗼", None),
-    "oversized cargo": ("𝗼", None),
+    "oversized cargo": ("🅾️", None),
     "packaged sand": ("🟨", None),
     "part of the airplane fuselage": ("✈️", None),
     "wing fragments with the engine": ("🛩️", None),
@@ -157,14 +157,14 @@ CARGO_STYLES = {
     "rails": ("🪜", None),
     "service spare parts": ("🔧", None),
     "repair parts": ("🧰", None),
-    "vehicle spare parts": ("⚙️", None),
-    "engine assembly": ("🔩", None),
+    "vehicle spare parts": ("🔩", None),
+    "engine assembly": ("⚙️", None),
     "silver": ("⚪", None),
     "gold": ("🟡", None),
     "slate blocks": ("⬛", None),
     "solar panels": ("🟦", None),
     "soybeans": ("🫘", None),
-    "special cargo": ("☢", None),
+    "special cargo": ("☢️", None),
     "tetrapod": ("🔺", None),
     "transformer": ("🔋", None),
     "power": ("⚡", None),
@@ -172,7 +172,7 @@ CARGO_STYLES = {
     "data buoy": ("🕹", None),
     "cistern": ("🫙", None),
     "sequoia": ("🌲", None),
-    "cargo container": ("🎞️", None),
+    "cargo container": ("皿", None),
     "empty container": ("🥡", None),
     "filled container": ("📦", None),
     "secure container": ("🔒", None),
@@ -181,8 +181,8 @@ CARGO_STYLES = {
     "ba-20 armored car": ("🚙", None),
 }
 
-# 🔩📏⛓️➖🔗⛓️‍💥📦🎞️⚙️🛠️🌑☀️🟨🏖️🟥🕋🚂🚅🚈🚐🚃🔧🛥️🚤⛵📥🚘🪣🚃🚨📢🔶🔘🛢️🫧🪓🎫🪨🗄️
-# 𖥕𖦏𓎚✺✴︎𓄧𖣐⚕⎍⬡⚓🕹𝐈▧𓈘⚙⏣🗜🗄◉⫘☰𓈈⌯⌲⌗⩩❒⧉▣❖𖣯◆︎▰▱⟐⬢⬡⟁⊞⃟⃟⛃🗃⛁🛢
+# 🔩📏⛓️➖🔗⛓️‍💥📦🎞️⚙️🛠️🌑☀️🟨🏖️🟥🕋🚂🚅🚈🚐🚃🔧🛥️🚤⛵📥🚘🪣🚃🚨📢🔶🔘🛢️🫧🪓🎫🪨🗄️🥌🌾🅾️
+# 𖥕𖦏𓎚✺✴︎𓄧𖣐⚕⎍⬡⚓🕹𝐈▧𓈘⚙⏣🗜🗄◉⫘☰𓈈⌯⌲⌗⩩❒⧉▣❖𖣯◆︎▰▱⟐⬢⬡⟁⊞⃟⃟⛃🗃⛁🛢✇
 # ⌬𓏏 ⃣◇
 # ⃣𖣠𔗢🞋⟡ᨒ↟ 𖠰◘✪֎🜸↻ ◁ || ▷ ↺
 # ⎚皿
@@ -280,7 +280,8 @@ TRUCK_ICONS = [
     ("stator", "🔌"),
     ("cabin", "🏠"),
     ("rocket", "🚀"),
-    ("grinder", "⚙️"),
+    ("grinder", "🚙"),
+    ("yar 87", "🚙"),
     ("anchor", "⚓"),
     ("pump", "💦"),
     ("exploration", "🔭"),
