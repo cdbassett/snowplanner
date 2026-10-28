@@ -124,7 +124,7 @@ def root():
         }
     ''')
 
-    # hover tooltip for cargo icons drawn in the map svg (elements carry data-cargo-* attributes)
+    # hover tooltip for cargo icons drawn in the map svg (elements carry data-tip-* attributes)
     ui.add_css('''
         .cargo-tip {
             position: fixed; z-index: 10000; pointer-events: none; display: none;
@@ -157,15 +157,20 @@ def root():
                 t.style.top = Math.min(e.clientY + 14, window.innerHeight - t.offsetHeight - 4) + 'px';
             };
             document.addEventListener('mouseover', (e) => {
-                const el = e.target.closest ? e.target.closest('[data-cargo-name]') : null;
+                const el = e.target.closest ? e.target.closest('[data-tip-title]') : null;
                 if (!el) { if (tip) tip.style.display = 'none'; return; }
                 const t = ensureTip();
-                t.icon.textContent = el.dataset.cargoIcon;
-                t.name.textContent = el.dataset.cargoName;
-                const n = el.dataset.cargoCount;
-                t.count.textContent = (n === '\u221e' ? 'Unlimited \u221e' : 'Count: ' + n) + (el.dataset.cargoLoaded === '1' ? ' (loaded on trailer)' : '');
+                t.icon.textContent = el.dataset.tipIcon;
+                t.name.textContent = el.dataset.tipTitle;
+                t.count.textContent = el.dataset.tipSub || '';
+                t.count.style.display = t.count.textContent ? 'block' : 'none';
                 t.style.display = 'flex';
                 place(e);
+            });
+            // icons and hover areas sit above the map entries, so pass clicks through to the entry underneath
+            document.addEventListener('click', (e) => {
+                const el = e.target.closest ? e.target.closest('[data-click-id]') : null;
+                if (el && typeof emitEvent === 'function') emitEvent('js_click_event', { id: el.dataset.clickId });
             });
             document.addEventListener('mousemove', (e) => { if (tip && tip.style.display !== 'none') place(e); });
         })();
