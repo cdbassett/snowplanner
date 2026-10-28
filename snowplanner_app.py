@@ -270,6 +270,27 @@ def select_single_top_tree_node(obj_tree, id):
 
     obj_tree.expand([id])
 
+def hidden_by_filter(obj_tree, node_id):
+    """True if the tree's text filter currently hides the node (neither it nor any of its children match)."""
+    flt = (obj_tree.filter or "").casefold()
+
+    if not flt:
+        return False
+
+    def find(nodes):
+        for node in nodes:
+            if node["id"] == node_id:
+                return node
+
+            if (found := find(node.get("children", []))):
+                return found
+
+    def matches(node):
+        return flt in node["label"].casefold() or any(matches(child) for child in node.get("children", []))
+
+    node = find(obj_tree.props["nodes"])
+    return bool(node) and not matches(node)
+
 def scroll_to_node(node_id):
     # Scroll into view via JavaScript
     # Note: Requires selecting the correct DOM node using the node ID
@@ -625,10 +646,19 @@ async def region(region_slug: str):
     ui.page_title(f"{region_areas[0].region}: SnowPlanner")
 
     highlight_ids = None
+    skip_filter_change = False # set when we clear the filter ourselves, so the input's change handler doesn't re-highlight
 
     def set_highlighted_ids(id):
         nonlocal highlight_ids
         highlight_ids = id
+
+    def clear_filter_if_hiding(node_id):
+        nonlocal skip_filter_change
+
+        if hidden_by_filter(obj_tree, node_id):
+            skip_filter_change = bool(obj_filter.value)
+            obj_filter.value = ""
+            obj_tree.filter = ""
 
     async def build_obj_tree_data():
         return await build_obj_tree_data_base(region_area_ids, all_objs=True, completed_objs=switch_completed_objs.value)
@@ -774,7 +804,13 @@ async def region(region_slug: str):
             return to_highlight_ids + await get_cargo_highlight_ids(region_area_ids, filter, False)
 
     async def filter_changed(e):
+        nonlocal skip_filter_change
         ic("filter_changed", e)
+
+        if skip_filter_change:
+            skip_filter_change = False
+            return
+
         obj_tree.filter = e.value
 #        await asyncio.sleep(0.1)
 #        ui.notify(f'filter_changed: {e.value}')
@@ -940,6 +976,8 @@ async def region(region_slug: str):
             filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked)
 
     async def select_clicked_node(node_id, id, objective_id=None):
+        clear_filter_if_hiding(node_id)
+
         if objective_id:
             obj_tree.expand(["O_" + objective_id])
 
@@ -1023,10 +1061,19 @@ async def area(area_slug: str):
     selected_ids = []
     highlight_ids = None
     svg_html = None
+    skip_filter_change = False # set when we clear the filter ourselves, so the input's change handler doesn't re-highlight
 
     def set_highlighted_ids(id):
         nonlocal highlight_ids
         highlight_ids = id
+
+    def clear_filter_if_hiding(node_id):
+        nonlocal skip_filter_change
+
+        if hidden_by_filter(obj_tree, node_id):
+            skip_filter_change = bool(obj_filter.value)
+            obj_filter.value = ""
+            obj_tree.filter = ""
 
 
     async def set_warning(warn=True):
@@ -1394,6 +1441,8 @@ async def area(area_slug: str):
         await update_svg()
 
     async def select_tree_node(node_id, id, objective_id=None):
+        clear_filter_if_hiding(node_id)
+
         if objective_id:
             obj_tree.expand(["O_" + objective_id])
 
@@ -1405,6 +1454,12 @@ async def area(area_slug: str):
         await update_svg_all()
 
     async def filter_changed(e):
+        nonlocal skip_filter_change
+
+        if skip_filter_change:
+            skip_filter_change = False
+            return
+
 #        obj_tree.filter = e.value
         to_highlight_ids = await get_cargo_highlight_ids(region_area_ids, e.value, not switch_completed_objs.value)
         set_highlighted_ids(to_highlight_ids)
