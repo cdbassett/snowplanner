@@ -181,10 +181,11 @@ CARGO_STYLES = {
     "ba-20 armored car": ("🚙", None),
 }
 
-# 🔩📏⛓️➖🔗📦🎞️⚙️🛠️🌑☀️🟨🏖️🟥🕋🚂🚅🚈🚐🚃🔧🛥️🚤⛵📥🚘🪣🚃🚨📢🔶🔘🛢️🫧
+# 🔩📏⛓️➖🔗⛓️‍💥📦🎞️⚙️🛠️🌑☀️🟨🏖️🟥🕋🚂🚅🚈🚐🚃🔧🛥️🚤⛵📥🚘🪣🚃🚨📢🔶🔘🛢️🫧🪓🎫🪨🗄️
 # 𖥕𖦏𓎚✺✴︎𓄧𖣐⚕⎍⬡⚓🕹𝐈▧𓈘⚙⏣🗜🗄◉⫘☰𓈈⌯⌲⌗⩩❒⧉▣❖𖣯◆︎▰▱⟐⬢⬡⟁⊞⃟⃟⛃🗃⛁🛢
 # ⌬𓏏 ⃣◇
-# ⃣𖣠𔗢🞋
+# ⃣𖣠𔗢🞋⟡ᨒ↟ 𖠰◘✪֎🜸↻ ◁ || ▷ ↺
+# ⎚皿
 # 🥬🥦🥒🥕🫑🌶️🥤🥗🍔🍗🍟🥓🍞🌽
 
 # icons for the generic groups offered in the cargo filter list
@@ -192,7 +193,7 @@ GENERIC_STYLES = {
     "logs": ("🪵", None),
     "planks": ("📏", None),
     "pipes": ("⭕", None),
-    "concrete": ("🪨", None),
+    "concrete": ("⎚", None),
     "metal": ("🏗️", None),
 }
 
@@ -239,7 +240,7 @@ TRAILER_ICONS = [
     ("service", "🔧"),
     ("maintenance", "🧰"),
     ("curtainside", "🎪"),
-    ("sideboard", "🔲"),
+    ("sideboard", "📥"),
     ("crane", "🏗️"),
     ("drill", "⚕"),
     ("rig", "🗼"),
