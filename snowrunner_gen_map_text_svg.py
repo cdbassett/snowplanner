@@ -102,21 +102,20 @@ def layout_cargo(cargo_items, text_height):
         elif item_kind == "icon":
             max_w = ICON_MAX_COLS * sq + (ICON_MAX_COLS - 1) * gap
             row = x = used = 0
+            on_vehicle_row = False # cargo loaded on a truck or trailer stays on the vehicle's line
 
-            for stack in group: # trailer squares are wider; trucks and trailers always get a line of their own
+            for stack in group: # trailer squares are wider; trucks and trailers otherwise get a line of their own
                 w = stack.width_factor * sq
+                new_row = stack.is_vehicle or (on_vehicle_row and not stack.loaded)
 
-                if x and (stack.is_vehicle or x + w > max_w + 0.01):
+                if x and (new_row or x + w > max_w + 0.01):
                     row += 1
                     x = 0
 
                 placements.append(("icon", stack, x, y + row * (sq + gap)))
                 x += w + gap
                 used = max(used, x - gap)
-
-                if stack.is_vehicle:
-                    row += 1
-                    x = 0
+                on_vehicle_row = stack.is_vehicle or (on_vehicle_row and stack.loaded)
 
             width = max(width, used)
             y += (row + (1 if x else 0)) * (sq + gap)

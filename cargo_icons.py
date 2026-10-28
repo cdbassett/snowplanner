@@ -128,7 +128,7 @@ CARGO_STYLES = {
     "cabin": ("🏠", None),
     "cable car": ("🚡", None),
     "cellulose": ("🧻", None),
-    "cement": ("🪣", None),
+    "cement": ("▧", None),
     "chemical barrels": ("☣️", None),
     "concrete blocks": ("⬜️", None),
     "concrete slab": ("➖", None),
@@ -141,26 +141,26 @@ CARGO_STYLES = {
     "hay bale": ("🌾", None),
     "industrial chiller": ("❄️", None),
     "industrial boiler": ("🔥", None),
-    "metal beams": ("𓈘", None),
+    "metal beams": ("𝐈", None),
     "metal rolls": ("🔘", None),
     "mine cart": ("⛏️", None),
     "multistage pump": ("⛲", None),
     "oil barrels": ("🛢", None),
     "oil rig drill": ("🗼", None),
-    "oversized cargo": ("🚚", None),
+    "oversized cargo": ("𝗼", None),
     "packaged sand": ("🟨", None),
     "part of the airplane fuselage": ("✈️", None),
     "wing fragments with the engine": ("🛩️", None),
     "potatoes": ("🥔", None),
     "cargopotatogmo": ("🍠", None),
-    "rail section": ("🛤️", None),
-    "rails": ("🚃", None),
+    "rail section": ("🪜", None),
+    "rails": ("🪜", None),
     "service spare parts": ("🔧", None),
     "repair parts": ("🧰", None),
     "vehicle spare parts": ("⚙️", None),
     "engine assembly": ("🔩", None),
-    "silver": ("🥈", None),
-    "gold": ("🥇", None),
+    "silver": ("⚪", None),
+    "gold": ("🟡", None),
     "slate blocks": ("⬛", None),
     "solar panels": ("🟦", None),
     "soybeans": ("🫘", None),
@@ -169,7 +169,7 @@ CARGO_STYLES = {
     "transformer": ("🔋", None),
     "power": ("⚡", None),
     "water": ("💧", None),
-    "data buoy": ("⚓", None),
+    "data buoy": ("🕹", None),
     "cistern": ("🫙", None),
     "sequoia": ("🌲", None),
     "cargo container": ("🎞️", None),
@@ -181,7 +181,10 @@ CARGO_STYLES = {
     "ba-20 armored car": ("🚙", None),
 }
 
-# 🔩🗄📏🗜⛓️➖🔗📦🎞️⚙️🛠️⚙⏣🌑☀️🟨🏖️◉⌬𓏏 ⃣◇🟥🕋🚂🚅🚈🚐🚃🔧𖥕𖦏𓎚✺✴︎𓄧𖣐⚕⎍
+# 🔩📏⛓️➖🔗📦🎞️⚙️🛠️🌑☀️🟨🏖️🟥🕋🚂🚅🚈🚐🚃🔧🛥️🚤⛵📥🚘🪣🚃🚨📢🔶🔘🛢️🫧
+# 𖥕𖦏𓎚✺✴︎𓄧𖣐⚕⎍⬡⚓🕹𝐈▧𓈘⚙⏣🗜🗄◉⫘☰𓈈⌯⌲⌗⩩❒⧉▣❖𖣯◆︎▰▱⟐⬢⬡⟁⊞⃟⃟⛃🗃⛁🛢
+# ⌬𓏏 ⃣◇
+# ⃣𖣠𔗢🞋
 # 🥬🥦🥒🥕🫑🌶️🥤🥗🍔🍗🍟🥓🍞🌽
 
 # icons for the generic groups offered in the cargo filter list
@@ -190,7 +193,7 @@ GENERIC_STYLES = {
     "planks": ("📏", None),
     "pipes": ("⭕", None),
     "concrete": ("🪨", None),
-    "metal": ("𓈘", None),
+    "metal": ("🏗️", None),
 }
 
 
@@ -224,26 +227,63 @@ VEHICLE_FILLS = {"truck": "#e3d2fa", "trailer": "#c9ece6"}
 VEHICLE_BORDERS = {"truck": "#6a3fb5", "trailer": "#1b8a7a"}
 
 _TRAILER_WORDS = ("trailer", "semi", "carrier", "flatbed", "platform")
-TRAILER_NAMES = {"generator", "turbo generator stator"} # trailers whose names (and database type) don't say so
+TRAILER_NAMES = {"generator", "turbo generator stator", "potato harvester", "prototype exploration unit", "rocket carrier platform", "rocket carrier semi-trailer",
+                 "disassembled caterpillar 770g", "cultivator", "scout fuel carrier", "steam turbine", "small scout flatbed", "wide flatbed 3-axle semi", "multi-row planter"} # trailers whose names (and database type) don't say so
 
 # first keyword found in the lowercase name wins; vehicles of the same kind get different icons by function
 TRAILER_ICONS = [
-    ("fuel", "⛽"), ("tanker", "⛽"), ("water", "💧"), ("log", "🌲"), ("construction", "🛠️"),
-    ("service", "🔧"), ("maintenance", "🔧"), ("curtainside", "🎪"), ("sideboard", "🔲"),
-    ("crane", "🏗️"), ("drill", "⚕"), ("rig", "🗼"), ("coiled", "➰"),
-    ("rock", "🪨"), ("fishing", "🎣"), ("boat", "🎣"), ("home", "🏠"),
-    ("movie", "🎬"), ("rocket", "🚀"), ("scout", "⛺"), ("stator", "⚡"), ("generator", "🔌"),
-    ("flatbed", "𓄧"), ("stepdeck", "➖"), ("gooseneck", "➖"),
+    ("fuel", "⛽"),
+    ("tanker", "⛽"),
+    ("water", "💧"),
+    ("log", "🌲"),
+    ("service", "🔧"),
+    ("maintenance", "🧰"),
+    ("curtainside", "🎪"),
+    ("sideboard", "🔲"),
+    ("crane", "🏗️"),
+    ("drill", "⚕"),
+    ("rig", "🗼"),
+    ("coiled", "➰"),
+    ("rock", "🪨"),
+    ("fishing", "🎣"),
+    ("boat", "⛵"),
+    ("home", "🏠"),
+    ("movie", "🎬"),
+    ("rocket", "🚀"),
+    ("scout", "⛺"),
+    ("stator", "⚡"),
+    ("generator", "🔌"),
+    ("flatbed", "𓄧"),
+    ("stepdeck", "¬"),
+    ("gooseneck", "ヘ"),
+    ("construction", "🛠️"),
 ]
 DEFAULT_TRAILER_ICON = "🔗"
 
 TRUCK_ICONS = [
-    ("scout", "🛻"), ("ck1500", "🛻"), ("hummer", "🚙"), ("earthroamer", "🚐"),
-    ("jangsu", "🚙"), ("neo falcon", "🚗"), ("cultivator", "🚜"), ("planter", "🚜"),
-    ("harvester", "🚜"), ("caterpillar", "🏗️"), ("kirovets", "🚜"),
-    ("locomotive", "🚂"), ("generator", "🔌"), ("turbine", "🔌"), ("stator", "🔌"),
-    ("cabin", "🏠"), ("rocket", "🚀"), ("grinder", "⚙️"), ("anchor", "⚓"),
-    ("pump", "💦"), ("exploration", "🔭"), ("loadstar", "🚐"),
+    ("scout", "🛻"),
+    ("ck1500", "🛻"),
+    ("hummer", "🚙"),
+    ("earthroamer", "🚐"),
+    ("jangsu", "🚙"),
+    ("neo falcon", "🚗"),
+    ("cultivator", "🚜"),
+    ("planter", "🚜"),
+    ("harvester", "🚜"),
+    ("caterpillar", "🏗️"),
+    ("kirovets", "🚜"),
+    ("futom", "🚜"),
+    ("locomotive", "🚂"),
+    ("generator", "🔌"),
+    ("turbine", "🔌"),
+    ("stator", "🔌"),
+    ("cabin", "🏠"),
+    ("rocket", "🚀"),
+    ("grinder", "⚙️"),
+    ("anchor", "⚓"),
+    ("pump", "💦"),
+    ("exploration", "🔭"),
+    ("loadstar", "🚐"),
 ]
 DEFAULT_TRUCK_ICON = "🚚"
 

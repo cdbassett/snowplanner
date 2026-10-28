@@ -12,7 +12,7 @@ from snowplanner_utils import *
 from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region
 from database import db
 from database.models import *
-from cargo_icons import cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND
+from cargo_icons import normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
 from snowrunner_read_game_save import find_newest_game_save, apply_game_save
 
 
@@ -202,10 +202,47 @@ def root():
             ui.button('Close', on_click=lambda: left_drawer.hide())
             ui.label('inside the expansion')
 
-    ui.sub_pages({'/': main, '/region/{region_slug}': region, '/area/{area_slug}': area})
+    ui.sub_pages({'/': main, '/icons': icon_reference, '/region/{region_slug}': region, '/area/{area_slug}': area})
     ui.context.client.sub_pages_router.on_path_changed(on_path_changed)
 
+async def icon_reference():
+    cargo_names = set(CARGO_STYLES) | set(GENERIC_STYLES)
+    cargo_names |= {normalize_cargo_name(n) for n in await SourceCargoItem.all().values_list("name", flat=True)}
+    cargo_names |= {normalize_cargo_name(n) for n in await ObjectiveItem.filter(item_type="cargo").values_list("name", flat=True)}
+
+    vehicles = {"truck": set(), "trailer": set()}
+    for name in await MapItem.filter(item_type__in=("truck", "trailer")).values_list("name", flat=True):
+        vehicles[vehicle_stack(name).kind].add(name)
+    for item_type, name in await ObjectiveItem.filter(item_type__in=("truck", "trailer")).values_list("item_type", "name"):
+        vehicles[vehicle_stack(name, kind=item_type).kind].add(name)
+
+    def section(title, stacks):
+        ui.label(f"{title} ({len(stacks)})").classes('font-bold text-lg mt-4')
+        with ui.row().classes('gap-2 w-full'):
+            for stack in stacks:
+                color, width = stack.border
+                with ui.row().classes('items-center gap-2 no-wrap w-60'):
+                    ui.label(stack.icon).classes('items-center justify-center flex-none').style(
+                        f'display:flex; min-width:34px; height:34px; padding:0 4px; background:{stack.fill}; '
+                        f'border:{width}px solid {color}; border-radius:5px; font-size:20px')
+                    ui.label(stack.name)
+
+    with ui.column().classes('p-4 gap-0'):
+        with ui.row().classes('items-center gap-2'):
+            with ui.link(target='/'):
+                ui.icon('home', color='primary').classes('text-4xl')
+            ui.label('Icon Reference').classes('font-bold text-xl text-blue')
+        with ui.row().classes('gap-2 items-center text-xs'):
+            for tier, desc in TIER_LEGEND:
+                ui.label().style(f'width:14px; height:14px; background:{TIER_FILLS[tier]}; border:1px solid #555; border-radius:3px')
+                ui.label(desc)
+
+        section("Cargo", [CargoStack(n.title(), None, n) for n in sorted(cargo_names)])
+        section("Trucks", [vehicle_stack(n, kind="truck") for n in sorted(vehicles["truck"])])
+        section("Trailers", [vehicle_stack(n, kind="trailer") for n in sorted(vehicles["trailer"])])
+
 def main():
+    ui.link('Icon reference', '/icons').classes('m-4')
     if 1:
             # Create a responsive grid
         with ui.grid(columns=4).classes('gap-4 p-4'):
