@@ -38,7 +38,7 @@ async def dump_data():
             if 1:
                 for field in ("area_id", "objective_id", "map_item_id"):
                     if field in rows[0]:
-                        rows = [row for row in rows if (v := row[field]) and not v.startswith("US_18_")]
+                        rows = [row for row in rows if (v := row[field]) is None or not v.startswith("US_18_")] # cargo objective items have no map_item_id
 
 
         snapshot[table] = rows
