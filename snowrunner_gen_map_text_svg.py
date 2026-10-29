@@ -50,6 +50,16 @@ precedence = [
 precedence = dict((s, n) for n, s in enumerate(precedence))
 
 ICON_MAX_COLS = 3
+ENTRY_CORNER_RADIUS = 3
+LINK_CASING_LAYERS = [(7, "black", 0.4), (5, "white", 1)] # (width, color, opacity) under the pickup -> delivery lines, widest first
+LINK_ARROW_SPACING = 80
+LINK_ARROW_LENGTH = 15
+LINK_ARROW_WIDTH = 16
+LINK_ARROW_NOTCH = 6 # how far the chevron's inner notch sits in from its wing tips
+LINK_COLOR = "RebeccaPurple"
+LINK_CHEVRON_COLOR = "DeepSkyBlue"
+# LINK_CHEVRON_STROKE = "white"
+LINK_CHEVRON_STROKE = "black"
 TITLE_MAX_CHARS = 12
 
 
@@ -650,9 +660,9 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 rec = location_items[id] = DrawRec(*(entry + (id, list(scale_pos), [scale_pos[0] + x - pre_x, scale_pos[1] + y_map - y])))
 
             if entry.selected:
-                g.append(draw.Rectangle(x, y, entry.width, h, fill=entry.back, stroke='hotpink', stroke_width=4))
+                g.append(draw.Rectangle(x, y, entry.width, h, rx=ENTRY_CORNER_RADIUS, fill=entry.back, stroke='hotpink', stroke_width=4))
             else:
-                g.append(draw.Rectangle(x, y, entry.width, h, fill=entry.back, stroke='black',))
+                g.append(draw.Rectangle(x, y, entry.width, h, rx=ENTRY_CORNER_RADIUS, fill=entry.back, stroke='black',))
 
             tx, ty = x + text_h_margin, y + text_v_margin
             title_lines = entry_title_lines(entry)
@@ -667,7 +677,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
             if entry.tip and not loc_mode: # full objective / delivery location names are only shown on hover; transparent rect catches the mouse
                 tip_icon, tip_title, tip_sub = entry.tip
-                overlay_elements.append(draw.Rectangle(x, y, entry.width, h, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon=tip_icon, data_tip_title=tip_title, data_tip_sub=tip_sub))
+                overlay_elements.append(draw.Rectangle(x, y, entry.width, h, rx=ENTRY_CORNER_RADIUS, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon=tip_icon, data_tip_title=tip_title, data_tip_sub=tip_sub))
 
             for placement in placements:
                 if placement[0] == "text":
@@ -721,17 +731,43 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 #        ic("done correcting", area_id)
 
         # separate loop to draw underneath rectangles
+    links = [] # (delivery x, delivery y, pickup x, pickup y)
+
     for entry, rect, grouped_rect, g, scale_pos, (x, y), rec in rects_and_objects:
         if entry.arrow: # connect vehicles with their destinations
             moved_rect = grouped_rect if group_rectangles else rect
-            scale_from = scaled_pos(*entry.arrow)
-            xf, yf = scale_from
+            xf, yf = scaled_pos(*entry.arrow)
             xt, yt = rect.original_midx - moved_rect.deltax, rect.original_midy - moved_rect.deltay
-                # use gradient to indicate which end is delivery and which is pickup
-            gradient = draw.LinearGradient(xf, yf, xt, yt)
-            gradient.add_stop(0, 'blue', 1)
-            gradient.add_stop(1, 'green', 1)
-            overall_group.append(draw.Line(xf, yf, xt, yt, stroke=gradient, stroke_width=3))
+            links.append((xf, yf, xt, yt))
+
+        # each layer is drawn for every link before the next, so a link's casing never covers another link's line
+    for width, color, opacity in LINK_CASING_LAYERS:
+        for xf, yf, xt, yt in links:
+            overall_group.append(draw.Line(xf, yf, xt, yt, stroke=color, stroke_width=width, stroke_opacity=opacity))
+
+    for xf, yf, xt, yt in links:
+        overall_group.append(draw.Line(xf, yf, xt, yt, stroke=LINK_COLOR, stroke_width=3))
+
+        # chevrons along the line point from the pickup to the delivery; the ends are covered by the boxes
+    for xf, yf, xt, yt in links:
+        length = math.hypot(xf - xt, yf - yt)
+
+        if length < 1:
+            continue
+
+        ux, uy = (xf - xt) / length, (yf - yt) / length # unit vector pickup -> delivery
+        count = max(1, int(length // LINK_ARROW_SPACING))
+
+        for n in range(count):
+            d_along = length * (n + 0.5) / count # centered, so a short line gets one arrow in the middle
+            cx, cy = xt + ux * d_along, yt + uy * d_along
+            half_len, half_wid = LINK_ARROW_LENGTH / 2, LINK_ARROW_WIDTH / 2
+
+            def point(along, across): # position relative to the chevron center; along points toward the delivery
+                return cx + ux * along - uy * across, cy + uy * along + ux * across
+
+            points = [point(half_len, 0), point(-half_len, half_wid), point(-half_len + LINK_ARROW_NOTCH, 0), point(-half_len, -half_wid)]
+            overall_group.append(draw.Lines(*itertools.chain.from_iterable(points), close=True, fill=LINK_CHEVRON_COLOR, stroke=LINK_CHEVRON_STROKE, stroke_width=1, stroke_linejoin="round"))
 
     for (grouped_rect, scale_pos), rects_and_objects_bygroup in itertools.groupby(rects_and_objects, itemgetter(2, 4)):
         if group_rectangles:
