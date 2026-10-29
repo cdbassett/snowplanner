@@ -57,6 +57,7 @@ LINK_ARROW_LENGTH = 15
 LINK_ARROW_WIDTH = 16
 LINK_ARROW_NOTCH = 6 # how far the chevron's inner notch sits in from its wing tips
 LINK_COLOR = "RebeccaPurple"
+LINK_SELECTED_COLOR = "hotpink" # center color while the link's pickup is highlighted
 LINK_CHEVRON_COLOR = "DeepSkyBlue"
 # LINK_CHEVRON_STROKE = "white"
 LINK_CHEVRON_STROKE = "black"
@@ -110,7 +111,8 @@ def layout_cargo(cargo_items, text_height):
                 width = max(width, x - gap)
                 y += sq + gap
         elif item_kind == "icon":
-            max_w = ICON_MAX_COLS * sq + (ICON_MAX_COLS - 1) * gap
+            cols = 2 if len(group) == 4 else ICON_MAX_COLS # exactly 4 icons: one square of 4 rather than 3 + 1
+            max_w = cols * sq + (cols - 1) * gap
             row = x = used = 0
             on_vehicle_row = False # cargo loaded on a truck or trailer stays on the vehicle's line
 
@@ -738,18 +740,18 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             moved_rect = grouped_rect if group_rectangles else rect
             xf, yf = scaled_pos(*entry.arrow)
             xt, yt = rect.original_midx - moved_rect.deltax, rect.original_midy - moved_rect.deltay
-            links.append((xf, yf, xt, yt))
+            links.append((xf, yf, xt, yt, entry.selected))
 
         # each layer is drawn for every link before the next, so a link's casing never covers another link's line
     for width, color, opacity in LINK_CASING_LAYERS:
-        for xf, yf, xt, yt in links:
+        for xf, yf, xt, yt, selected in links:
             overall_group.append(draw.Line(xf, yf, xt, yt, stroke=color, stroke_width=width, stroke_opacity=opacity))
 
-    for xf, yf, xt, yt in links:
-        overall_group.append(draw.Line(xf, yf, xt, yt, stroke=LINK_COLOR, stroke_width=3))
+    for xf, yf, xt, yt, selected in links:
+        overall_group.append(draw.Line(xf, yf, xt, yt, stroke=LINK_SELECTED_COLOR if selected else LINK_COLOR, stroke_width=3))
 
         # chevrons along the line point from the pickup to the delivery; the ends are covered by the boxes
-    for xf, yf, xt, yt in links:
+    for xf, yf, xt, yt, selected in links:
         length = math.hypot(xf - xt, yf - yt)
 
         if length < 1:
