@@ -97,12 +97,13 @@ def layout_cargo(cargo_items, text_height):
         group = list(group)
 
         if item_kind == "recipe": # one equation per row: product <- ingredients
-            arrow_w = sq * 0.7
+            arrow_w = sq * 0.4
+            arrow_gap = gap / 2 # tighter than between icons so the equation reads as one unit
 
             for recipe in group:
                 placements.append(("icon", recipe.product, 0, y))
-                placements.append(("arrow", sq + gap, y, arrow_w))
-                x = sq + gap + arrow_w + gap
+                placements.append(("arrow", sq + arrow_gap, y, arrow_w))
+                x = sq + arrow_gap + arrow_w + arrow_gap
 
                 for ingredient in recipe.ingredients:
                     placements.append(("icon", ingredient, x, y))
@@ -299,13 +300,19 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         # cargo sources
     if not hide_sources or not hide_framing:
         klass = element_classes.get("Sources", "location-source")
+        needed_cargo = None # names of cargo still required by an incomplete objective anywhere in the region; plain sources only show these
+
+        if not show_all:
+            region_area_ids = [r.area_id for r in iterate_region_area() if r.region == region]
+            needed_cargo = set(await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True))
+
         for map_item in await MapItem.filter(Q(area_id=area_id) & (Q(item_type="source") | Q(item_type="craft"))).prefetch_related("cargo_items", "obj_locker"):
 #            if 1 or have_db_pos(map_item):
             check_hide = hide_framing if "framing" in map_item.name else hide_sources
 
             if not check_hide and (show_all or not map_item.completed):
                 flt = MapItem.filter(id=map_item.id)
-                cargo_items = sorted((make_source_cargo(cargo_item, ccnt) for cargo_item in map_item.cargo_items if (ccnt := current_cargo_count(cargo_item)) != 0), key=lambda c: (c.product if isinstance(c, Recipe) else c).name)
+                cargo_items = sorted((make_source_cargo(cargo_item, ccnt) for cargo_item in map_item.cargo_items if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type == "craft" or cargo_item.name in needed_cargo)), key=lambda c: (c.product if isinstance(c, Recipe) else c).name)
                 blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                 selected, source_color = get_selected_color("yellow", map_item.id, blocked, "gold")
                 desc = abbreviate_line(map_item.name) + (" Craft" if map_item.item_type=="craft" else "")
@@ -352,7 +359,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                         if can_link(obj_item.deliver_loc, map_item):
                             if not (hide_tasks if is_task else hide_contracts):
-                                arrow = db_pos(obj_item.deliver_loc)
+                                arrow = [db_pos(obj_item.deliver_loc)]
 
                             cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
                         else:
@@ -379,7 +386,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
             # handle spawns separately than trucks as there can be multiple at same position in which case we want to combine them, but only when not in loc_mode
         if not loc_mode and not hide_spawns:
             for (x, y, name, o_id), map_items in itertools.groupby(await MapItem.filter(Q(area_id=area_id) & Q(item_type="spawn")) \
-                    .prefetch_related("obj_items__objective__obj_prereqs__prereq_obj", "obj_items__deliver_loc")
+                    .prefetch_related("obj_items__objective__obj_prereqs__prereq_obj", "obj_items__objective__obj_items__deliver_loc", "obj_items__deliver_loc")
                     .order_by("x", "y", "name"), lambda mi: (mi.x, mi.y, mi.name, (mi_oi := mi.obj_items) and mi_oi[0].objective_id)):
                 map_items = list(map_item for map_item in map_items if show_all or not map_item.completed)
                 flt = MapItem.filter(id__in=[map_item.id for map_item in map_items])
@@ -407,7 +414,11 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                             if can_link(obj_item.deliver_loc, map_item):
                                 if not (hide_tasks if is_task else hide_contracts):
-                                    arrow = db_pos(obj_item.deliver_loc)
+                                    arrow = [db_pos(obj_item.deliver_loc)]
+
+                                    if len(map_items) > 1: # identical spawns can go to different places, which only the objective's other items for that cargo show
+                                        dests = {oi.deliver_loc_id: oi.deliver_loc for oi in obj_item.objective.obj_items if oi.name == obj_item.name and can_link(oi.deliver_loc, map_item)}
+                                        arrow = [db_pos(dest) for dest in dests.values()]
 
                                 spawn_stack = CargoStack(map_item.name, len(map_items), counted_cargo(len(map_items), desc)) # a spawn is the cargo itself
                                 cargo_list = [spawn_stack]
@@ -687,7 +698,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                     g.append(draw.Text(t, text_height, tx, cargo_y + py, fill=entry.fore, dominant_baseline="hanging"))
                 elif placement[0] == "arrow":
                     _, px, py, aw = placement
-                    g.append(draw.Text("←", sq * 0.7, tx + px + aw / 2, cargo_y + py + sq / 2, text_anchor="middle", dominant_baseline="central", font_weight="bold", fill="black"))
+                    g.append(draw.Text("←", sq * 0.5, tx + px + aw / 2, cargo_y + py + sq / 2, text_anchor="middle", dominant_baseline="central", font_weight="bold", fill="black"))
                 else:
                     _, stack, px, py = placement
                     sx, sy = tx + px, cargo_y + py
@@ -738,9 +749,11 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
     for entry, rect, grouped_rect, g, scale_pos, (x, y), rec in rects_and_objects:
         if entry.arrow: # connect vehicles with their destinations
             moved_rect = grouped_rect if group_rectangles else rect
-            xf, yf = scaled_pos(*entry.arrow)
             xt, yt = rect.original_midx - moved_rect.deltax, rect.original_midy - moved_rect.deltay
-            links.append((xf, yf, xt, yt, entry.selected))
+
+            for dest in entry.arrow:
+                xf, yf = scaled_pos(*dest)
+                links.append((xf, yf, xt, yt, entry.selected))
 
         # each layer is drawn for every link before the next, so a link's casing never covers another link's line
     for width, color, opacity in LINK_CASING_LAYERS:

@@ -351,11 +351,13 @@ reward_map_items = {
 async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clicked):
     filter_cargo_items = set()
 
-    # if cargo is only present in a source, we DO want to show it to allow filtering by all available cargo.
+        # plain sources only list cargo that an incomplete objective still needs, same as the map
+    needed_cargo = set(await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True))
+
     for map_item in await MapItem.filter(Q(area_id__in=region_area_ids)).prefetch_related("cargo_items"):
         if not map_item.completed:
             for cargo_item in map_item.cargo_items:
-                if (ccnt := current_cargo_count(cargo_item)) != 0:
+                if (ccnt := current_cargo_count(cargo_item)) != 0 and (map_item.item_type != "source" or cargo_item.name in needed_cargo):
                     filter_cargo_items.add(cargo_item.name)
 
     for objective in await Objective.filter(obj_items__deliver_loc__area_id__in=region_area_ids).prefetch_related("obj_items__map_item"):
@@ -630,6 +632,30 @@ async def update_completed(ticked_ids, unticked_ids, model):
         await model.filter(id__in=unticked_ids, completed=True).update(completed=False)
 
 
+async def apply_tree_ticks(ticked_ids, unticked_ids):
+    """Write the completed state of the ticked / unticked objective tree nodes to the DB."""
+    ticked_o_ids, unticked_o_ids = get_actual_ids(ticked_ids, unticked_ids, "O_")
+    #    ic(ticked_o_ids)
+    await update_completed(ticked_o_ids, unticked_o_ids, Objective)
+
+    ticked_oi_ids, unticked_oi_ids = get_actual_ids(ticked_ids, unticked_ids, "OI_")
+    await update_completed(ticked_oi_ids, unticked_oi_ids, ObjectiveItem)
+
+    ticked_t_ids, unticked_t_ids = get_actual_ids(ticked_ids, unticked_ids, "T_")
+    ticked_s_ids, unticked_s_ids = get_actual_ids(ticked_ids, unticked_ids, "S_")
+    await MapItem.filter(completed__isnull=True).update(completed=False) # special handling for null values, otherwise following queries don't work
+    await update_completed(ticked_t_ids + ticked_s_ids, unticked_t_ids + unticked_s_ids, MapItem)
+
+    ticked_c_ids, unticked_c_ids = get_actual_ids(ticked_ids, unticked_ids, "C_")
+
+    if ticked_c_ids:
+        ic(ticked_c_ids)
+        await SourceCargoItem.filter(Q(id__in=ticked_c_ids) & (Q(current_cnt__gt=0) | Q(current_cnt__isnull=True))).update(current_cnt=0)
+
+    if unticked_c_ids:
+        await SourceCargoItem.filter(id__in=unticked_c_ids, current_cnt=0).update(current_cnt=None)
+
+
 class __REGION__: pass
 
 async def region(region_slug: str):
@@ -695,7 +721,12 @@ async def region(region_slug: str):
         print("handle_tree_tick:")
         ticked_ids = set(e.value)
         ic(ticked_ids)
-        ui.notify("does nothing yet")
+        await apply_tree_ticks(ticked_ids, set(tree_ids) - ticked_ids)
+        await update_obj_tree()
+        await update_svg()
+        info = region_areas[0] # lets the other open pages for this region refresh too
+        tree_updated.emit(info)
+        map_updated.emit(info)
 
     async def highlight_cargo_highlight_ids(cargo_item_name):
         set_highlighted_ids(await get_cargo_highlight_ids(region_area_ids, cargo_item_name, not switch_completed_objs.value))
@@ -1366,26 +1397,7 @@ async def area(area_slug: str):
 #        await Objective.filter(id__in=tree_ids).update(
 #            completed = Case(When(id__in  = hide_ids, then = True), default=False))
 
-        ticked_o_ids, unticked_o_ids = get_actual_ids(ticked_ids, unticked_ids, "O_")
-#        ic(ticked_o_ids)
-        await update_completed(ticked_o_ids, unticked_o_ids, Objective)
-
-        ticked_oi_ids, unticked_oi_ids = get_actual_ids(ticked_ids, unticked_ids, "OI_")
-        await update_completed(ticked_oi_ids, unticked_oi_ids, ObjectiveItem)
-
-        ticked_t_ids, unticked_t_ids = get_actual_ids(ticked_ids, unticked_ids, "T_")
-        ticked_s_ids, unticked_s_ids = get_actual_ids(ticked_ids, unticked_ids, "S_")
-        await MapItem.filter(completed__isnull=True).update(completed=False) # special handling for null values, otherwise following queries don't work
-        await update_completed(ticked_t_ids + ticked_s_ids, unticked_t_ids + unticked_s_ids, MapItem)
-
-        ticked_c_ids, unticked_c_ids = get_actual_ids(ticked_ids, unticked_ids, "C_")
-
-        if ticked_c_ids:
-            ic(ticked_c_ids)
-            await SourceCargoItem.filter(Q(id__in=ticked_c_ids) & (Q(current_cnt__gt=0) | Q(current_cnt__isnull=True))).update(current_cnt=0)
-
-        if unticked_c_ids:
-            await SourceCargoItem.filter(id__in=unticked_c_ids, current_cnt=0).update(current_cnt=None)
+        await apply_tree_ticks(ticked_ids, unticked_ids)
 
             # update to show any objectives that have become unblocked
 #        await update_obj_tree()
