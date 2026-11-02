@@ -268,6 +268,21 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
         return rec.x is not None
 
+    def gate_pos_toward(to_area_id, from_pos):
+        """Position of the gate (in this area) leading to to_area_id that is nearest from_pos, or None. Only used in the single area view."""
+        best = min(gates_to_area.get(to_area_id, []), key=lambda gp: math.hypot(gp[0][0] - from_pos[0][0], gp[0][1] - from_pos[0][1]), default=None)
+        return best
+
+    def link_targets(deliver_loc, map_item):
+        """Where a pickup's delivery line should go: its delivery location, or failing that the gate toward the delivery's area."""
+        if can_link(deliver_loc, map_item):
+            return [db_pos(deliver_loc)]
+
+        if not multi_area and have_db_pos(map_item) and (gp := gate_pos_toward(deliver_loc.area_id, db_pos(map_item))):
+            return [gp]
+
+        return None
+
 
     def get_selected_color(cur_color, id, blocked=False, blocked_color=None):
         color = blocked_color if blocked else cur_color
@@ -286,6 +301,13 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
     cargo_by_pos = defaultdict(list)
     area_id = area_ids_by_area[area]
+    gates_to_area = defaultdict(list) # to_area_id -> positions of this area's gates leading there (single area view only, for lines to/from neighboring areas)
+    incoming_by_gate = defaultdict(list) # gate position -> positions of deliveries here whose cargo comes through that gate
+
+    if not multi_area and not loc_mode and "Gates" not in hide_types:
+        for gate in await MapItem.filter(area_id=area_id, item_type="gate"):
+            if have_db_pos(gate):
+                gates_to_area[gate.to_area_id].append(db_pos(gate))
     ic("gas", area_id, region, area, selected_ids)
     hide_class = element_classes.get("Hide")
     hide_class = (" " + hide_class) if hide_class else ""
@@ -357,13 +379,10 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     else:
                         arrow = None
 
-                        if can_link(obj_item.deliver_loc, map_item):
-                            if not (hide_tasks if is_task else hide_contracts):
-                                arrow = [db_pos(obj_item.deliver_loc)]
+                        if not (hide_tasks if is_task else hide_contracts):
+                            arrow = link_targets(obj_item.deliver_loc, map_item)
 
-                            cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
-                        else:
-                            cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
+                        cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
 
                         rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                 elif not is_spawn:
@@ -412,14 +431,16 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         else:
                             arrow = None
 
-                            if can_link(obj_item.deliver_loc, map_item):
-                                if not (hide_tasks if is_task else hide_contracts):
-                                    arrow = [db_pos(obj_item.deliver_loc)]
+                            targets = link_targets(obj_item.deliver_loc, map_item)
 
-                                    if len(map_items) > 1: # identical spawns can go to different places, which only the objective's other items for that cargo show
-                                        dests = {oi.deliver_loc_id: oi.deliver_loc for oi in obj_item.objective.obj_items if oi.name == obj_item.name and can_link(oi.deliver_loc, map_item)}
-                                        arrow = [db_pos(dest) for dest in dests.values()]
+                            if targets and not (hide_tasks if is_task else hide_contracts):
+                                arrow = targets
 
+                                if len(map_items) > 1: # identical spawns can go to different places, which only the objective's other items for that cargo show
+                                    dests = {oi.deliver_loc_id: oi.deliver_loc for oi in obj_item.objective.obj_items if oi.name == obj_item.name}
+                                    arrow = list(dict.fromkeys(t for dest in dests.values() for t in (link_targets(dest, map_item) or [])))
+
+                            if targets:
                                 spawn_stack = CargoStack(map_item.name, len(map_items), counted_cargo(len(map_items), desc)) # a spawn is the cargo itself
                                 cargo_list = [spawn_stack]
                             else:
@@ -466,6 +487,11 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     obj_item = obj_items[0]
                 else:
                     for obj_item in obj_items:
+                        if obj_item.map_item and obj_item.map_item.area_id != obj_item.deliver_loc.area_id and (show_all or not obj_item.completed) \
+                                and gates_to_area.get(obj_item.map_item.area_id) and have_db_pos(obj_item.deliver_loc):
+                            dst_pos = db_pos(obj_item.deliver_loc)
+                            incoming_by_gate[gate_pos_toward(obj_item.map_item.area_id, dst_pos)].append(dst_pos)
+
                         if (not obj_item.map_item or obj_item.map_item.item_type != "spawn") and (show_all or not obj_item.completed):
                             cargo_text = counted_cargo(obj_item.count, abbreviate_line(obj_item.name))
                             is_vehicle = obj_item.item_type in ("truck", "trailer")
@@ -480,7 +506,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                     # this is the deliveries
                 if cargo_list or loc_mode and obj_item:
-                    selected, back_color = get_selected_color("white", tuple(obj_item.id for obj_item in obj_items) + (objective.id,), blocked, "lightgrey")
+                    selected, back_color = get_selected_color("white", tuple(obj_item.id for obj_item in obj_items) + (objective.id,), blocked, "darkgray")
 #                ic(cargo_list)
 #                ic(sorted(cargo_list, key=itemgetter(0)))
                     cargo_list = sorted(cargo_list, key=itemgetter(0, 1))
@@ -508,7 +534,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 gate_color = "teal" if (obj_locker := map_item.obj_locker) and not obj_locker.completed else "mediumturquoise"
                 map_item_dest = await MapItem.filter(id=map_item.to_map_item_id).first()
                 gate_dest = ((get_compass_repr_of_pos_int((map_item_dest.x, map_item_dest.y)) + " ") if map_item_dest else "") + abbreviations_by_area_id[map_item.to_area_id]
-                cargo_by_pos[db_pos(map_item)].append(make_draw_item(MapItem.filter(id=map_item.id), map_item.id, map_item.id, "loc" if loc_mode else "gate", "Gate", [gate_dest], False, False, back=gate_color, extra="gate", classes=klass))
+                cargo_by_pos[db_pos(map_item)].append(make_draw_item(MapItem.filter(id=map_item.id), map_item.id, map_item.id, "loc" if loc_mode else "gate", "Gate", [gate_dest], False, False, back=gate_color, extra="gate", classes=klass, arrow=list(dict.fromkeys(incoming_by_gate.get(db_pos(map_item), []))) or None))
 
                 if map_item_dest and (multi_area or map_item_dest.area_id == map_item.area_id):
                     gate_lines.append(tuple(sorted((db_pos(map_item), db_pos(map_item_dest)))))
