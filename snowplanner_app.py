@@ -528,7 +528,8 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
             obj_node["header"] = "completed"
 
         if objective.obj_items:
-            items_by_location = [(loc_name, list(loc_items)) for loc_name, loc_items in itertools.groupby(objective.obj_items, lambda r: r.deliver_loc.name)]
+            items_by_location = [(loc_name, list(loc_items)) for loc_name, loc_items in itertools.groupby(sorted(objective.obj_items, key=obj_item_stage_loc_key), obj_item_loc_key)]
+            multi_stages, blocked_stages = determine_stage_blocking(objective.obj_items, objective.obj_prereqs)
 
             for loc_name, loc_items in items_by_location:
                 loc_id = "L_" + loc_name
@@ -538,13 +539,11 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
 #                    oi_children = add_obj_items(loc_items)
                 oi_children = []
                 expanded.append(loc_id)
-                next_stage_blocked = False
 
-                for stage, stage_obj_items in itertools.groupby(loc_items, lambda r: r.stage):
-                    stage_blocked = next_stage_blocked
-                    stage = stage or 0
+                for stage, stage_obj_items in itertools.groupby(loc_items, obj_item_stage_key):
+                    stage_blocked = stage in blocked_stages
 
-                    if stage > 0:
+                    if multi_stages:
                         oi_children.append({"id": "OST_" + o_id +"_"+str(stage), "label": f"-  stage {stage+1}  -", "noTick": True})
 
                     for obj_item in stage_obj_items:
@@ -561,9 +560,6 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
                             ticked.append(oi_id)
 
                         oi_children.append(oi_node)
-
-                        if not is_blocked and not obj_item.completed:
-                            next_stage_blocked = True
 
                 if 1:
                     loc_node["children"] = oi_children

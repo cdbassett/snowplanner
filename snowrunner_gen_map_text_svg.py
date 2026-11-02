@@ -182,7 +182,6 @@ def create_drawing(width=main_scale, height=main_scale, text_height = 8, loc_mod
 
 
 
-
 async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = False,
         element_classes = {}, hide_types = set(), show_all=False, selected_ids=None, detail_in_loc_mode=False,
         override_positions=None, overall_group=None, offset_lookup={}):
@@ -328,7 +327,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         truck_klass = element_classes.get("Trucks", "location-truck")
 
         for map_item in await MapItem.filter(Q(area_id=area_id) & (Q(item_type="truck") | Q(item_type="trailer") | Q(item_type="spawn"))) \
-                .prefetch_related("obj_items__objective__obj_prereqs__prereq_obj", "obj_items__deliver_loc", "obj_locker", "cargo_items"):
+                .prefetch_related("obj_items__objective__obj_prereqs__prereq_obj", "obj_items__deliver_loc", "obj_locker", "cargo_items", "obj_items__objective__obj_items"):
             is_spawn = map_item.item_type == "spawn"
 
             if ((hide_spawns or not loc_mode) if is_spawn else hide_trucks):
@@ -348,7 +347,8 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     cur_task = abbreviate_line(obj_item.objective.name)
                     is_task = obj_item.objective.obj_type == "task"
                     klass = truck_klass
-                    blocked = any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
+                    multi_stages, blocked_stages = determine_stage_blocking(obj_item.objective.obj_items, obj_item.objective.obj_prereqs)
+                    blocked = obj_item.stage in blocked_stages or any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
 #                ic(map_item.name, obj_item.objective_id, obj_item.id)
                     selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id), blocked, "limegreen")
 
@@ -449,12 +449,12 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         if not show_all and objective.completed:
             continue
 
-        filtered_obj_items = [oj for oj in objective.obj_items if oj.deliver_loc.area_id == area_id] # this extra trickiness is needed because first filter just gets the objective, which could have items in other areas too
-        next_stage_blocked = False
+        filtered_obj_items = sorted((oj for oj in objective.obj_items if oj.deliver_loc.area_id == area_id), key=obj_item_stage_key) # this extra trickiness is needed because first filter just gets the objective, which could have items in other areas too
+        multi_stages, blocked_stages = determine_stage_blocking(objective.obj_items, objective.obj_prereqs)
 
             # if more than one cargo from task is in same location, join them together instead of separate boxes (unless in different stages)
-        for stage, stage_obj_items in itertools.groupby(filtered_obj_items, lambda r: r.stage):
-            stage_blocked = next_stage_blocked
+        for stage, stage_obj_items in itertools.groupby(filtered_obj_items, obj_item_stage_key):
+            stage_blocked = stage in blocked_stages
 
             for _, obj_items in itertools.groupby(stage_obj_items, lambda oi: oi.deliver_loc_id if loc_mode else (oi.deliver_loc.x, oi.deliver_loc.y)):
                 cargo_list = []
@@ -466,9 +466,6 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     obj_item = obj_items[0]
                 else:
                     for obj_item in obj_items:
-                        if not blocked and not obj_item.completed:
-                            next_stage_blocked = True
-
                         if (not obj_item.map_item or obj_item.map_item.item_type != "spawn") and (show_all or not obj_item.completed):
                             cargo_text = counted_cargo(obj_item.count, abbreviate_line(obj_item.name))
                             is_vehicle = obj_item.item_type in ("truck", "trailer")
