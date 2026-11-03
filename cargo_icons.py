@@ -2,6 +2,8 @@
 import re
 from collections import namedtuple
 
+import icon_art
+
 
 class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", defaults=(False, None, "cargo"))):
     """A quantity of one cargo type. count None means unlimited. text is the plain-text form used where icons aren't drawn."""
@@ -27,9 +29,25 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
         return "".join(self.icons)
 
     @property
+    def art_uris(self):
+        """Data URIs of the colored SVG icons, one per icon slot; None (draw emoji instead) unless every slot has a downloaded SVG."""
+        if (raster := icon_art.raster_uri(self.kind, normalize_cargo_name(self.name) if self.kind == "cargo" else self.name)):
+            return [raster] # a dedicated raster icon is the only icon, even for trailers
+
+        if self.kind == "trailer":
+            arts = [icon_art.TRAILER_LEAD_ART, icon_art.vehicle_art(self.name, "trailer")]
+        elif self.is_vehicle:
+            arts = [icon_art.vehicle_art(self.name, self.kind)]
+        else:
+            arts = [icon_art.cargo_art(normalize_cargo_name(self.name))]
+
+        uris = [art and icon_art.icon_data_uri(*art) for art in arts]
+        return uris if all(uris) else None
+
+    @property
     def width_factor(self):
         """Width of the square in icon-square widths; trailers are wider to hold two emoji."""
-        return TRAILER_WIDTH_FACTOR if len(self.icons) > 1 else 1
+        return TRAILER_WIDTH_FACTOR if len(self.art_uris or self.icons) > 1 else 1
 
     @property
     def fill(self):
@@ -214,6 +232,11 @@ def cargo_style(name):
         return _style(*style)
 
     return _style(DEFAULT_ICON, None)
+
+
+def cargo_art_uris(name):
+    """Data URIs of the SVG/raster icon(s) the map draws for a cargo name, or None to use the emoji."""
+    return CargoStack(name, None, name).art_uris
 
 
 def has_cargo_style(name):

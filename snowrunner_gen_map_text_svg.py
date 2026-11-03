@@ -393,7 +393,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     else:
                         vehicle = vehicle_stack(map_item.name, desc)
                         cargo_items = [vehicle] + cargo_items
-                        tip = (vehicle.icon, map_item.name, vehicle.tip_sub)
+                        tip = (vehicle.icon, map_item.name, vehicle.tip_sub, " ".join(vehicle.art_uris or []))
 
                     rec = make_draw_item(flt, map_item.id, map_item.id, "loc" if loc_mode else "truck", desc, cargo_items, selected, blocked, back=back_color, extra="truck", classes=truck_klass, tip=tip)
 #                    if map_item.id == "US_09_01|scout_trailer_oiltank|6":
@@ -712,8 +712,8 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             overlay_elements = []
 
             if entry.tip and not loc_mode: # full objective / delivery location names are only shown on hover; transparent rect catches the mouse
-                tip_icon, tip_title, tip_sub = entry.tip
-                overlay_elements.append(draw.Rectangle(x, y, entry.width, h, rx=ENTRY_CORNER_RADIUS, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon=tip_icon, data_tip_title=tip_title, data_tip_sub=tip_sub))
+                tip_icon, tip_title, tip_sub, *tip_rest = entry.tip
+                overlay_elements.append(draw.Rectangle(x, y, entry.width, h, rx=ENTRY_CORNER_RADIUS, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon=tip_icon, data_tip_img=tip_rest[0] if tip_rest else "", data_tip_title=tip_title, data_tip_sub=tip_sub))
 
             for placement in placements:
                 if placement[0] == "text":

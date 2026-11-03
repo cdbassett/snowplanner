@@ -12,7 +12,7 @@ from snowplanner_utils import *
 from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region
 from database import db
 from database.models import *
-from cargo_icons import normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
+from cargo_icons import cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
 from snowrunner_read_game_save import find_newest_game_save, apply_game_save
 
 
@@ -384,7 +384,8 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
                 if has_cargo_style(item):
                     emoji, fill = cargo_style(item)
                     with ui.item_section().props('side'):
-                        ui.label(emoji).classes('items-center justify-center').style(f'display:flex; width:26px; height:26px; background:{fill}; border:1px solid #555; border-radius:4px; font-size:16px')
+                        uris = cargo_art_uris(item)
+                        ui.html(''.join(f'<img src="{u}" style="width:20px;height:20px">' for u in uris) if uris else emoji).classes('items-center justify-center').style(f'display:flex; width:26px; height:26px; background:{fill}; border:1px solid #555; border-radius:4px; font-size:16px')
 
                 ui.label(item)
 
