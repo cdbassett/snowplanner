@@ -372,7 +372,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     multi_stages, blocked_stages = determine_stage_blocking(obj_item.objective.obj_items, obj_item.objective.obj_prereqs)
                     blocked = obj_item.stage in blocked_stages or any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
 #                ic(map_item.name, obj_item.objective_id, obj_item.id)
-                    selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id), blocked, "limegreen")
+                    selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id, map_item.id), blocked, "limegreen")
 
                     if loc_mode:
                         rec = make_location_item(flt, map_item.id, obj_item.id, desc, selected, blocked, back=back_color, fore="blue", extra="pickup", lst=[cur_task] + (cargo_items  if detail_in_loc_mode else []), classes=klass)
@@ -424,7 +424,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         klass = truck_klass
                         blocked = any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
     #                ic(map_item.name, obj_item.objective_id, obj_item.id)
-                        selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id), blocked, "limegreen")
+                        selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id, map_item.id), blocked, "limegreen")
 
                         if loc_mode:
                             rec = make_location_item(flt, map_item.id, obj_item.id, desc, selected, blocked, back=back_color, fore="blue", extra="pickup", lst=[cur_task], classes=klass)
