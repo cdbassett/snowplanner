@@ -160,7 +160,10 @@ def root():
                 const el = e.target.closest ? e.target.closest('[data-tip-title]') : null;
                 if (!el) { if (tip) tip.style.display = 'none'; return; }
                 const t = ensureTip();
-                t.icon.textContent = el.dataset.tipIcon;
+                t.icon.textContent = '';
+                const imgs = (el.dataset.tipImg || '').split(' ').filter(Boolean);
+                if (imgs.length) imgs.forEach(src => { const i = document.createElement('img'); i.src = src; i.style.cssText = 'width:34px;height:34px'; t.icon.appendChild(i); });
+                else t.icon.textContent = el.dataset.tipIcon;
                 t.name.textContent = el.dataset.tipTitle;
                 t.count.textContent = el.dataset.tipSub || '';
                 t.count.style.display = t.count.textContent ? 'block' : 'none';
@@ -222,7 +225,8 @@ async def icon_reference():
             for stack in stacks:
                 color, width = stack.border
                 with ui.row().classes('items-center gap-2 no-wrap w-60'):
-                    ui.label(stack.icon).classes('items-center justify-center flex-none').style(
+                    uris = stack.art_uris
+                    ui.html(''.join(f'<img src="{u}" style="width:24px;height:24px">' for u in uris) if uris else stack.icon).classes('items-center justify-center flex-none').style(
                         f'display:flex; min-width:34px; height:34px; padding:0 4px; background:{stack.fill}; '
                         f'border:{width}px solid {color}; border-radius:5px; font-size:20px')
                     ui.label(stack.name)

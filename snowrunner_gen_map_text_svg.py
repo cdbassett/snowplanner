@@ -725,11 +725,19 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 else:
                     _, stack, px, py = placement
                     sx, sy = tx + px, cargo_y + py
-                    sg = draw.Group(data_tip_icon=stack.icon, data_tip_title=stack.name, data_tip_sub=stack.tip_sub)
+                    sg = draw.Group(data_tip_icon=stack.icon, data_tip_img=" ".join(stack.art_uris or []), data_tip_title=stack.name, data_tip_sub=stack.tip_sub)
                     sw = stack.width_factor * sq
                     sg.append(draw.Rectangle(sx, sy, sw, sq, rx=3, fill=stack.fill, fill_opacity=0.9, stroke=stack.border[0], stroke_width=stack.border[1]))
 
-                    sg.append(draw.Text(stack.icon, sq * 0.6, sx + sw / 2, sy + sq * 0.42, text_anchor="middle", dominant_baseline="central")) # one text so a trailer's two emoji touch
+                    if (uris := stack.art_uris):
+                        isz = sq * 0.74
+                        ix = sx + (sw - isz * len(uris)) / 2
+
+                        for uri in uris:
+                            sg.append(draw.Raw(f'<image href="{uri}" x="{ix:.2f}" y="{sy + (sq - isz) / 2:.2f}" width="{isz:.2f}" height="{isz:.2f}"/>'))
+                            ix += isz
+                    else:
+                        sg.append(draw.Text(stack.icon, sq * 0.6, sx + sw / 2, sy + sq * 0.42, text_anchor="middle", dominant_baseline="central")) # one text so a trailer's two emoji touch
 
                     stack.count_text and sg.append(draw.Text(stack.count_text, text_height * 0.9, sx + sw - 1, sy + sq - 1, text_anchor="end", font_weight="bold", fill="black", stroke="white", stroke_width=2, paint_order="stroke"))
                     overlay_elements.append(sg)
