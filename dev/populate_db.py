@@ -30,7 +30,7 @@ areas_by_area_id = get_areas_by_area_id()
 #cargo_initial_counts = get_cargo_initial_counts() # [area][location name][cargo] = count
 # delivery_positions = get_delivery_positions() # [area][objective][item] = pos
 truck_lookup = dict(map(itemgetter(1, 2), read_snowrunner_data_tsv_file("level_items_list.generated.tsv")))
-truck_id_lookup = dict(map(itemgetter(1, 2), read_snowrunner_data_tsv_file("snowrunner_truck_trailer_info.generated.tsv")))
+truck_id_lookup = read_truck_id_lookup()
 
 source_name_lookup = dict((parts[1][4:], cargo.loc) for cargo in get_cargo_list_iter() if len(parts := cargo.url.split("?"))>1)
 ed = get_english_lang_dict()

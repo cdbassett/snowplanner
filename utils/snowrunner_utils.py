@@ -54,6 +54,38 @@ def read_snowrunner_data_tsv_file(fname):
         yield from reader
 
 
+TRUCK_TRAILER_INFO_FILE = "snowrunner_truck_trailer_info.generated.tsv"
+TRUCK_TYPES_FILE = "snowrunner_truck_types.generated.tsv" # display name -> truck type, for the app (which doesn't have the game's strings)
+TruckInfo = namedtuple("TruckInfo", "kind,id,ui_key,truck_type")
+
+
+def read_truck_trailer_info():
+    """Records of the truck/trailer info file: (truck|trailer, file id, UI name key, truck type). Trailers have no truck type.
+
+    Tolerates extra columns being added to the file, and older files without the truck type column."""
+    for row in read_snowrunner_data_tsv_file(TRUCK_TRAILER_INFO_FILE):
+        if len(row) >= 3:
+            yield TruckInfo(*row[:3], row[3] if len(row) > 3 else "")
+
+
+def read_truck_id_lookup():
+    """file id -> UI name key"""
+    return {info.id: info.ui_key for info in read_truck_trailer_info()}
+
+
+def write_truck_types_file():
+    """Write display name -> truck type for every truck in the truck/trailer info file (needs the game's english strings)."""
+    ed = get_english_lang_dict()
+    rows = sorted({(ed[info.ui_key.upper()], info.truck_type) for info in read_truck_trailer_info() if info.kind == "truck" and info.truck_type and info.ui_key.upper() in ed})
+    write_snowrunner_data_tsv_file(TRUCK_TYPES_FILE, rows)
+    return len(rows)
+
+
+def read_truck_types():
+    """display name -> truck type (HEAVY, HEAVY_DUTY, HIGHWAY, OFFROAD, SCOUT)"""
+    return dict(read_snowrunner_data_tsv_file(TRUCK_TYPES_FILE))
+
+
 def read_snowrunner_data_yaml_file(fname):
     with open_snowrunner_data_text_file_for_reading(fname) as in_f:
         data = yaml.safe_load(in_f)

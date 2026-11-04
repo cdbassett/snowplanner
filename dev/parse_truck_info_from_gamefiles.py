@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from snowrunner_utils import *
+from utils.snowrunner_utils import *
 
 ipd = Path(snowrunner_initial_pak_dir)
 media_path = ipd / "[media]"
@@ -31,8 +31,10 @@ def parse_snowrunner_truck(xml_file, is_trailer):
 #        ui_desc = root.find(".//GameData//UiDesc/*[local-name()=default]")
         name = ui_desc.attrib.get('UiName')
 
+    truck_type = (ui_truck := root.find(".//TruckData")) and ui_truck.attrib.get("TruckType")  or ""
+
     if name:
-        yield ["trailer" if is_trailer else "truck", xml_file.stem, name]
+        yield ["trailer" if is_trailer else "truck", xml_file.stem, name, truck_type]
     else:
         print("Couldn't find UiName for {xml_file.stem}")
 
@@ -47,7 +49,8 @@ def main():
             records.extend(parse_snowrunner_truck(xml_path, "trailers" in str(xml_path)))
 
     if records:
-        write_snowrunner_data_tsv_file("snowrunner_truck_trailer_info.generated.tsv", records)
+        write_snowrunner_data_tsv_file(TRUCK_TRAILER_INFO_FILE, records)
+        print(write_truck_types_file(), "truck types written")
 
 
 if __name__ == "__main__":

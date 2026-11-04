@@ -152,3 +152,12 @@ def _png_uri(path):
         _png_cache[key] = "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
 
     return _png_cache[key]
+
+
+TRUCK_TYPE_ICON_FILES = {"HEAVY": "heavy.png", "HEAVY_DUTY": "heavy_duty.png", "HIGHWAY": "highway.png", "OFFROAD": "offroad.png", "SCOUT": "scout.png"}
+
+
+def truck_type_uri(truck_type):
+    """Data URI of icons/raster/truck_type/<type>.png (heavy, heavy_duty, highway, offroad, scout), or None until that icon exists."""
+    filename = TRUCK_TYPE_ICON_FILES.get(truck_type)
+    return filename and _png_uri(RASTER_DIR / "truck_type" / filename)

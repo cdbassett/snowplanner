@@ -1,8 +1,10 @@
 """Cargo stacks and the icon used to draw each cargo type on the maps."""
+import functools
 import re
 from collections import namedtuple
 
 import icon_art
+from utils.snowrunner_utils import read_truck_types
 
 
 class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", defaults=(False, None, "cargo"))):
@@ -33,6 +35,9 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
         """Data URIs of the colored SVG icons, one per icon slot; None (draw emoji instead) unless every slot has a downloaded SVG."""
         if (raster := icon_art.raster_uri(self.kind, normalize_cargo_name(self.name) if self.kind == "cargo" else self.name)):
             return [raster] # a dedicated raster icon is the only icon, even for trailers
+
+        if self.kind == "truck" and (type_icon := icon_art.truck_type_uri(truck_type(self.name))):
+            return [type_icon] # trucks without an icon of their own use the one for their type
 
         if self.kind == "trailer":
             arts = [icon_art.TRAILER_LEAD_ART, icon_art.vehicle_art(self.name, "trailer")]
@@ -74,7 +79,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
             return self.note
 
         if self.is_vehicle:
-            return self.kind.capitalize()
+            return self.kind.capitalize() + (f" ({label})" if self.kind == "truck" and (label := truck_type_label(self.name)) else "")
 
         return ("Unlimited ∞" if self.count is None else f"Count: {self.count}") + (" (loaded on trailer)" if self.loaded else "")
 
@@ -311,6 +316,27 @@ TRUCK_ICONS = [
     ("loadstar", "🚐"),
 ]
 DEFAULT_TRUCK_ICON = "🚚"
+
+
+TRUCK_TYPE_LABELS = {"HEAVY": "Heavy", "HEAVY_DUTY": "Heavy duty", "HIGHWAY": "Highway", "OFFROAD": "Offroad", "SCOUT": "Scout"}
+
+
+def _truck_type_key(name):
+    return re.sub(r"\s+", " ", re.sub(r'[\\"“”„]', "", name)).strip().lower() # database names sometimes carry escaped or curly quotes
+
+
+@functools.cache
+def _truck_types():
+    return {_truck_type_key(name): truck_type for name, truck_type in read_truck_types().items()}
+
+
+def truck_type(name):
+    """HEAVY, HEAVY_DUTY, HIGHWAY, OFFROAD or SCOUT for a truck's display name; None for trailers and anything unknown."""
+    return _truck_types().get(_truck_type_key(name))
+
+
+def truck_type_label(name):
+    return TRUCK_TYPE_LABELS.get(truck_type(name))
 
 
 def vehicle_kind(name):

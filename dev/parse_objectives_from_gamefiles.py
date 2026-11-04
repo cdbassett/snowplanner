@@ -18,7 +18,7 @@ re_cargo_words = re.compile(r"([\w\s]+)")
 
 def main():
     truck_lookup = dict(map(itemgetter(1, 2), read_snowrunner_data_tsv_file("level_items_list.generated.tsv")))
-    truck_id_lookup = dict(map(itemgetter(1, 2), read_snowrunner_data_tsv_file("snowrunner_truck_trailer_info.generated.tsv")))
+    truck_id_lookup = read_truck_id_lookup()
 
     def process_type(fname, objective_type, tasksSettings, indent, missing):
         cur_task_id, cur_loc, cur_item = None, None, None

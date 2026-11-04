@@ -12,8 +12,8 @@ from snowplanner_utils import *
 from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region
 from database import db
 from database.models import *
-from cargo_icons import cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
-from snowrunner_read_game_save import find_newest_game_save, apply_game_save
+from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
+from snowrunner_read_game_save import find_newest_game_save, apply_game_save, apply_game_save_summary
 
 
 @app.on_startup
@@ -242,7 +242,8 @@ async def icon_reference():
                 ui.label(desc)
 
         section("Cargo", [CargoStack(n.title(), None, n) for n in sorted(cargo_names)])
-        section("Trucks", [vehicle_stack(n, kind="truck") for n in sorted(vehicles["truck"])])
+        for type_key, label in (*TRUCK_TYPE_LABELS.items(), (None, "Other")):
+            section(f"Trucks: {label}", [vehicle_stack(n, kind="truck") for n in sorted(vehicles["truck"]) if truck_type(n) == type_key])
         section("Trailers", [vehicle_stack(n, kind="trailer") for n in sorted(vehicles["trailer"])])
 
 def main():

@@ -72,7 +72,7 @@ def to_camel_case(snake_str):
 
 def main():
     ed = get_english_lang_dict()
-    truck_id_lookup = dict(map(itemgetter(1,2), read_snowrunner_data_tsv_file("snowrunner_truck_trailer_info.generated.tsv")))
+    truck_id_lookup = read_truck_id_lookup()
 
     records = []
 
