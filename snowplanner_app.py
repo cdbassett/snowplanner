@@ -56,12 +56,12 @@ save_loaded = Event() # fired after the DB was updated from a game save; every o
 async def load_game_save():
     try:
         save_file = find_newest_game_save()
-        cnt = await apply_game_save(save_file)
+        result = await apply_game_save(save_file)
     except Exception as e:
         ui.notify(f"Failed to load game save: {e}", type="negative")
         return
 
-    ui.notify(f"Loaded {save_file.name} ({cnt} finished objectives)")
+    ui.notify(f"Loaded {save_file.name}: {apply_game_save_summary(result)}")
     save_loaded.emit()
 
 d3_init_js_cache = FileCache("d3_init.js", ReadFile)
