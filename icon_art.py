@@ -99,10 +99,19 @@ def icon_data_uri(name, color):
 # Raster icons: icons/raster/<cargo|trailer|truck>/<file>.png. A trailer/truck with one is drawn with that single icon instead of SVG art.
 RASTER_DIR = Path(__file__).parent / "icons" / "raster"
 VEHICLE_RASTER = {
-    "trailer": [ # first rule whose keyword (or all keywords of a tuple) is in the lowercase name wins, so list specific rules first
-        ("curtainside", "curtainside.png"), (("scout", "fuel"), "scout_fuel.png"), (("semi", "fuel"), "semi_fuel.png"), ("fuel", "fuel.png"),
-        ("ramp", "ramp.png"), (("wide", "flatbed"), "wide_flatbed.png"), ("flatbed", "flatbed.png"), (("sideboard", "semi"), "sideboard_semi.png"),
-        ("sideboard", "sideboard.png"), ("stepdeck", "stepdeck.png"), ("gooseneck", "gooseneck.png"), ("coiled", "coiled_tubing.png"), ("log", "log.png"),
+    "trailer": [ # first rule whose keyword (or all keywords of a tuple) is in the lowercase name wins, so list specific rules first; "=name" must equal the whole name
+        (("curtainside", "scout"), "curtainside_scout.png"), ("curtainside", "curtainside.png"),
+        (("heavy", "fuel"), "heavy_fuel.png"), (("scout", "fuel"), "scout_fuel.png"), (("semi", "fuel"), "semi_fuel.png"), ("fuel", "fuel.png"),
+        (("heavy", "water"), "heavy_water.png"), ("water", "water.png"),
+        ("ramp", "ramp.png"),
+        (("small", "flatbed"), "small_scout_flatbed.png"), (("scout", "flatbed"), "scout_flatbed.png"), (("wide", "flatbed"), "wide_flatbed.png"),
+        (("flatbed", "semi"), "flatbed_semi.png"), ("flatbed", "flatbed.png"),
+        (("sideboard", "semi"), "sideboard_semi.png"), ("sideboard", "sideboard.png"),
+        ("stepdeck", "stepdeck.png"), ("gooseneck", "gooseneck.png"), ("coiled", "coiled_tubing.png"), ("log", "log.png"),
+        ("disassembled", "disassembled.png"), ("heavy rock", "rock.png"), ("lowboy", "lowboy.png"), (("super", "heavy"), "super_heavy.png"),
+        ("maintenance", "maintenance.png"), ("offroad", "offroad_scout.png"), ("salvage", "oil_rig_salvage.png"), ("exploration", "exploration.png"),
+        ("=service trailer", "service.png"), ("=service scout trailer", "service_scout.png"), ("=large service scout trailer", "service_scout_large.png"),
+        ("stator", "stator.png"), (("construction", "rig"), "construction_rig.png"), ("driller", "driller.png"), ("=generator", "generator.png"), ("cultivator", "cultivator.png"),
     ],
     "truck": [],
 }
@@ -112,12 +121,19 @@ CARGO_RASTER_BASE = {"short logs": "logs", "medium logs": "logs", "long logs": "
                      "wooden planks": "planks", "medium planks": "planks", "long planks": "planks"}
 
 
+def _raster_rule_matches(words, lname):
+    if isinstance(words, str):
+        return lname == words[1:] if words.startswith("=") else words in lname
+
+    return all(w in lname for w in words)
+
+
 def raster_uri(kind, name):
     """Data URI of the PNG for a vehicle name (kind trailer/truck) or normalized cargo name (kind cargo), or None."""
     if kind == "cargo":
         filename = f"{CARGO_RASTER_BASE.get(name, name)}.png"
     else:
-        filename = next((f for words, f in VEHICLE_RASTER.get(kind, []) if all(w in name.lower() for w in ((words,) if isinstance(words, str) else words))), None)
+        filename = next((f for words, f in VEHICLE_RASTER.get(kind, []) if _raster_rule_matches(words, name.lower())), None)
 
     return filename and _png_uri(RASTER_DIR / kind / filename)
 
