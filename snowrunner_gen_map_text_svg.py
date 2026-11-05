@@ -506,7 +506,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                     # this is the deliveries
                 if cargo_list or loc_mode and obj_item:
-                    selected, back_color = get_selected_color("white", tuple(obj_item.id for obj_item in obj_items) + (objective.id,), blocked, "darkgray")
+                    selected, back_color = get_selected_color("white", tuple(oi.id for oi in obj_items) + tuple(oi.deliver_loc_id for oi in obj_items) + (objective.id,), blocked, "darkgray") # deliver_loc_id so selecting a location node in the tree highlights it
 #                ic(cargo_list)
 #                ic(sorted(cargo_list, key=itemgetter(0)))
                     cargo_list = sorted(cargo_list, key=itemgetter(0, 1))
