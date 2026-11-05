@@ -194,7 +194,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 #    text_h_margin = text_height
 
     def calc_text_width(title, lst):
-        return max(max(map(len, wrap_title(title)), default=0) * text_width_mult, layout_cargo(lst, text_height)[1]) + text_h_margin * 3
+        return max(max(map(len, wrap_title(title)), default=0) * text_width_mult, layout_cargo(lst, text_height)[1]) + text_h_margin * 2
 
     def make_draw_item(flt, map_item_id, id, typ, disp_name, cargos, selected, blocked, back, fore="black", loc_name=None, extra=None, classes=None, arrow=None, tip=None):
         if loc_mode: # icons aren't drawn when editing locations
@@ -725,7 +725,10 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 else:
                     _, stack, px, py = placement
                     sx, sy = tx + px, cargo_y + py
-                    sg = draw.Group(data_tip_icon=stack.icon, data_tip_img=" ".join(stack.art_uris or []), data_tip_title=stack.name, data_tip_sub=stack.tip_sub)
+                    # cargo info first, then the same objective / pickup (or vehicle) info the entry shows on hover
+                    entry_tip = entry.tip if entry.tip and not loc_mode else None
+                    extra = f"{entry_tip[1]} — {entry_tip[2]}" if entry_tip else ""
+                    sg = draw.Group(data_tip_icon=stack.icon, data_tip_img=" ".join(stack.art_uris or []), data_tip_title=stack.name, data_tip_sub=stack.tip_sub, data_tip_extra=extra)
                     sw = stack.width_factor * sq
                     sg.append(draw.Rectangle(sx, sy, sw, sq, rx=3, fill=stack.fill, fill_opacity=0.9, stroke=stack.border[0], stroke_width=stack.border[1]))
 

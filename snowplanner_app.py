@@ -135,6 +135,7 @@ def root():
         .cargo-tip .cargo-tip-icon { font-size: 34px; line-height: 1; }
         .cargo-tip .cargo-tip-name { font-weight: bold; font-size: 15px; }
         .cargo-tip .cargo-tip-count { font-size: 14px; }
+        .cargo-tip .cargo-tip-extra { font-size: 13px; color: #444; margin-top: 3px; padding-top: 3px; border-top: 1px solid #ccc; max-width: 360px; }
     ''')
     ui.add_head_html('''
         <script>
@@ -148,6 +149,7 @@ def root():
                     const text = make('', tip);
                     tip.name = make('cargo-tip-name', text);
                     tip.count = make('cargo-tip-count', text);
+                    tip.extra = make('cargo-tip-extra', text);
                 }
                 return tip;
             };
@@ -167,6 +169,8 @@ def root():
                 t.name.textContent = el.dataset.tipTitle;
                 t.count.textContent = el.dataset.tipSub || '';
                 t.count.style.display = t.count.textContent ? 'block' : 'none';
+                t.extra.textContent = el.dataset.tipExtra || '';
+                t.extra.style.display = t.extra.textContent ? 'block' : 'none';
                 t.style.display = 'flex';
                 place(e);
             });
@@ -353,21 +357,21 @@ reward_map_items = {
     "source": "Location",
     }
 
-async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clicked):
+async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clicked, show_all=False):
     filter_cargo_items = set()
 
         # plain sources only list cargo that an incomplete objective still needs, same as the map
-    needed_cargo = set(await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True))
+    needed_cargo = None if show_all else set(await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True))
 
     for map_item in await MapItem.filter(Q(area_id__in=region_area_ids)).prefetch_related("cargo_items"):
-        if not map_item.completed:
+        if show_all or not map_item.completed:
             for cargo_item in map_item.cargo_items:
-                if (ccnt := current_cargo_count(cargo_item)) != 0 and (map_item.item_type != "source" or cargo_item.name in needed_cargo):
+                if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type != "source" or cargo_item.name in needed_cargo):
                     filter_cargo_items.add(cargo_item.name)
 
     for objective in await Objective.filter(obj_items__deliver_loc__area_id__in=region_area_ids).prefetch_related("obj_items__map_item"):
         for obj_item in objective.obj_items:
-            if (not obj_item.map_item or obj_item.map_item.item_type not in ("spawn", "truck")) and not obj_item.completed:
+            if (not obj_item.map_item or obj_item.map_item.item_type not in ("spawn", "truck")) and (show_all or not (obj_item.completed or objective.completed)):
                 filter_cargo_items.add(obj_item.name)
 
     found_items = list(sorted(filter_cargo_items))
@@ -383,7 +387,8 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
         for item in items:
             with ui.item(on_click=lambda list_item=item: filter_list_item_clicked(list_item)):
                 if has_cargo_style(item):
-                    emoji, fill = cargo_style(item)
+                    emoji = cargo_style(item)[0]
+                    fill = CargoStack(item, None, item).fill # same background as on the map
                     with ui.item_section().props('side'):
                         uris = cargo_art_uris(item)
                         ui.html(''.join(f'<img src="{u}" style="width:20px;height:20px">' for u in uris) if uris else emoji).classes('items-center justify-center').style(f'display:flex; width:26px; height:26px; background:{fill}; border:1px solid #555; border-radius:4px; font-size:16px')
@@ -391,7 +396,7 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
                 ui.label(item)
 
 
-async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
+async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, show_all=False):
     with ui.column().classes('w-72 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
         ui.label('Cargo Filter').classes('font-bold text-sm mb-1')
 
@@ -403,7 +408,7 @@ async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked):
         with ui.scroll_area().classes('flex-1 w-full border bg-white'):
             filter_cargo_items = ui.list().props('dense separator')
 
-    await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked)
+    await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, show_all)
     return filter_cargo_items
 
 async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cur_area_id=None):
@@ -873,8 +878,12 @@ async def region(region_slug: str):
 
     async def refresh_from_save():
         await update_obj_tree()
-        await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked)
+        await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, checkbox_all.value)
         await update_svg()
+
+    async def all_changed():
+        await update_svg()
+        filter_cargo_items is not None and await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, checkbox_all.value)
 
     async def update_svg_event(area_info):
         if region_client_alive_checker.is_deleted:
@@ -909,6 +918,7 @@ async def region(region_slug: str):
 
     checkboxes = {}
     checkbox_all = None
+    filter_cargo_items = None
     checkbox_overlap = None
     checkbox_detail = None
 
@@ -952,7 +962,7 @@ async def region(region_slug: str):
 
                 with ui.column().classes('gap-0'):
                     checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
-                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+                    checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).props("dense").bind_value(app.storage.tab, 'Completed')
 
                 with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
                     checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
@@ -964,7 +974,7 @@ async def region(region_slug: str):
                 with ui.column().classes('gap-0'):
                     checkbox_overlap = checkbox("Ovl", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'RegionOverlap')
                     checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
-                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+                    checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).props("dense").bind_value(app.storage.tab, 'Completed')
 
                 with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
                     checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
@@ -1006,7 +1016,7 @@ async def region(region_slug: str):
                                 ui.image(get_image_name_ex(area_info, "icon")).classes('w-100 rounded shadow-md')
 
             # Right Panel: Cargo Filter List
-            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked)
+            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value)
 
     async def select_clicked_node(node_id, id, objective_id=None):
         clear_filter_if_hiding(node_id)
@@ -1587,8 +1597,12 @@ async def area(area_slug: str):
 
     async def refresh_from_save():
         await update_obj_tree()
-        await fill_cargo_filter_list(filter_cargo_items, [cur_area_info.area_id], filter_list_item_clicked)
+        await fill_cargo_filter_list(filter_cargo_items, [cur_area_info.area_id], filter_list_item_clicked, checkbox_all.value)
         await update_svg()
+
+    async def all_changed():
+        await update_svg()
+        filter_cargo_items is not None and await fill_cargo_filter_list(filter_cargo_items, [cur_area_info.area_id], filter_list_item_clicked, checkbox_all.value)
 
     async def update_svg_event(area_info):
         ic("update_svg_event", area_id)
@@ -1648,6 +1662,7 @@ async def area(area_slug: str):
 
     checkboxes = {}
     checkbox_all = None
+    filter_cargo_items = None
     checkbox_overlap = None
     checkbox_detail = None
 
@@ -1691,7 +1706,7 @@ async def area(area_slug: str):
 
                 with ui.column().classes('gap-0'):
                     checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
-                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+                    checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).props("dense").bind_value(app.storage.tab, 'Completed')
 
                 with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
                     checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
@@ -1702,7 +1717,7 @@ async def area(area_slug: str):
             else:
                 with ui.column().classes('gap-0'):
                     checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")).props("dense")
-                    checkbox_all = checkbox("All", value=False, on_change=update_svg).props("dense").bind_value(app.storage.tab, 'Completed')
+                    checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).props("dense").bind_value(app.storage.tab, 'Completed')
 
                 with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
                     checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).props("dense").bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
@@ -1797,7 +1812,7 @@ async def area(area_slug: str):
                 initialize_d3()
                 svg_html.on('dblclick', svg_double_clicked)
 
-            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked)
+            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value)
 
         area_client_alive_checker = obj_tree
         tree_updated.subscribe(update_obj_tree_event)
