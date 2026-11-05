@@ -56,7 +56,15 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
 
     @property
     def fill(self):
-        return VEHICLE_FILLS[self.kind] if self.is_vehicle else cargo_style(self.name)[1]
+        if self.is_vehicle:
+            return VEHICLE_FILLS[self.kind]
+
+        # sizes with a dedicated icon (pipes, planks) don't need the size-tier background; shared-icon families (logs) do
+        key = normalize_cargo_name(self.name)
+        if key not in icon_art.CARGO_RASTER_BASE and icon_art.raster_uri("cargo", key):
+            return DEFAULT_FILL
+
+        return cargo_style(self.name)[1]
 
     @property
     def border(self):

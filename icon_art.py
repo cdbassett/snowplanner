@@ -117,8 +117,7 @@ VEHICLE_RASTER = {
 }
 
 # cargo families that share one base raster icon (the size tier is shown by the square's color)
-CARGO_RASTER_BASE = {"short logs": "logs", "medium logs": "logs", "long logs": "logs", "burnt logs": "logs",
-                     "wooden planks": "planks", "medium planks": "planks", "long planks": "planks"}
+CARGO_RASTER_BASE = {"short logs": "logs", "medium logs": "logs", "long logs": "logs", "burnt logs": "logs"}
 
 
 def _raster_rule_matches(words, lname):
