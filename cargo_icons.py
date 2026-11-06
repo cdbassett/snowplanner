@@ -119,6 +119,10 @@ def parse_recipe(craft_desc):
         ingredients.append(CargoStack(POWER_NAME, int(em.group(1)), rhs, note=f"Needs {em.group(1)} energy per step"))
     else:
         for part in rhs.strip("()").split("+"):
+            if (pm := _ENERGY_RE.match(part.strip())): # power listed alongside cargo ingredients
+                ingredients.append(CargoStack(POWER_NAME, int(pm.group(1)), part, note=f"Needs {pm.group(1)} energy per step"))
+                continue
+
             if not (im := _INGREDIENT_RE.match(part)):
                 return None
 

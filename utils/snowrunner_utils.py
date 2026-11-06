@@ -994,14 +994,19 @@ def cargo_component(cargo_component):
     return counted_cargo(cargo_component.get('count', '1'), cargo_names_dict[cargo_component['name']])
 
 def crafted_cargo_ingredients(cargo):
+    parts = []
+
     if (components := cargo.get('cargoComponents')):
-        equals = f"({'+'.join(map(cargo_component, components))})"
-    elif (energy := cargo.get('energy')):
-        equals = counted_cargo(energy, "energy")
-    else:
+        parts.extend(map(cargo_component, components))
+
+    if (energy := cargo.get('energy')): # some crafts (e.g. Old Metalworks' Metal Rolls) need power as well as cargo
+        parts.append(counted_cargo(energy, "energy"))
+
+    if not parts:
         ic("unknown cargo craft type!", cargo)
-        equals = "Unknown"
-    return equals
+        return "Unknown"
+
+    return f"({'+'.join(parts)})" if components else parts[0]
 
 def crafted_cargo_desc(cargo):
 #    if (components := cargo.get('cargoComponents')):
