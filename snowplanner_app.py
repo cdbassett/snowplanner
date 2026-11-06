@@ -908,7 +908,7 @@ async def region(region_slug: str):
         await update_svg()
         plans_changed.emit(plan_region) # every other open view of this region follows
 
-    plan_panel = PlanPanel(plan_region, region_area_ids, lambda px, py: svg_point_to_db(px, py, *plan_layout), plan_changed, plan_select_stop)
+    plan_panel = PlanPanel(plan_region, region_area_ids, lambda px, py: svg_point_to_db(px, py, *plan_layout), plan_changed, plan_select_stop, None, {a: i.abbrev for a, i in area_infos_by_area_id.items()})
 
     async def plans_changed_event(region_name):
         if region_client_alive_checker.is_deleted:
@@ -1805,7 +1805,7 @@ async def area(area_slug: str):
         if (hit := svg_point_to_db(px, py)):
             return cur_area_info.area_id, hit[1], hit[2]
 
-    plan_panel = PlanPanel(cur_area_info.region, region_area_ids, plan_point_to_location, plan_changed, plan_select_stop)
+    plan_panel = PlanPanel(cur_area_info.region, region_area_ids, plan_point_to_location, plan_changed, plan_select_stop, cur_area_info.area_id, {a: i.abbrev for a, i in area_infos_by_area_id.items()})
 
     async def plans_changed_event(region_name):
         if area_client_alive_checker.is_deleted:

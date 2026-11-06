@@ -577,52 +577,106 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         klass = element_classes.get("Plan", "location-plan")
         remaining = [stop for stop in plan if not stop.completed] # completed stops vanish; their numbers aren't reused and the route bridges over them
         targets = defaultdict(list)
-        area_graph = None
 
-        async def first_hop(to_area_id):
-            """The neighboring area to head for from this one to reach to_area_id (breadth-first over the gates)."""
-            nonlocal area_graph
+        free_segments = [] # (pos, pos) lines between gates of this area, for routes passing through it without a stop here
 
-            if area_graph is None:
-                area_graph = defaultdict(set)
-
-                for gate in await MapItem.filter(item_type="gate"):
-                    area_graph[gate.area_id].add(gate.to_area_id)
-
-            seen, queue = {area_id}, [(neighbor, neighbor) for neighbor in sorted(area_graph[area_id])]
-
-            for area, hop in queue:
-                if area == to_area_id:
-                    return hop
-
-                if area not in seen:
-                    seen.add(area)
-                    queue.extend((nxt, hop) for nxt in sorted(area_graph[area]) if nxt not in seen)
-
-            return None
-
-        async def gate_toward(stop, other):
-            """Position of this area's gate toward the other stop's area, as close as possible to the stop, or None."""
-            if (hop := await first_hop(other.area_id)) and gates_to_area.get(hop):
-                return gate_pos_toward(hop, db_pos(stop))
-
-        for before, after in itertools.pairwise(remaining):
-            if multi_area: # every area of the region is on screen: a straight line, resolved against the other stop's drawn square
+        if multi_area: # every area of the region is on screen: a straight line, resolved against the other stop's drawn square
+            for before, after in itertools.pairwise(remaining):
                 if before.area_id == area_id:
                     targets[before.id].append(("stop", after.id))
-            elif before.area_id == after.area_id == area_id:
-                targets[before.id].append(("stop", after.id))
-            elif before.area_id == area_id and (gp := await gate_toward(before, after)):
-                targets[before.id].append(("to_gate", gp))
-            elif after.area_id == area_id and (gp := await gate_toward(after, before)):
-                targets[after.id].append(("from_gate", gp))
+        else:
+            all_gates = {gate.id: gate for gate in await MapItem.filter(item_type="gate")}
+            neighbors = defaultdict(set)
+
+            for gate in all_gates.values():
+                neighbors[gate.area_id].add(gate.to_area_id)
+
+            def area_path(src, dst):
+                """Shortest list of areas from src to dst (breadth-first over the gates), or None."""
+                prev, queue = {src: None}, [src]
+
+                for cur in queue:
+                    if cur == dst:
+                        path = []
+
+                        while cur is not None:
+                            path.append(cur)
+                            cur = prev[cur]
+
+                        return path[::-1]
+
+                    for nxt in sorted(neighbors[cur]):
+                        if nxt not in prev:
+                            prev[nxt] = cur
+                            queue.append(nxt)
+
+            def nearest_gate(from_area, to_area, near):
+                cands = [g for g in all_gates.values() if g.area_id == from_area and g.to_area_id == to_area and g.x is not None]
+                return min(cands, key=lambda g: math.hypot(g.x - near[0], g.y - near[1]), default=None)
+
+            def gate_stop(stop):
+                gate = all_gates.get(stop.map_item_id) if stop.map_item_id else None
+                return gate if gate and gate.area_id == stop.area_id else None
+
+            gate_stop_pos = {} # gate id -> position in this area, for gates drawn here
+            for gate in await MapItem.filter(area_id=area_id, item_type="gate"):
+                if have_db_pos(gate):
+                    gate_stop_pos[gate.id] = db_pos(gate)
+
+            def add_segment(seg_area, a_node, b_node):
+                """Nodes are ("stop", stop id) or ("gate", gate id). Only segments inside the displayed area are drawn."""
+                if seg_area != area_id or a_node == b_node:
+                    return
+
+                (ka, va), (kb, vb) = a_node, b_node
+
+                if ka == "stop" and kb == "stop":
+                    targets[va].append(("stop", vb))
+                elif ka == "stop" and vb in gate_stop_pos:
+                    targets[va].append(("to_gate", gate_stop_pos[vb]))
+                elif kb == "stop" and va in gate_stop_pos:
+                    targets[vb].append(("from_gate", gate_stop_pos[va]))
+                elif ka == "gate" and kb == "gate" and va in gate_stop_pos and vb in gate_stop_pos:
+                    free_segments.append((gate_stop_pos[va], gate_stop_pos[vb]))
+
+            def endpoints(stop):
+                """Where a route can start / end for this stop: the stop itself, and for a stop on a gate also the paired gate in the area beyond it."""
+                found = [(stop.area_id, ("stop", stop.id), (stop.x, stop.y))]
+
+                if (gate := gate_stop(stop)) and (pair := all_gates.get(gate.to_map_item_id)) and pair.x is not None:
+                    found.append((pair.area_id, ("gate", pair.id), (pair.x, pair.y)))
+
+                return found
+
+            for before, after in itertools.pairwise(remaining):
+                best = None
+
+                for src in endpoints(before):
+                    for dst in endpoints(after):
+                        if (areas := area_path(src[0], dst[0])) is not None and (best is None or len(areas) < len(best[0])):
+                            best = (areas, src, dst) # fewest areas crossed wins; the stop's own side wins ties
+
+                if best is None:
+                    continue
+
+                areas, (_, cur_node, cur_pos), (_, target_node, _) = best
+
+                for a_area, b_area in itertools.pairwise(areas):
+                    if (exit_gate := nearest_gate(a_area, b_area, cur_pos)) is None or (entry_gate := all_gates.get(exit_gate.to_map_item_id)) is None:
+                        break
+
+                    add_segment(a_area, cur_node, ("gate", exit_gate.id))
+                    cur_node, cur_pos = ("gate", entry_gate.id), (entry_gate.x, entry_gate.y)
+                else:
+                    add_segment(areas[-1], cur_node, target_node)
 
         for stop in remaining:
             if stop.area_id == area_id:
                 selected, back = get_selected_color(PLAN_BACK_COLOR, f"plan:{stop.id}")
-                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop.label, stop.rows, selected, False, back, "black", stop.label, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]))))
+                stop_title = f"{stop.label} ({abbreviations_by_area_id[stop.area_id]})" if multi_area and stop.area_id in abbreviations_by_area_id else stop.label
+                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop_title, stop.rows, selected, False, back, "black", stop_title, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]))))
 
-    return cargo_by_pos, gate_lines
+    return cargo_by_pos, gate_lines, (free_segments if plan and not loc_mode else [])
 
 def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False):
     ig = draw.Group(id=map_id + "_group")
@@ -642,7 +696,8 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
         location_items=None, group_rectangles=True,
         map_id = "map_svg_image", x_ofs=0, y_ofs=0, overall_group=None, desc=None, bounds=None):
     multi_area = overall_group is not None
-    cargo_by_pos, gate_lines = objects
+    cargo_by_pos, gate_lines, *extra = objects
+    plan_free_segments = extra[0] if extra else []
 
     text_v_margin = text_height / 4
     text_h_margin = text_height / 2
@@ -939,6 +994,9 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                     plan_links.append((*here, *scaled_pos(*target), entry.selected))
                 elif kind == "from_gate":
                     plan_links.append((*scaled_pos(*target), *here, entry.selected))
+
+    for p1, p2 in plan_free_segments:
+        plan_links.append((*scaled_pos(*p1), *scaled_pos(*p2), False))
 
     for width, color, opacity in LINK_CASING_LAYERS:
         for xs, ys, xe, ye, selected in plan_links:

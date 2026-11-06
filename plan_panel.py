@@ -30,12 +30,14 @@ def rows_summary(stop):
 
 
 class PlanPanel:
-    def __init__(self, region, region_area_ids, point_to_location, on_changed, on_select_stop):
+    def __init__(self, region, region_area_ids, point_to_location, on_changed, on_select_stop, cur_area_id=None, abbrevs=None):
         """point_to_location(svg_x, svg_y) -> (area_id, x, y) in map units, or None when the point isn't on a map (the page knows its own layout).
 
         on_changed: async callable run after any plan change. on_select_stop(stop_id or None): highlights a stop's square on the map.
         """
         self.region = region
+        self.cur_area_id = cur_area_id # None in the region view
+        self.abbrevs = abbrevs or {}
         self.region_area_ids = region_area_ids
         self.point_to_location = point_to_location
         self.on_changed = on_changed
@@ -113,7 +115,7 @@ class PlanPanel:
                 ui.icon("drag_indicator").classes("plan-handle cursor-move text-gray-500")
                 ui.label(str(stop.position + 1)).classes("text-white text-xs font-bold rounded-full text-center").style("background:#c2410c;min-width:20px;line-height:20px")
                 ui.checkbox(value=done, on_change=lambda e, s=stop: self.set_stop_done(s, e.value)).props("dense").tooltip("Done: hides this stop from the map")
-                ui.label(stop.label).classes("flex-1 min-w-0 text-sm font-medium truncate" + (" line-through" if done else "")).on("click", lambda s=stop: self.on_select_stop(s.id)).style("cursor:pointer")
+                ui.label(self.stop_title(stop)).classes("flex-1 min-w-0 text-sm font-medium truncate" + (" line-through" if done else "")).on("click", lambda s=stop: self.on_select_stop(s.id)).style("cursor:pointer")
                 ui.button(icon="edit", on_click=lambda s=stop: self.open_editor(s.id)).props("flat dense round size=sm").tooltip("Edit pickups / drop-offs")
                 ui.button(icon="close", on_click=lambda s=stop: self.remove_stop(s)).props("flat dense round size=sm color=negative").tooltip("Remove stop")
 
@@ -145,13 +147,22 @@ class PlanPanel:
         self.show_completed = e.value
         await self.refresh()
 
-    def new_plan_dialog(self):
+    def stop_title(self, stop):
+        """Stop label, with the area abbreviation when it isn't in the area being viewed (always in the region view)."""
+        if stop.area_id != self.cur_area_id and (abbrev := self.abbrevs.get(stop.area_id)):
+            return f"{stop.label} ({abbrev})"
+
+        return stop.label
+
+    async def new_plan_dialog(self):
+        default_name = await dp.default_plan_name(self.region)
+
         with self.dialog_host, ui.dialog() as dialog, ui.card():
             ui.label("New delivery plan").classes("font-bold")
-            name = ui.input("Name", value="").props("autofocus outlined dense")
+            name = ui.input("Name", value=default_name).props("autofocus outlined dense")
 
             async def create():
-                plan = await dp.create_plan(self.region, name.value.strip() or "New plan")
+                plan = await dp.create_plan(self.region, name.value.strip() or default_name)
                 await dp.set_visible(plan)
                 dialog.close()
                 await self.changed()
@@ -238,10 +249,18 @@ class PlanPanel:
 
     async def add_stop_at(self, area_id, x, y, map_item_id=None):
         """Called when the user picked a location on the map while in pick mode."""
-        if not self.pick_mode or not (visible := await dp.get_visible_plan(self.region)):
+        if not self.pick_mode: # several click events can arrive for one click: only the first one counts
             return
 
-        await self.set_pick_mode(False)
+        self.pick_mode = False # claimed before any await so a second event can't get in
+        visible = await dp.get_visible_plan(self.region)
+
+        await ui.run_javascript("window.planPickMode = false")
+        await self.refresh()
+
+        if not visible:
+            return
+
         stop = await dp.add_stop(visible.id, area_id, x, y, map_item_id)
         await self.on_select_stop(stop.id)
         await self.changed()
@@ -293,8 +312,10 @@ class PlanPanel:
         drops = drops + [dp.Choice(c.kind, c.name, None, c.ref_id, "not carried at this point") for (a, k, n), c in have.items() if a == "dropoff" and (k, n) not in offered_drop]
         inputs = [] # (action, choice, number input)
 
-        with self.dialog_host, ui.dialog() as dialog, ui.card().classes("w-[30rem] max-w-full max-h-[85vh] overflow-auto"):
-            ui.label(f"Stop {stop.position + 1}: {stop.label}").classes("font-bold text-lg")
+        with self.dialog_host, ui.dialog() as dialog, ui.card().classes("w-[30rem] max-w-full max-h-[85vh] flex flex-col no-wrap gap-2"):
+            ui.label(f"Stop {stop.position + 1}: {self.stop_title(stop)}").classes("font-bold text-lg shrink-0")
+            body = ui.column().classes("w-full flex-1 min-h-0 overflow-auto gap-1 no-wrap") # scrolls; the buttons below stay visible
+            body.__enter__()
 
             def section(title, action, choices, empty_text):
                 if title:
@@ -309,7 +330,7 @@ class PlanPanel:
                         label = choice.name + (f"  ({choice.note})" if choice.note else "")
                         ui.label(label).classes("flex-1 min-w-0 text-sm")
                         current = have.get((action, choice.kind, choice.name))
-                        number = ui.number(value=current.count if current else 0, min=0, max=choice.max_count, step=1, precision=0).props("dense outlined").classes("w-20")
+                        number = ui.number(value=current.count if current else (choice.suggested if not stop.cargo else 0), min=0, max=choice.max_count, step=1, precision=0).props("dense outlined").classes("w-20")
 
                         if choice.max_count is not None:
                             number.tooltip(f"up to {choice.max_count}")
@@ -318,11 +339,13 @@ class PlanPanel:
 
             section("Pick up here", "pickup", here, "Nothing is available at this location.")
 
-            if others:
-                ui.label("Other cargo currently available").classes("text-xs text-gray-600 mt-1")
+            section("Drop off here", "dropoff", drops, "This plan isn't carrying anything at this point.")
+
+            if others: # suggestions come first; the rest of the available cargo is below them
+                ui.label("Other cargo currently available (pick up)").classes("font-bold mt-2").style(f"color:{ACTION_COLOR['pickup']}")
                 section("", "pickup", others, "")
 
-            section("Drop off here", "dropoff", drops, "This plan isn't carrying anything at this point.")
+            body.__exit__(None, None, None)
 
             async def save():
                 rows = []
@@ -335,7 +358,7 @@ class PlanPanel:
                 dialog.close()
                 await self.changed()
 
-            with ui.row().classes("mt-2"):
+            with ui.row().classes("shrink-0"):
                 ui.button("Save", on_click=save)
                 ui.button("Cancel", on_click=dialog.close).props("flat")
 

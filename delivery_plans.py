@@ -15,7 +15,7 @@ from cargo_icons import CargoStack, PlanRow
 
 SNAP_TOLERANCE = 12 # map units (of 1000); a click / drop this close to a location snaps to it, and plan items this close are "at" a location
 GENERIC_CARGO = ("logs", "pipes", "planks", "concrete", "metal")
-SNAPPABLE_TYPES = ("source", "craft", "delivery", "truck", "trailer", "spawn")
+SNAPPABLE_TYPES = ("source", "craft", "delivery", "truck", "trailer", "spawn", "gate")
 
 # what the map generator needs to draw one stop; rows are (action, [CargoStack]) with pickups first
 StopView = namedtuple("StopView", "id,number,area_id,x,y,map_item_id,label,completed,rows")
@@ -28,6 +28,7 @@ class Choice:
     max_count: int | None = None # None = unlimited / unknown
     ref_id: str | None = None
     note: str = ""
+    suggested: int = 0 # default count to prefill in the editor
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -163,6 +164,17 @@ async def set_stop_cargo(stop_id, rows):
                 await PlanCargo.create(stop_id=stop_id, action=action, kind=kind, name=name, count=count or 1, ref_id=ref_id)
 
 
+async def default_plan_name(region):
+    """'Plan N' with the lowest N not already used in this region."""
+    used = {plan.name for plan in await DeliveryPlan.filter(region=region)}
+    n = 1
+
+    while f"Plan {n}" in used:
+        n += 1
+
+    return f"Plan {n}"
+
+
 async def snap_location(area_id, x, y, tolerance=SNAP_TOLERANCE):
     """The nearest real location (source, craft, delivery location, loose vehicle) within tolerance of a map point, or None."""
     best, best_dist = None, tolerance
@@ -284,7 +296,7 @@ async def dropoff_choices(plan, stop):
 
     for (kind, name), cnt in held.items():
         need = needed.get(name, 0)
-        choices.append(Choice(kind, name, cnt, None, f"objective needs {need}" if need else ""))
+        choices.append(Choice(kind, name, cnt, None, f"objective needs {need}" if need else "", min(cnt, need) if kind == "cargo" else 0))
 
     choices.sort(key=lambda c: (not c.note, c.name))
     return choices
