@@ -221,11 +221,16 @@ def root():
             };
             // the delivery plan stop list (rebuilt whenever the plan changes, and only present once its tab was opened) gets drag-to-reorder
             const bindStopList = () => {
-                const el = document.getElementById('plan-stops');
-                if (!el || el._sortable || typeof Sortable === 'undefined') return;
-                el._sortable = Sortable.create(el, {
-                    handle: '.plan-handle', animation: 150, forceFallback: true,
-                    onEnd: () => emitEvent('js_plan_reorder', { ids: [...el.children].map(c => c.dataset.id).filter(Boolean) }),
+                document.querySelectorAll('.plan-seq').forEach((el) => {
+                    if (el._sortable || typeof Sortable === 'undefined') return;
+                    // every list (main route and each leg) shares one group so stops can be dragged between them
+                    el._sortable = Sortable.create(el, {
+                        group: 'plan-stops', handle: '.plan-handle', animation: 150, forceFallback: true, fallbackOnBody: true, swapThreshold: 0.65,
+                        onEnd: (evt) => {
+                            if (evt.from === evt.to) emitEvent('js_plan_reorder', { leg: el.dataset.leg || '', ids: [...el.children].map(c => c.dataset.id).filter(Boolean) });
+                            else emitEvent('js_plan_move', { id: evt.item.dataset.id, leg: evt.to.dataset.leg || '', index: evt.newIndex });
+                        },
+                    });
                 });
             };
             let bindQueued = false;
@@ -268,14 +273,17 @@ def root():
                 if (justDragged) { e.stopImmediatePropagation(); e.preventDefault(); }
             }, true);
 
-            document.addEventListener('click', (e) => { // choosing a plan location: a click on empty map is a point; clicks on entries are handled through js_click_event
-                if (!window.planPickMode || window._planEntryHit || !e.target.closest || !e.target.closest('svg') || e.target.closest('[data-click-id]')) return;
+            // choosing a plan location: a click on empty map is a point; clicks on entries are handled through js_click_event.
+            // Captured (and stopped) so that in the region view the area tile's link doesn't navigate away.
+            document.addEventListener('click', (e) => {
+                if (!window.planPickMode || justDragged || !e.target.closest || !e.target.closest('svg') || e.target.closest('.loc2, [data-click-id]')) return;
                 const grp = planGroup();
                 const p = grp && toGroup(grp, e.clientX, e.clientY);
                 if (!p) return;
                 e.preventDefault();
+                e.stopPropagation();
                 if (typeof emitEvent === 'function') emitEvent('js_map_point_event', p);
-            });
+            }, true);
         })();
         </script>
     ''')
@@ -1222,7 +1230,8 @@ async def region(region_slug: str):
 
     ui.on('js_map_point_event', lambda e: plan_panel.handle_map_point(e.args['x'], e.args['y']))
     ui.on('js_plan_drag_end', handle_plan_drag_event)
-    ui.on('js_plan_reorder', lambda e: plan_panel.handle_reorder(e.args['ids']))
+    ui.on('js_plan_reorder', lambda e: plan_panel.handle_reorder(int(e.args['leg']) if e.args['leg'] else None, e.args['ids']))
+    ui.on('js_plan_move', lambda e: plan_panel.handle_move(e.args['id'], e.args['leg'], e.args['index']))
 
     region_client_alive_checker = obj_tree
     tree_updated.subscribe(update_obj_tree_event)
@@ -1822,7 +1831,8 @@ async def area(area_slug: str):
 
     ui.on('js_map_point_event', lambda e: plan_panel.handle_map_point(e.args['x'], e.args['y']))
     ui.on('js_plan_drag_end', handle_plan_drag_event)
-    ui.on('js_plan_reorder', lambda e: plan_panel.handle_reorder(e.args['ids']))
+    ui.on('js_plan_reorder', lambda e: plan_panel.handle_reorder(int(e.args['leg']) if e.args['leg'] else None, e.args['ids']))
+    ui.on('js_plan_move', lambda e: plan_panel.handle_move(e.args['id'], e.args['leg'], e.args['index']))
 
 
     #######################

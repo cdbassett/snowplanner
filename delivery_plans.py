@@ -4,21 +4,23 @@ Plans live in their own tables (DeliveryPlan, PlanStop, PlanCargo) which are del
 Everything here is plain async DB logic so the UI and the map generator don't need to know how plans are stored.
 """
 import math
-from collections import Counter, namedtuple
+from collections import Counter, defaultdict, namedtuple
 from dataclasses import dataclass
 
 from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
-from database.models import DeliveryPlan, PlanStop, PlanCargo, MapItem, Objective, ObjectiveItem, SourceCargoItem, current_cargo_count
+from database.models import DeliveryPlan, PlanStop, PlanCargo, PlanLeg, PlanLegCargo, MapItem, Objective, ObjectiveItem, SourceCargoItem, current_cargo_count
 from cargo_icons import CargoStack, PlanRow
 
+PLAN_LEG_COLOR_COUNT = 6 # size of PLAN_LEG_COLORS in the map generator: the main route plus five leg colours
 SNAP_TOLERANCE = 12 # map units (of 1000); a click / drop this close to a location snaps to it, and plan items this close are "at" a location
 GENERIC_CARGO = ("logs", "pipes", "planks", "concrete", "metal")
 SNAPPABLE_TYPES = ("source", "craft", "delivery", "truck", "trailer", "spawn", "gate")
 
 # what the map generator needs to draw one stop; rows are (action, [CargoStack]) with pickups first
-StopView = namedtuple("StopView", "id,number,area_id,x,y,map_item_id,label,completed,rows")
+# number is text ("3", or "3a.1" on a leg); prev_id is the remaining stop its line comes from (None for the first); color indexes the leg palette (0 = main route); legs lists the names of a split's legs
+StopView = namedtuple("StopView", "id,number,area_id,x,y,map_item_id,label,completed,rows,prev_id,color,legs", defaults=(None, 0, ()))
 
 
 @dataclass
@@ -100,31 +102,58 @@ async def get_stops(plan_id):
     return await PlanStop.filter(plan_id=plan_id).order_by("position", "id").prefetch_related("cargo")
 
 
-async def add_stop(plan_id, area_id, x, y, map_item_id=None, label=""):
-    position = await PlanStop.filter(plan_id=plan_id).count()
+async def get_tree(plan_id):
+    """The plan's stops and legs organised as a tree (see PlanTree)."""
+    legs = await PlanLeg.filter(split_stop__plan_id=plan_id).prefetch_related("cargo")
+    return PlanTree(await get_stops(plan_id), legs)
+
+
+def _sequence(plan_id, leg_id):
+    """The stops of the main route (leg_id None) or of one leg."""
+    return PlanStop.filter(plan_id=plan_id, leg_id=leg_id) if leg_id is not None else PlanStop.filter(plan_id=plan_id, leg_id__isnull=True)
+
+
+async def add_stop(plan_id, area_id, x, y, map_item_id=None, label="", leg_id=None):
+    if leg_id is not None and not await PlanLeg.filter(id=leg_id).exists():
+        leg_id = None # the leg went away while the location was being picked
+
+    position = await _sequence(plan_id, leg_id).count()
 
     if not label and map_item_id and (map_item := await MapItem.filter(id=map_item_id).first()):
         label = map_item.name
 
-    return await PlanStop.create(plan_id=plan_id, position=position, area_id=area_id, x=int(x), y=int(y), map_item_id=map_item_id, label=label or f"Point ({int(x)}, {int(y)})")
+    return await PlanStop.create(plan_id=plan_id, position=position, area_id=area_id, x=int(x), y=int(y), map_item_id=map_item_id, label=label or f"Point ({int(x)}, {int(y)})", leg_id=leg_id)
+
+
+async def _delete_stop_tree(stop_id):
+    """Delete a stop together with every leg it splits into and everything on those legs."""
+    for leg in await PlanLeg.filter(split_stop_id=stop_id):
+        for child in await PlanStop.filter(leg_id=leg.id):
+            await _delete_stop_tree(child.id)
+
+        await PlanLegCargo.filter(leg_id=leg.id).delete()
+        await leg.delete()
+
+    await PlanCargo.filter(stop_id=stop_id).delete()
+    await PlanStop.filter(id=stop_id).delete()
 
 
 async def delete_stop(stop_id):
     if (stop := await PlanStop.filter(id=stop_id).first()):
-        plan_id = stop.plan_id
-        await stop.delete()
-        await renumber(plan_id)
+        async with in_transaction():
+            await _delete_stop_tree(stop_id)
+            await renumber(stop.plan_id, stop.leg_id)
 
 
-async def renumber(plan_id):
-    for position, stop in enumerate(await PlanStop.filter(plan_id=plan_id).order_by("position", "id")):
+async def renumber(plan_id, leg_id=None):
+    for position, stop in enumerate(await _sequence(plan_id, leg_id).order_by("position", "id")):
         if stop.position != position:
             await PlanStop.filter(id=stop.id).update(position=position)
 
 
-async def reorder_stops(plan_id, ordered_ids):
-    """ordered_ids is the new order of (some or all of) the plan's stop ids; any not mentioned keep their relative order at the end."""
-    stops = await PlanStop.filter(plan_id=plan_id).order_by("position", "id")
+async def reorder_stops(plan_id, ordered_ids, leg_id=None):
+    """ordered_ids is the new order of (some or all of) one sequence's stop ids; any not mentioned keep their relative order at the end."""
+    stops = await _sequence(plan_id, leg_id).order_by("position", "id")
     by_id = {s.id: s for s in stops}
     new_order = [by_id[i] for i in dict.fromkeys(int(i) for i in ordered_ids) if i in by_id]
     new_order += [s for s in stops if s not in new_order]
@@ -132,6 +161,254 @@ async def reorder_stops(plan_id, ordered_ids):
     for position, stop in enumerate(new_order):
         if stop.position != position:
             await PlanStop.filter(id=stop.id).update(position=position)
+
+
+async def _leg_is_inside(leg_id, stop_id):
+    """True when the leg hangs (at any depth) below the stop."""
+    while leg_id is not None:
+        leg = await PlanLeg.filter(id=leg_id).prefetch_related("split_stop").first()
+
+        if leg is None:
+            return False
+
+        if leg.split_stop_id == stop_id:
+            return True
+
+        leg_id = leg.split_stop.leg_id
+
+    return False
+
+
+async def move_stop_to_leg(stop_id, leg_id, index):
+    """Move a stop to position `index` of another sequence (leg_id None = main route). A split can't be moved into its own legs."""
+    stop = await PlanStop.filter(id=stop_id).first()
+
+    if not stop or (leg_id is not None and await _leg_is_inside(leg_id, stop_id)):
+        return False
+
+    async with in_transaction():
+        old_leg = stop.leg_id
+        target = [s for s in await _sequence(stop.plan_id, leg_id).order_by("position", "id") if s.id != stop_id]
+        index = max(0, min(int(index), len(target)))
+        await PlanStop.filter(id=stop_id).update(leg_id=leg_id)
+        ids = [s.id for s in target]
+        ids.insert(index, stop_id)
+
+        for position, sid in enumerate(ids):
+            await PlanStop.filter(id=sid).update(position=position)
+
+        if old_leg != leg_id:
+            await renumber(stop.plan_id, old_leg)
+
+    return True
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# splits: a stop whose cargo / trucks go different ways, one leg each
+# ---------------------------------------------------------------------------------------------------------------------
+
+async def add_leg(stop_id):
+    number = await PlanLeg.filter(split_stop_id=stop_id).count() + 1
+    return await PlanLeg.create(split_stop_id=stop_id, number=number)
+
+
+async def split_stop(stop_id, leg_count=2):
+    """Turn a stop into a split with (at least) leg_count legs."""
+    while await PlanLeg.filter(split_stop_id=stop_id).count() < max(2, leg_count):
+        await add_leg(stop_id)
+
+
+async def rename_leg(leg_id, name):
+    await PlanLeg.filter(id=leg_id).update(name=name)
+
+
+async def remove_leg(leg_id):
+    """Delete a leg and its stops; the remaining legs are renumbered. Removing the last leg makes the stop a plain stop again."""
+    if not (leg := await PlanLeg.filter(id=leg_id).first()):
+        return
+
+    async with in_transaction():
+        for child in await PlanStop.filter(leg_id=leg_id):
+            await _delete_stop_tree(child.id)
+
+        await PlanLegCargo.filter(leg_id=leg_id).delete()
+        await leg.delete()
+
+        for number, other in enumerate(await PlanLeg.filter(split_stop_id=leg.split_stop_id).order_by("number", "id"), 1):
+            if other.number != number:
+                await PlanLeg.filter(id=other.id).update(number=number)
+
+
+async def unsplit(stop_id):
+    """Remove a split. Only possible when at most one leg has stops: those stops continue the route after the split stop. Returns whether it happened."""
+    stop = await PlanStop.filter(id=stop_id).first()
+    legs = await PlanLeg.filter(split_stop_id=stop_id)
+    used = [leg for leg in legs if await PlanStop.filter(leg_id=leg.id).exists()]
+
+    if not stop or len(used) > 1:
+        return False
+
+    async with in_transaction():
+        moved = list(await PlanStop.filter(leg_id=used[0].id).order_by("position", "id")) if used else []
+        seq = [s for s in await _sequence(stop.plan_id, stop.leg_id).order_by("position", "id")]
+        at = [s.id for s in seq].index(stop_id) + 1
+        ids = [s.id for s in seq[:at]] + [s.id for s in moved] + [s.id for s in seq[at:]]
+
+        if moved:
+            await PlanStop.filter(id__in=[s.id for s in moved]).update(leg_id=stop.leg_id)
+
+        for position, sid in enumerate(ids):
+            await PlanStop.filter(id=sid).update(position=position)
+
+        for leg in legs:
+            await PlanLegCargo.filter(leg_id=leg.id).delete()
+            await leg.delete()
+
+    return True
+
+
+async def set_leg_cargo(leg_id, rows):
+    """Replace what the split hands to this leg. rows: iterable of (kind, name, count, ref_id)."""
+    async with in_transaction():
+        await PlanLegCargo.filter(leg_id=leg_id).delete()
+
+        for kind, name, count, ref_id in rows:
+            if count and count > 0:
+                await PlanLegCargo.create(leg_id=leg_id, kind=kind, name=name, count=count, ref_id=ref_id)
+
+
+def _apply(held, cargo_rows):
+    for c in cargo_rows:
+        held[(c.kind, c.name)] += c.count if getattr(c, "action", "pickup") == "pickup" else -c.count
+
+
+def leg_letter(number):
+    return chr(ord("a") + (number - 1) % 26)
+
+
+class PlanTree:
+    """A plan's stops and legs. The main route is a sequence; a split stop's legs are further sequences, which can contain splits of their own."""
+
+    def __init__(self, stops, legs):
+        self.stops = {s.id: s for s in stops}
+        self.legs = {l.id: l for l in legs}
+        self.seq = defaultdict(list) # leg id (None = main route) -> its stops in order
+        self.legs_of = defaultdict(list) # split stop id -> its legs in order
+
+        for stop in sorted(stops, key=lambda s: (s.position, s.id)):
+            self.seq[stop.leg_id].append(stop)
+
+        for leg in sorted(legs, key=lambda l: (l.number, l.id)):
+            self.legs_of[leg.split_stop_id].append(leg)
+
+        self._numbers = {}
+
+    def is_split(self, stop):
+        return bool(self.legs_of.get(stop.id))
+
+    def number(self, stop):
+        """'3' on the main route, '3a.1' for the first stop of the first leg of stop 3."""
+        if stop.id not in self._numbers:
+            index = self.seq[stop.leg_id].index(stop) + 1
+
+            if stop.leg_id is None:
+                self._numbers[stop.id] = str(index)
+            else:
+                leg = self.legs[stop.leg_id]
+                self._numbers[stop.id] = f"{self.number(self.stops[leg.split_stop_id])}{leg_letter(leg.number)}.{index}"
+
+        return self._numbers[stop.id]
+
+    def leg_title(self, leg):
+        return f"{leg_letter(leg.number)}" + (f": {leg.name}" if leg.name else "")
+
+    def split_totals(self, split):
+        """Counter of everything the split's legs are handed in total."""
+        total = Counter()
+
+        for leg in self.legs_of.get(split.id, []):
+            _apply(total, leg.cargo)
+
+        return total
+
+    def held_before(self, stop):
+        """What is being carried on arrival at this stop. A leg starts with what the split handed to it; completed stops count (the cargo really moved)."""
+        held = Counter()
+
+        if stop.leg_id is not None:
+            _apply(held, self.legs[stop.leg_id].cargo)
+
+        for other in self.seq[stop.leg_id]:
+            if other.id == stop.id:
+                break
+
+            _apply(held, other.cargo)
+
+            if self.is_split(other): # whatever the legs were handed has left; the rest travels on
+                held.subtract(self.split_totals(other))
+
+        return +held
+
+    def leftover(self, leg_id):
+        """What is still being carried at the end of a sequence (the main route or a leg), i.e. never marked for drop-off anywhere. A sequence ending in a split hands its load to the legs instead."""
+        seq = self.seq.get(leg_id, [])
+
+        if not seq:
+            held = Counter()
+
+            if leg_id is not None:
+                _apply(held, self.legs[leg_id].cargo)
+
+            return +held
+
+        last = seq[-1]
+
+        if self.is_split(last):
+            return Counter()
+
+        held = Counter(self.held_before(last))
+        _apply(held, last.cargo)
+        return +held
+
+    def balance(self, split):
+        """(unassigned, over_assigned) Counters for a split: carried after its own stop but not handed to any leg, and handed out more than carried."""
+        after = Counter(self.held_before(split))
+        _apply(after, split.cargo)
+        diff = Counter(after)
+        diff.subtract(self.split_totals(split))
+        return +diff, Counter({k: -v for k, v in diff.items() if v < 0})
+
+    def prev_of(self, stop, remaining_ids):
+        """The remaining stop whose line leads to this one: the one before it, or for a leg's first stop the split stop (or whatever precedes that when it is done)."""
+        seq = self.seq[stop.leg_id]
+
+        for other in reversed(seq[:seq.index(stop)]):
+            if other.id in remaining_ids:
+                return other
+
+        if stop.leg_id is None:
+            return None
+
+        split = self.stops[self.legs[stop.leg_id].split_stop_id]
+        return split if split.id in remaining_ids else self.prev_of(split, remaining_ids)
+
+    def leg_color(self, leg):
+        """Palette index of a leg. Every leg in the plan gets its own (cycling through the palette), so a leg keeps one colour all the way along and a later split's legs look different from it."""
+        if not hasattr(self, "_leg_colors"):
+            self._leg_colors = {}
+
+            def walk(leg_id):
+                for stop in self.seq.get(leg_id, []):
+                    for leg in self.legs_of.get(stop.id, []):
+                        self._leg_colors[leg.id] = 1 + len(self._leg_colors) % (PLAN_LEG_COLOR_COUNT - 1)
+                        walk(leg.id)
+
+            walk(None)
+
+        return self._leg_colors.get(leg.id, 1)
+
+    def color(self, stop):
+        return 0 if stop.leg_id is None else self.leg_color(self.legs[stop.leg_id])
 
 
 async def move_stop_location(stop_id, area_id, x, y, map_item_id=None):
@@ -189,20 +466,6 @@ async def snap_location(area_id, x, y, tolerance=SNAP_TOLERANCE):
 # ---------------------------------------------------------------------------------------------------------------------
 # what is held / available
 # ---------------------------------------------------------------------------------------------------------------------
-
-def held_after(stops, up_to_position):
-    """Counter of (kind, name) carried after finishing every stop whose position < up_to_position. Completed stops count: the cargo really moved."""
-    held = Counter()
-
-    for stop in sorted(stops, key=lambda s: s.position):
-        if stop.position >= up_to_position:
-            break
-
-        for c in stop.cargo:
-            held[(c.kind, c.name)] += c.count if c.action == "pickup" else -c.count
-
-    return +held # drop zero / negative entries
-
 
 def _same_place(stop, other):
     if stop.map_item_id or other.map_item_id:
@@ -285,7 +548,7 @@ async def pickup_choices(plan, stop, region_area_ids):
 
 async def dropoff_choices(plan, stop):
     """Items this plan is carrying when it reaches the stop; those an incomplete objective still needs at this location come first."""
-    held = held_after(await get_stops(plan.id), stop.position)
+    held = (await get_tree(plan.id)).held_before(stop)
     needed = Counter()
 
     if stop.map_item_id:
@@ -320,8 +583,18 @@ def stop_rows(stop):
 
 
 async def get_plan_view(region):
-    """StopViews of the region's visible plan, in order. Stops keep their number (position + 1) even when completed ones are dropped."""
+    """StopViews of the region's visible plan. Stops keep their number even when completed ones are dropped from the map."""
     if not (plan := await get_visible_plan(region)):
         return None
 
-    return [StopView(s.id, s.position + 1, s.area_id, s.x, s.y, s.map_item_id, s.label, s.completed, stop_rows(s)) for s in await get_stops(plan.id)]
+    tree = await get_tree(plan.id)
+    remaining = {s.id for s in tree.stops.values() if not s.completed}
+    stops = sorted(tree.stops.values(), key=lambda s: s.id)
+    views = []
+
+    for s in stops:
+        prev = tree.prev_of(s, remaining)
+        legs = tuple(tree.leg_title(l) for l in tree.legs_of.get(s.id, []))
+        views.append(StopView(s.id, tree.number(s), s.area_id, s.x, s.y, s.map_item_id, s.label, s.completed, stop_rows(s), prev.id if prev else None, tree.color(s), legs))
+
+    return views

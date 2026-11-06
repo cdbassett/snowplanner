@@ -133,6 +133,7 @@ class PlanStop(Model):
     map_item_id = fields.CharField(max_length=70, null=True) # set when the stop snapped to an existing location
     label = fields.CharField(max_length=255, default="")
     completed = fields.BooleanField(default=False)
+    leg = fields.ForeignKeyField("models.PlanLeg", related_name="stops", null=True, on_delete=fields.CASCADE) # null = the plan's main route; otherwise the leg of a split this stop is on
 
     class Meta:
         table = "plan_stop"
@@ -150,4 +151,28 @@ class PlanCargo(Model):
 
     class Meta:
         table = "plan_cargo"
+        ordering = ["id"]
+
+
+class PlanLeg(Model): # one way out of a split stop; the stops on it are PlanStop rows with leg=this
+    id = fields.IntField(pk=True)
+    split_stop = fields.ForeignKeyField("models.PlanStop", related_name="legs", on_delete=fields.CASCADE)
+    number = fields.SmallIntField() # 1-based, shown as a, b, c
+    name = fields.CharField(max_length=100, default="")
+
+    class Meta:
+        table = "plan_leg"
+        ordering = ["number", "id"]
+
+
+class PlanLegCargo(Model): # what a split hands to one of its legs
+    id = fields.IntField(pk=True)
+    leg = fields.ForeignKeyField("models.PlanLeg", related_name="cargo", on_delete=fields.CASCADE)
+    kind = fields.CharField(max_length=7, default="cargo")
+    name = fields.CharField(max_length=255)
+    count = fields.SmallIntField(default=1)
+    ref_id = fields.CharField(max_length=70, null=True)
+
+    class Meta:
+        table = "plan_leg_cargo"
         ordering = ["id"]

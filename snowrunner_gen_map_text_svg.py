@@ -69,9 +69,10 @@ PLAN_LINK_COLOR = "DarkOrange"
 PLAN_LINK_SELECTED_COLOR = "hotpink"
 PLAN_CHEVRON_COLOR = "Gold"
 PLAN_BADGE_COLOR = "#c2410c"
+PLAN_LEG_COLORS = [(PLAN_LINK_COLOR, PLAN_CHEVRON_COLOR), ("#1565c0", "#bbdefb"), ("#6d4c41", "#d7ccc8"), ("#c62828", "#ffcdd2"), ("#827717", "#f0f4c3"), ("#37474f", "#cfd8dc")] # (line, chevron) for the main route, then the legs of splits; none look like delivery links (purple), gates (teal) or the selected highlight (pink)
 PLAN_MARKERS = {"pickup": ("▲", "#2e7d32"), "dropoff": ("▼", "#b23a48")} # placeholder action markers until icons/raster/plan/{pickup,dropoff}.png exist
 # arrow of a plan entry: its stop id, the number shown on it, and where its line to the next stop goes: ("stop", stop id), ("to_gate", pos) or ("from_gate", pos) when the neighbor is in another area
-PlanLink = namedtuple("PlanLink", "stop_id,number,targets")
+PlanLink = namedtuple("PlanLink", "stop_id,number,targets,color", defaults=(0,)) # number is text; targets are (kind, target, color index)
 
 
 def wrap_title(title):
@@ -578,12 +579,14 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         remaining = [stop for stop in plan if not stop.completed] # completed stops vanish; their numbers aren't reused and the route bridges over them
         targets = defaultdict(list)
 
+        by_id = {stop.id: stop for stop in remaining}
+        edges = [(by_id[stop.prev_id], stop) for stop in remaining if stop.prev_id in by_id] # each stop is reached from the previous remaining stop of its sequence; a leg's first stop from its split
         free_segments = [] # (pos, pos) lines between gates of this area, for routes passing through it without a stop here
 
         if multi_area: # every area of the region is on screen: a straight line, resolved against the other stop's drawn square
-            for before, after in itertools.pairwise(remaining):
+            for before, after in edges:
                 if before.area_id == area_id:
-                    targets[before.id].append(("stop", after.id))
+                    targets[before.id].append(("stop", after.id, after.color))
         else:
             all_gates = {gate.id: gate for gate in await MapItem.filter(item_type="gate")}
             neighbors = defaultdict(set)
@@ -623,7 +626,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 if have_db_pos(gate):
                     gate_stop_pos[gate.id] = db_pos(gate)
 
-            def add_segment(seg_area, a_node, b_node):
+            def add_segment(seg_area, a_node, b_node, color=0):
                 """Nodes are ("stop", stop id) or ("gate", gate id). Only segments inside the displayed area are drawn."""
                 if seg_area != area_id or a_node == b_node:
                     return
@@ -631,13 +634,13 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 (ka, va), (kb, vb) = a_node, b_node
 
                 if ka == "stop" and kb == "stop":
-                    targets[va].append(("stop", vb))
+                    targets[va].append(("stop", vb, color))
                 elif ka == "stop" and vb in gate_stop_pos:
-                    targets[va].append(("to_gate", gate_stop_pos[vb]))
+                    targets[va].append(("to_gate", gate_stop_pos[vb], color))
                 elif kb == "stop" and va in gate_stop_pos:
-                    targets[vb].append(("from_gate", gate_stop_pos[va]))
+                    targets[vb].append(("from_gate", gate_stop_pos[va], color))
                 elif ka == "gate" and kb == "gate" and va in gate_stop_pos and vb in gate_stop_pos:
-                    free_segments.append((gate_stop_pos[va], gate_stop_pos[vb]))
+                    free_segments.append((gate_stop_pos[va], gate_stop_pos[vb], color))
 
             def endpoints(stop):
                 """Where a route can start / end for this stop: the stop itself, and for a stop on a gate also the paired gate in the area beyond it."""
@@ -648,7 +651,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                 return found
 
-            for before, after in itertools.pairwise(remaining):
+            for before, after in edges:
                 best = None
 
                 for src in endpoints(before):
@@ -665,16 +668,17 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     if (exit_gate := nearest_gate(a_area, b_area, cur_pos)) is None or (entry_gate := all_gates.get(exit_gate.to_map_item_id)) is None:
                         break
 
-                    add_segment(a_area, cur_node, ("gate", exit_gate.id))
+                    add_segment(a_area, cur_node, ("gate", exit_gate.id), after.color)
                     cur_node, cur_pos = ("gate", entry_gate.id), (entry_gate.x, entry_gate.y)
                 else:
-                    add_segment(areas[-1], cur_node, target_node)
+                    add_segment(areas[-1], cur_node, target_node, after.color)
 
         for stop in remaining:
             if stop.area_id == area_id:
                 selected, back = get_selected_color(PLAN_BACK_COLOR, f"plan:{stop.id}")
                 stop_title = f"{stop.label} ({abbreviations_by_area_id[stop.area_id]})" if multi_area and stop.area_id in abbreviations_by_area_id else stop.label
-                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop_title, stop.rows, selected, False, back, "black", stop_title, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]))))
+                stop_title += f" - split: {', '.join(stop.legs)}" if stop.legs else ""
+                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop_title, stop.rows, selected, False, back, "black", stop_title, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]), stop.color)))
 
     return cargo_by_pos, gate_lines, (free_segments if plan and not loc_mode else [])
 
@@ -841,8 +845,11 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
             if entry.typ == "plan": # stop number
                 badge_r = text_height * 0.8
-                g.append(draw.Circle(x, y, badge_r, fill=PLAN_BADGE_COLOR, stroke="white", stroke_width=1.5))
-                g.append(draw.Text(str(entry.arrow.number), text_height * (0.9 if entry.arrow.number < 10 else 0.75), x, y, text_anchor="middle", dominant_baseline="central", fill="white", font_weight="bold"))
+                number_text = str(entry.arrow.number)
+                badge_w = max(2 * badge_r, text_height * 0.6 * len(number_text) + text_height * 0.5) # longer numbers ("3a.1") get a pill shape
+                badge_fill = PLAN_LEG_COLORS[entry.arrow.color % len(PLAN_LEG_COLORS)][0] if entry.arrow.color else PLAN_BADGE_COLOR
+                g.append(draw.Rectangle(x - badge_w / 2, y - badge_r, badge_w, 2 * badge_r, rx=badge_r, fill=badge_fill, stroke="white", stroke_width=1.5))
+                g.append(draw.Text(number_text, text_height * (0.9 if len(number_text) < 2 else 0.75), x, y, text_anchor="middle", dominant_baseline="central", fill="white", font_weight="bold"))
 
             for n, title_line in enumerate(title_lines):
                 g.append(draw.Text(title_line, text_height, tx, ty + no_cargo * eight_height + text_height * n, fill='black', font_weight='bold', dominant_baseline="hanging"))
@@ -981,32 +988,35 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             moved_rect = grouped_rect if group_rectangles else rect
             box_centers[entry.arrow.stop_id] = (rect.original_midx - moved_rect.deltax, rect.original_midy - moved_rect.deltay)
 
-    plan_links = [] # (from x, from y, to x, to y, selected)
+    plan_links = [] # (from x, from y, to x, to y, selected, color index)
 
     for entry, *_ in rects_and_objects:
         if entry.typ == "plan":
             here = box_centers[entry.arrow.stop_id]
 
-            for kind, target in entry.arrow.targets:
+            for kind, target, color in entry.arrow.targets:
                 if kind == "stop" and target in box_centers:
-                    plan_links.append((*here, *box_centers[target], entry.selected))
+                    plan_links.append((*here, *box_centers[target], entry.selected, color))
                 elif kind == "to_gate":
-                    plan_links.append((*here, *scaled_pos(*target), entry.selected))
+                    plan_links.append((*here, *scaled_pos(*target), entry.selected, color))
                 elif kind == "from_gate":
-                    plan_links.append((*scaled_pos(*target), *here, entry.selected))
+                    plan_links.append((*scaled_pos(*target), *here, entry.selected, color))
 
-    for p1, p2 in plan_free_segments:
-        plan_links.append((*scaled_pos(*p1), *scaled_pos(*p2), False))
+    for p1, p2, color in plan_free_segments:
+        plan_links.append((*scaled_pos(*p1), *scaled_pos(*p2), False, color))
 
     for width, color, opacity in LINK_CASING_LAYERS:
-        for xs, ys, xe, ye, selected in plan_links:
+        for xs, ys, xe, ye, selected, _ in plan_links:
             overall_group.append(draw.Line(xs, ys, xe, ye, stroke=color, stroke_width=width, stroke_opacity=opacity))
 
-    for xs, ys, xe, ye, selected in plan_links:
-        overall_group.append(draw.Line(xs, ys, xe, ye, stroke=PLAN_LINK_SELECTED_COLOR if selected else PLAN_LINK_COLOR, stroke_width=3))
+    for xs, ys, xe, ye, selected, leg_color in plan_links:
+        if selected: # the highlight goes underneath so the line keeps its leg's colour
+            overall_group.append(draw.Line(xs, ys, xe, ye, stroke=PLAN_LINK_SELECTED_COLOR, stroke_width=7))
 
-    for xs, ys, xe, ye, selected in plan_links:
-        draw_chevrons(xe, ye, xs, ys, PLAN_CHEVRON_COLOR)
+        overall_group.append(draw.Line(xs, ys, xe, ye, stroke=PLAN_LEG_COLORS[leg_color % len(PLAN_LEG_COLORS)][0], stroke_width=3))
+
+    for xs, ys, xe, ye, selected, leg_color in plan_links:
+        draw_chevrons(xe, ye, xs, ys, PLAN_LEG_COLORS[leg_color % len(PLAN_LEG_COLORS)][1])
 
     for (grouped_rect, scale_pos), rects_and_objects_bygroup in itertools.groupby(rects_and_objects, itemgetter(2, 4)):
         if group_rectangles:
