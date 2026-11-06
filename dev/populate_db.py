@@ -37,6 +37,42 @@ ed = get_english_lang_dict()
 
 # location_positions_by_area_id = dict((area_ids_by_area[area], dct) for area, dct in location_positions.items())
 
+level_item_seasons = set(rec[0][:5] for rec in read_snowrunner_data_tsv_file("level_items_list.generated.tsv"))
+_warned_missing = set()
+
+def warn_missing(area_id, kind):
+    """Warn once per season (e.g. US_19) and kind of data that its data isn't there yet, e.g. when re-running before a new season's files have been added."""
+    season = area_id[:5]
+
+    if (season, kind) not in _warned_missing:
+        _warned_missing.add((season, kind))
+        print(f"WARNING: season {season} data is not present for: {kind} (first seen for {area_id}); related items are skipped or use placeholder names")
+
+def region_area_or_warn(area_id):
+    """(region, area) names for the area, or None (with a warning) if the language strings for it are missing."""
+    try:
+        result = region_area(ed, area_id)
+    except KeyError:
+        warn_missing(area_id, "region/area names (language strings)")
+        return None
+
+    if area_id not in areas_by_area_id:
+        warn_missing(area_id, "area list (region/area abbreviations)")
+
+    if area_id[:5] not in level_item_seasons:
+        warn_missing(area_id, "trucks/trailers list (level_items_list.generated.tsv)")
+
+    return result
+
+
+def delivered_truck_name(truck_id, area_id):
+    """Display name of a truck from the level items list; the raw truck id (with a warning) if its season's trucks aren't in the list yet."""
+    try:
+        return ed[truck_id_lookup[truck_lookup[truck_id]].upper()]
+    except KeyError:
+        warn_missing(area_id, "trucks/trailers list (level_items_list.generated.tsv)")
+        return truck_id
+
 
 def sq(s):
     if s.startswith('"') and s.endswith('"'):
@@ -203,7 +239,11 @@ async def handle_gateway(area_id, loc_id, sub_prop, objective = None):
 #        ic(area_id, loc_id, x, y)
 
 #    check(loc_id, "gate", None)
-    gate_name = f"{get_compass_repr_of_pos_int((x, y))} Gate to {areas_by_area_id[to_area_id]}"
+    if (to_area_name := areas_by_area_id.get(to_area_id)) is None:
+        warn_missing(to_area_id, "area list (region/area abbreviations)")
+        to_area_name = to_area_id
+
+    gate_name = f"{get_compass_repr_of_pos_int((x, y))} Gate to {to_area_name}"
 #    map_item, created = await get_or_create_map_item(loc_id, area_id, "gate", gate_name, x, y, objective, to_area_id, to_map_item_id)
     map_item, created = await get_or_create_map_item(loc_id, area_id, "gate", gate_name, x, y, objective, to_area_id)
 
@@ -244,6 +284,10 @@ async def run(area_id_filter=None) -> None:
 
         for fname, python_data in iterate_level_files_basic():
             area_id = fname_to_area_id(fname)
+
+            if not region_area_or_warn(area_id):
+                continue
+
             region, area = region_area(ed, area_id)
             # location_positions_area = location_positions.get(area) or dict()
 #                print(fname)
@@ -292,6 +336,9 @@ async def run(area_id_filter=None) -> None:
         print("Trucks/trailers")
 
         for area_id, area_recs in itertools.groupby(area_id_filterer(read_snowrunner_data_tsv_file("level_items_list.generated.tsv"), area_id_filter), itemgetter(0)):
+            if not region_area_or_warn(area_id):
+                continue
+
             region, area = region_area(ed, area_id)
             # map_item_positions_area = map_item_positions[area]
             objective = None # maybe track trucks locked by objective
@@ -316,6 +363,9 @@ async def run(area_id_filter=None) -> None:
         print("Objectives")
 
         for area_id, python_data in sorted(fname_to_area_id_it(iterate_objective_files_basic(), area_id_filter)):
+            if not region_area_or_warn(area_id):
+                continue
+
             region, area = region_area(ed, area_id)
 #                area_id = fname[:8].upper()
             # location_positions_area = location_positions.get(area) or dict()
@@ -424,7 +474,7 @@ async def run(area_id_filter=None) -> None:
                                 for ntruck, truckDelivery in enumerate(truckDeliveries):
                                     to_area_id = fname_to_area_id(truckDelivery["globalZoneDeliveryId"]["globalZoneId"].split(" || ")[0])
                                     truck_id = truckDelivery["truckId"]
-                                    delivery = (cur_zone, "truck", None, ed[truck_id_lookup[truck_lookup[truckDelivery['truckId']]].upper()], truck_id, to_area_id, ntruck, None)
+                                    delivery = (cur_zone, "truck", None, delivered_truck_name(truck_id, area_id), truck_id, to_area_id, ntruck, None)
 
                                     if truckDelivery.get("afterStageFinished") == "REWARD":
                                         if (map_item := await MapItem.filter(id=truck_id).first()):
@@ -483,6 +533,11 @@ async def run(area_id_filter=None) -> None:
                                     if not created and (update_if_diff(delivery_map_item, "area_id", to_area_id) or update_if_diff(delivery_map_item, "name", loc_name)): # fix bug that created map entries for delivery locations with incorrect area ids
                                         if loc_name: delivery_map_item.name = loc_name
                                         await delivery_map_item.save()
+
+                                    if pickup_id and item_type in ("truck", "trailer") and not await MapItem.filter(id=pickup_id).exists():
+                                        # the vehicle isn't in the level items list (its season's data isn't present yet), so make a placeholder to link to
+                                        warn_missing(area_id, "trucks/trailers list (level_items_list.generated.tsv)")
+                                        await get_or_create_map_item(pickup_id, area_id, item_type, item_name)
 
                                     obj_item_id = "|".join(map(str, (objective.id, nstage, idx, item_type[0]))) # objective_id + stage index + zone index
 
