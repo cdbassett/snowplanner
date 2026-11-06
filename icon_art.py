@@ -153,6 +153,11 @@ def _png_uri(path):
     return _png_cache[key]
 
 
+def plan_marker_uri(action):
+    """Data URI of the delivery plan pickup / dropoff marker (icons/raster/plan/<action>.png), or None to draw the placeholder."""
+    return _png_uri(RASTER_DIR / "plan" / f"{action}.png")
+
+
 TRUCK_TYPE_ICON_FILES = {"HEAVY": "heavy.png", "HEAVY_DUTY": "heavy_duty.png", "HIGHWAY": "highway.png", "OFFROAD": "offroad.png", "SCOUT": "scout.png"}
 
 

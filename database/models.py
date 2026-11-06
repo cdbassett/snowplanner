@@ -103,3 +103,51 @@ class SourceCargoItem(Model):
     def __str__(self):
         return self.name
 
+
+
+# --- Delivery plans: user-specific data, deliberately NOT in database/config.py TABLE_ORDER (never dumped to or seeded from fixtures).
+# Map items / objective items are referenced by plain string ids, not FKs, so reseeding the reference tables can't cascade into plans.
+
+class DeliveryPlan(Model):
+    id = fields.IntField(pk=True)
+    name = fields.CharField(max_length=100)
+    region = fields.CharField(max_length=100) # region name as used by the app; a plan lives in exactly one region
+    completed = fields.BooleanField(default=False)
+    visible = fields.BooleanField(default=False) # the one plan per region drawn on the map
+    created = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "delivery_plan"
+
+    def __str__(self):
+        return self.name
+
+
+class PlanStop(Model):
+    id = fields.IntField(pk=True)
+    plan = fields.ForeignKeyField("models.DeliveryPlan", related_name="stops", on_delete=fields.CASCADE)
+    position = fields.IntField() # order within the plan
+    area_id = area_id_field()
+    x = fields.SmallIntField() # real map position, 0-1000 (not the overlap-corrected drawn position)
+    y = fields.SmallIntField()
+    map_item_id = fields.CharField(max_length=70, null=True) # set when the stop snapped to an existing location
+    label = fields.CharField(max_length=255, default="")
+    completed = fields.BooleanField(default=False)
+
+    class Meta:
+        table = "plan_stop"
+        ordering = ["position"]
+
+
+class PlanCargo(Model):
+    id = fields.IntField(pk=True)
+    stop = fields.ForeignKeyField("models.PlanStop", related_name="cargo", on_delete=fields.CASCADE)
+    action = fields.CharField(max_length=7) # "pickup" or "dropoff"
+    kind = fields.CharField(max_length=7, default="cargo") # "cargo", "truck" or "trailer"
+    name = fields.CharField(max_length=255)
+    count = fields.SmallIntField(default=1)
+    ref_id = fields.CharField(max_length=70, null=True) # vehicle MapItem id or ObjectiveItem id it came from
+
+    class Meta:
+        table = "plan_cargo"
+        ordering = ["id"]

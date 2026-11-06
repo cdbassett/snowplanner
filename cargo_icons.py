@@ -92,6 +92,11 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
         return ("Unlimited ∞" if self.count is None else f"Count: {self.count}") + (" (loaded on trailer)" if self.loaded else "")
 
 
+class PlanRow(namedtuple("PlanRow", "action,stacks")):
+    """One row of a delivery plan stop: an action marker ("pickup" or "dropoff") followed by what is picked up / dropped off."""
+    __slots__ = ()
+
+
 class Recipe(namedtuple("Recipe", "product,ingredients,text")):
     """What a crafting location makes: product (a CargoStack with the amount crafted per step) from ingredients (CargoStacks)."""
     __slots__ = ()

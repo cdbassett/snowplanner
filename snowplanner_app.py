@@ -9,7 +9,9 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region
+from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+import delivery_plans as dp
+from plan_panel import PlanPanel
 from database import db
 from database.models import *
 from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
@@ -52,6 +54,7 @@ app.add_static_files('/assets', snowplanner_base_dir / "assets")
 tree_updated = Event[AreaInfo]()
 map_updated = Event[AreaInfo]()
 save_loaded = Event() # fired after the DB was updated from a game save; every open view refreshes
+plans_changed = Event[str]() # a delivery plan of this region (name) changed; every open view of that region refreshes
 
 async def load_game_save():
     try:
@@ -180,6 +183,99 @@ def root():
                 if (el && typeof emitEvent === 'function') emitEvent('js_click_event', { id: el.dataset.clickId });
             });
             document.addEventListener('mousemove', (e) => { if (tip && tip.style.display !== 'none') place(e); });
+        })();
+        </script>
+    ''')
+
+    # delivery plans: dragging plan squares on the map, and picking a map point while adding a stop. Works on both the region and area pages (they differ in which group holds the entries)
+    ui.add_head_html('''
+        <script src="/js/Sortable.min.js"></script>
+        <script>
+        (() => {
+            window.planPickMode = false;
+            window._planEntryHit = false;
+            const planGroup = () => document.querySelector('#region_group') || document.querySelector('#everything');
+            const toGroup = (grp, cx, cy) => {
+                const m = grp.getScreenCTM();
+                if (!m) return null;
+                const p = new DOMPoint(cx, cy).matrixTransform(m.inverse());
+                return { x: p.x, y: p.y };
+            };
+            let drag = null, justDragged = false;
+
+            const startDrag = (e, use) => {
+                const grp = planGroup();
+                if (e.button !== 0 || window.planPickMode || !grp) return;
+                drag = { use, overlay: document.querySelector('[data-click-id="' + use.id + '"]'), grp, start: toGroup(grp, e.clientX, e.clientY), cx: e.clientX, cy: e.clientY, moved: false };
+                e.stopPropagation(); // keeps the map's pan / zoom from starting
+            };
+
+            // The map entries live inside a <use>, which hides them from delegated listeners, so listeners go on the entries themselves (like d3 does)
+            const bindEntries = () => {
+                document.querySelectorAll('.loc2').forEach((el) => {
+                    if (el._planBound) return;
+                    el._planBound = true;
+                    el.addEventListener('click', () => { window._planEntryHit = true; });
+                    if (el.classList.contains('plan-stop')) el.addEventListener('mousedown', (e) => startDrag(e, el));
+                });
+            };
+            // the delivery plan stop list (rebuilt whenever the plan changes, and only present once its tab was opened) gets drag-to-reorder
+            const bindStopList = () => {
+                const el = document.getElementById('plan-stops');
+                if (!el || el._sortable || typeof Sortable === 'undefined') return;
+                el._sortable = Sortable.create(el, {
+                    handle: '.plan-handle', animation: 150, forceFallback: true,
+                    onEnd: () => emitEvent('js_plan_reorder', { ids: [...el.children].map(c => c.dataset.id).filter(Boolean) }),
+                });
+            };
+            let bindQueued = false;
+            new MutationObserver(() => {
+                if (bindQueued) return;
+                bindQueued = true;
+                requestAnimationFrame(() => { bindQueued = false; bindEntries(); bindStopList(); });
+            }).observe(document.documentElement, { childList: true, subtree: true });
+
+            // the icons overlay of a plan square is a plain element, so it can be dragged through delegation
+            document.addEventListener('mousedown', (e) => {
+                const hit = e.target.closest ? e.target.closest('g.plan[data-click-id]') : null;
+                const use = hit && document.getElementById(hit.dataset.clickId);
+                if (use) startDrag(e, use);
+            }, true);
+
+            document.addEventListener('mousemove', (e) => {
+                if (!drag || (!drag.moved && Math.hypot(e.clientX - drag.cx, e.clientY - drag.cy) < 5)) return;
+                drag.moved = true;
+                const p = toGroup(drag.grp, e.clientX, e.clientY);
+                const t = (p.x - drag.start.x) + 'px ' + (p.y - drag.start.y) + 'px';
+                drag.use.style.translate = t;
+                if (drag.overlay) drag.overlay.style.translate = t;
+                e.preventDefault();
+            }, true);
+
+            document.addEventListener('mouseup', (e) => {
+                if (!drag) return;
+                const d = drag;
+                drag = null;
+                if (!d.moved) return;
+                justDragged = true;
+                setTimeout(() => { justDragged = false; }, 60);
+                const p = toGroup(d.grp, e.clientX, e.clientY);
+                if (p && typeof emitEvent === 'function') emitEvent('js_plan_drag_end', { id: d.use.id, x: p.x, y: p.y });
+            }, true);
+
+            document.addEventListener('click', (e) => {
+                window._planEntryHit = false; // set again by the entry's own listener if this click lands on one
+                if (justDragged) { e.stopImmediatePropagation(); e.preventDefault(); }
+            }, true);
+
+            document.addEventListener('click', (e) => { // choosing a plan location: a click on empty map is a point; clicks on entries are handled through js_click_event
+                if (!window.planPickMode || window._planEntryHit || !e.target.closest || !e.target.closest('svg') || e.target.closest('[data-click-id]')) return;
+                const grp = planGroup();
+                const p = grp && toGroup(grp, e.clientX, e.clientY);
+                if (!p) return;
+                e.preventDefault();
+                if (typeof emitEvent === 'function') emitEvent('js_map_point_event', p);
+            });
         })();
         </script>
     ''')
@@ -396,20 +492,41 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
                 ui.label(item)
 
 
-async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, show_all=False):
-    with ui.column().classes('w-72 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
-        ui.label('Cargo Filter').classes('font-bold text-sm mb-1')
+async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, show_all=False, plan_panel=None):
+    """The right-hand panel: tabs for the cargo filter and the delivery plans. Returns the cargo filter's list element."""
+    with ui.column().classes('w-96 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
+        with ui.tabs().props('dense').classes('w-full') as tabs:
+            filter_tab = ui.tab('Cargo Filter')
+            plans_tab = ui.tab('Delivery Plans')
 
-        with ui.row().classes('gap-2 items-center text-xs mb-1'):
-            for tier, desc in TIER_LEGEND:
-                ui.label().style(f'width:14px; height:14px; background:{TIER_FILLS[tier]}; border:1px solid #555; border-radius:3px')
-                ui.label(desc)
+        with ui.tab_panels(tabs, value=filter_tab, animated=False).classes('w-full flex-1 min-h-0 bg-gray-50').props('keep-alive'):
+            with ui.tab_panel(filter_tab).classes('p-0 h-full flex flex-col'):
+                with ui.row().classes('gap-2 items-center text-xs mb-1'):
+                    for tier, desc in TIER_LEGEND:
+                        ui.label().style(f'width:14px; height:14px; background:{TIER_FILLS[tier]}; border:1px solid #555; border-radius:3px')
+                        ui.label(desc)
 
-        with ui.scroll_area().classes('flex-1 w-full border bg-white'):
-            filter_cargo_items = ui.list().props('dense separator')
+                with ui.scroll_area().classes('flex-1 w-full border bg-white'):
+                    filter_cargo_items = ui.list().props('dense separator')
+
+            with ui.tab_panel(plans_tab).classes('p-0 h-full'):
+                if plan_panel:
+                    await plan_panel.build()
 
     await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, show_all)
     return filter_cargo_items
+
+
+async def map_item_for_rec(rec):
+    """The MapItem behind a clicked map entry (for choosing a delivery plan location), or None."""
+    typ = rec.extra or rec.typ
+
+    if typ == "pickup":
+        obj_item = await ObjectiveItem.filter(id=rec.id).first()
+        return obj_item and obj_item.map_item_id and await MapItem.filter(id=obj_item.map_item_id).first()
+
+    return await MapItem.filter(id=rec.id).first()
+
 
 async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cur_area_id=None):
     def get_area_desc(desc, area_id):
@@ -778,6 +895,30 @@ async def region(region_slug: str):
     best_offsets, x_tiles = await calculate_area_offsets_for_region(region, areas)
     ic(x_tiles)
 
+    # delivery plans
+    plan_region = region_areas[0].region
+    plan_layout = region_layout(areas, best_offsets)
+
+    async def plan_select_stop(stop_id):
+        set_highlighted_ids(f"plan:{stop_id}" if stop_id else None)
+        await update_svg()
+
+    async def plan_changed():
+        await plan_panel.refresh()
+        await update_svg()
+        plans_changed.emit(plan_region) # every other open view of this region follows
+
+    plan_panel = PlanPanel(plan_region, region_area_ids, lambda px, py: svg_point_to_db(px, py, *plan_layout), plan_changed, plan_select_stop)
+
+    async def plans_changed_event(region_name):
+        if region_client_alive_checker.is_deleted:
+            plans_changed.unsubscribe(plans_changed_event)
+            return
+
+        if region_name == plan_region and plan_panel is not None:
+            await plan_panel.refresh()
+            await update_svg()
+
     # Compute prev/next regions
     other_regions = [r_slug for r_slug, r_name in regions_slugs if r_slug != region_slug]
     prev_region, next_region = None, None
@@ -804,7 +945,7 @@ async def region(region_slug: str):
         img_paths = [get_image_name_ex(area_info, typ="icon") for area_info in region_areas]
         hlinks = [f'/area/{area_info.area_slug}' for area_info in region_areas]
 #        highlight_ids = []
-        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=checkbox_overlap.value, selected_ids=highlight_ids)
+        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=checkbox_overlap.value, selected_ids=highlight_ids, plan=await dp.get_plan_view(plan_region))
 
     def filter_list_item_clicked(item):
         ic(filter_list_item_clicked, item)
@@ -881,6 +1022,7 @@ async def region(region_slug: str):
     async def refresh_from_save():
         await update_obj_tree()
         await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, checkbox_all.value)
+        await plan_panel.refresh()
         await update_svg()
 
     async def all_changed():
@@ -1018,7 +1160,7 @@ async def region(region_slug: str):
                                 ui.image(get_image_name_ex(area_info, "icon")).classes('w-100 rounded shadow-md')
 
             # Right Panel: Cargo Filter List
-            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value)
+            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel)
 
     async def select_clicked_node(node_id, id, objective_id=None):
         clear_filter_if_hiding(node_id)
@@ -1038,6 +1180,14 @@ async def region(region_slug: str):
 
         typ = rec.extra or rec.typ
         id = rec.id
+
+        if typ == "plan": # a delivery plan stop: edit it
+            await plan_panel.open_editor(int(id.split(":")[1]))
+            return
+
+        if plan_panel.pick_mode: # choosing a delivery plan location: use the clicked location's real position
+            await plan_panel.handle_location_click(await map_item_for_rec(rec))
+            return
 
         async def select_objective(objective):
             select_single_top_tree_node(obj_tree, objective.obj_type + "s")
@@ -1066,10 +1216,19 @@ async def region(region_slug: str):
 
     ui.on('js_click_event', handle_js_click_event)
 
+    async def handle_plan_drag_event(e):
+        if (rec := (location_items or {}).get(e.args['id'])) and rec.typ == "plan":
+            await plan_panel.handle_plan_drag(int(rec.id.split(":")[1]), e.args['x'], e.args['y'])
+
+    ui.on('js_map_point_event', lambda e: plan_panel.handle_map_point(e.args['x'], e.args['y']))
+    ui.on('js_plan_drag_end', handle_plan_drag_event)
+    ui.on('js_plan_reorder', lambda e: plan_panel.handle_reorder(e.args['ids']))
+
     region_client_alive_checker = obj_tree
     tree_updated.subscribe(update_obj_tree_event)
     map_updated.subscribe(update_svg_event)
     save_loaded.subscribe(refresh_from_save)
+    plans_changed.subscribe(plans_changed_event)
 
 
 class __AREA__: pass
@@ -1511,6 +1670,14 @@ async def area(area_slug: str):
         typ = rec.typ
         extra = rec.extra
 
+        if (extra or typ) == "plan": # a delivery plan stop: edit it
+            await plan_panel.open_editor(int(id.split(":")[1]))
+            return
+
+        if plan_panel.pick_mode: # choosing a delivery plan location: use the clicked location's real position
+            await plan_panel.handle_location_click(await map_item_for_rec(rec))
+            return
+
         async def select_objective(objective):
             objective_id = objective.id
             select_single_top_tree_node(obj_tree, objective.obj_type + "s")
@@ -1581,7 +1748,7 @@ async def area(area_slug: str):
 #                    ic("hide", title)
                 hide_types.add(title)
 
-        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, detail_in_loc_mode=checkbox_detail.value, override_positions=temp_positions)
+        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, detail_in_loc_mode=checkbox_detail.value, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region))
 
     def initialize_d3():
         print(f"initialize_d3 {cur_area_info.area_id}")
@@ -1602,6 +1769,7 @@ async def area(area_slug: str):
     async def refresh_from_save():
         await update_obj_tree()
         await fill_cargo_filter_list(filter_cargo_items, [cur_area_info.area_id], filter_list_item_clicked, checkbox_all.value)
+        await plan_panel.refresh()
         await update_svg()
 
     async def all_changed():
@@ -1622,6 +1790,39 @@ async def area(area_slug: str):
         print("update_svg_all")
         await update_svg() # do our own first for responsiveness
         map_updated.emit(cur_area_info)
+
+    # delivery plans
+    async def plan_select_stop(stop_id):
+        set_highlighted_ids(f"plan:{stop_id}" if stop_id else None)
+        await update_svg()
+
+    async def plan_changed():
+        await plan_panel.refresh()
+        await update_svg()
+        plans_changed.emit(cur_area_info.region) # every other open view of this region follows
+
+    def plan_point_to_location(px, py):
+        if (hit := svg_point_to_db(px, py)):
+            return cur_area_info.area_id, hit[1], hit[2]
+
+    plan_panel = PlanPanel(cur_area_info.region, region_area_ids, plan_point_to_location, plan_changed, plan_select_stop)
+
+    async def plans_changed_event(region_name):
+        if area_client_alive_checker.is_deleted:
+            plans_changed.unsubscribe(plans_changed_event)
+            return
+
+        if region_name == cur_area_info.region:
+            await plan_panel.refresh()
+            await update_svg()
+
+    async def handle_plan_drag_event(e):
+        if (rec := location_items.get(e.args['id'])) and rec.typ == "plan":
+            await plan_panel.handle_plan_drag(int(rec.id.split(":")[1]), e.args['x'], e.args['y'])
+
+    ui.on('js_map_point_event', lambda e: plan_panel.handle_map_point(e.args['x'], e.args['y']))
+    ui.on('js_plan_drag_end', handle_plan_drag_event)
+    ui.on('js_plan_reorder', lambda e: plan_panel.handle_reorder(e.args['ids']))
 
 
     #######################
@@ -1816,12 +2017,13 @@ async def area(area_slug: str):
                 initialize_d3()
                 svg_html.on('dblclick', svg_double_clicked)
 
-            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value)
+            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel)
 
         area_client_alive_checker = obj_tree
         tree_updated.subscribe(update_obj_tree_event)
         map_updated.subscribe(update_svg_event)
         save_loaded.subscribe(refresh_from_save)
+        plans_changed.subscribe(plans_changed_event)
 
 ui.run(root, port=8081, title='SnowPlanner')
 

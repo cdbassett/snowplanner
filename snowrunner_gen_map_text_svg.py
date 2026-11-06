@@ -15,7 +15,8 @@ from snowplanner_utils import *
 from utils.iter_utils import arithtuple, first_true, flatten
 from utils.correct_overlaps import Rectangle, correct_rect_overlaps, correct_rect_overlaps_cached
 from database.models import *
-from cargo_icons import CargoStack, Recipe, parse_recipe, vehicle_stack
+import icon_art
+from cargo_icons import CargoStack, Recipe, PlanRow, parse_recipe, vehicle_stack
 from utils.timer_utils import Timer
 from database.config import snowplanner_db_url
 
@@ -46,6 +47,7 @@ precedence = [
     "src",
     "pickup",
     "dst",
+    "plan",
     ]
 precedence = dict((s, n) for n, s in enumerate(precedence))
 
@@ -62,6 +64,14 @@ LINK_CHEVRON_COLOR = "DeepSkyBlue"
 # LINK_CHEVRON_STROKE = "white"
 LINK_CHEVRON_STROKE = "black"
 TITLE_MAX_CHARS = 12
+PLAN_BACK_COLOR = "#ffc87a" # delivery plan stops: a color nothing else on the map uses
+PLAN_LINK_COLOR = "DarkOrange"
+PLAN_LINK_SELECTED_COLOR = "hotpink"
+PLAN_CHEVRON_COLOR = "Gold"
+PLAN_BADGE_COLOR = "#c2410c"
+PLAN_MARKERS = {"pickup": ("▲", "#2e7d32"), "dropoff": ("▼", "#b23a48")} # placeholder action markers until icons/raster/plan/{pickup,dropoff}.png exist
+# arrow of a plan entry: its stop id, the number shown on it, and where its line to the next stop goes: ("stop", stop id), ("to_gate", pos) or ("from_gate", pos) when the neighbor is in another area
+PlanLink = namedtuple("PlanLink", "stop_id,number,targets")
 
 
 def wrap_title(title):
@@ -91,12 +101,33 @@ def layout_cargo(cargo_items, text_height):
     y = 0
 
     def kind(c):
-        return "recipe" if isinstance(c, Recipe) else "icon" if isinstance(c, CargoStack) else "text"
+        return "recipe" if isinstance(c, Recipe) else "planrow" if isinstance(c, PlanRow) else "icon" if isinstance(c, CargoStack) else "text"
 
     for item_kind, group in itertools.groupby(cargo_items, kind):
         group = list(group)
 
-        if item_kind == "recipe": # one equation per row: product <- ingredients
+        if item_kind == "planrow": # delivery plan stop: each row is an action marker followed by what is picked up / dropped off; pickups and drop-offs never share a row
+            max_w = ICON_MAX_COLS * sq + (ICON_MAX_COLS - 1) * gap
+
+            for plan_row in group:
+                row = 0
+                placements.append(("planmark", plan_row.action, 0, y))
+                x = sq + gap
+
+                for stack in plan_row.stacks:
+                    w = stack.width_factor * sq
+
+                    if x > (sq + gap if row == 0 else 0) and x + w > max_w + 0.01: # wrap; continuation rows start under the marker
+                        row += 1
+                        x = 0
+
+                    placements.append(("icon", stack, x, y + row * (sq + gap)))
+                    x += w + gap
+                    width = max(width, x - gap)
+
+                width = max(width, sq)
+                y += (row + 1) * (sq + gap)
+        elif item_kind == "recipe": # one equation per row: product <- ingredients
             arrow_w = sq * 0.4
             arrow_gap = gap / 2 # tighter than between icons so the equation reads as one unit
 
@@ -184,7 +215,7 @@ def create_drawing(width=main_scale, height=main_scale, text_height = 8, loc_mod
 
 async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = False,
         element_classes = {}, hide_types = set(), show_all=False, selected_ids=None, detail_in_loc_mode=False,
-        override_positions=None, overall_group=None, offset_lookup={}):
+        override_positions=None, overall_group=None, offset_lookup={}, plan=None):
     selected_ids = as_set(selected_ids)
     override_positions = override_positions or dict()
     multi_area = overall_group is not None
@@ -541,6 +572,56 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
 
 
+        # delivery plan: the visible plan's remaining stops drawn as numbered squares, linked in order
+    if plan and not loc_mode:
+        klass = element_classes.get("Plan", "location-plan")
+        remaining = [stop for stop in plan if not stop.completed] # completed stops vanish; their numbers aren't reused and the route bridges over them
+        targets = defaultdict(list)
+        area_graph = None
+
+        async def first_hop(to_area_id):
+            """The neighboring area to head for from this one to reach to_area_id (breadth-first over the gates)."""
+            nonlocal area_graph
+
+            if area_graph is None:
+                area_graph = defaultdict(set)
+
+                for gate in await MapItem.filter(item_type="gate"):
+                    area_graph[gate.area_id].add(gate.to_area_id)
+
+            seen, queue = {area_id}, [(neighbor, neighbor) for neighbor in sorted(area_graph[area_id])]
+
+            for area, hop in queue:
+                if area == to_area_id:
+                    return hop
+
+                if area not in seen:
+                    seen.add(area)
+                    queue.extend((nxt, hop) for nxt in sorted(area_graph[area]) if nxt not in seen)
+
+            return None
+
+        async def gate_toward(stop, other):
+            """Position of this area's gate toward the other stop's area, as close as possible to the stop, or None."""
+            if (hop := await first_hop(other.area_id)) and gates_to_area.get(hop):
+                return gate_pos_toward(hop, db_pos(stop))
+
+        for before, after in itertools.pairwise(remaining):
+            if multi_area: # every area of the region is on screen: a straight line, resolved against the other stop's drawn square
+                if before.area_id == area_id:
+                    targets[before.id].append(("stop", after.id))
+            elif before.area_id == after.area_id == area_id:
+                targets[before.id].append(("stop", after.id))
+            elif before.area_id == area_id and (gp := await gate_toward(before, after)):
+                targets[before.id].append(("to_gate", gp))
+            elif after.area_id == area_id and (gp := await gate_toward(after, before)):
+                targets[after.id].append(("from_gate", gp))
+
+        for stop in remaining:
+            if stop.area_id == area_id:
+                selected, back = get_selected_color(PLAN_BACK_COLOR, f"plan:{stop.id}")
+                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop.label, stop.rows, selected, False, back, "black", stop.label, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]))))
+
     return cargo_by_pos, gate_lines
 
 def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False):
@@ -703,6 +784,11 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             tx, ty = x + text_h_margin, y + text_v_margin
             title_lines = entry_title_lines(entry)
 
+            if entry.typ == "plan": # stop number
+                badge_r = text_height * 0.8
+                g.append(draw.Circle(x, y, badge_r, fill=PLAN_BADGE_COLOR, stroke="white", stroke_width=1.5))
+                g.append(draw.Text(str(entry.arrow.number), text_height * (0.9 if entry.arrow.number < 10 else 0.75), x, y, text_anchor="middle", dominant_baseline="central", fill="white", font_weight="bold"))
+
             for n, title_line in enumerate(title_lines):
                 g.append(draw.Text(title_line, text_height, tx, ty + no_cargo * eight_height + text_height * n, fill='black', font_weight='bold', dominant_baseline="hanging"))
 
@@ -719,6 +805,16 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 if placement[0] == "text":
                     _, t, py = placement
                     g.append(draw.Text(t, text_height, tx, cargo_y + py, fill=entry.fore, dominant_baseline="hanging"))
+                elif placement[0] == "planmark":
+                    _, action, px, py = placement
+                    mx, my = tx + px, cargo_y + py
+
+                    if (uri := icon_art.plan_marker_uri(action)):
+                        g.append(draw.Raw(f'<image href="{uri}" x="{mx:.2f}" y="{my:.2f}" width="{sq:.2f}" height="{sq:.2f}"/>'))
+                    else: # placeholder until icons/raster/plan/{pickup,dropoff}.png are provided
+                        glyph, color = PLAN_MARKERS[action]
+                        g.append(draw.Rectangle(mx, my, sq, sq, rx=3, fill=color, stroke="black", stroke_width=1))
+                        g.append(draw.Text(glyph, sq * 0.6, mx + sq / 2, my + sq * 0.5, text_anchor="middle", dominant_baseline="central", fill="white", font_weight="bold"))
                 elif placement[0] == "arrow":
                     _, px, py, aw = placement
                     g.append(draw.Text("←", sq * 0.5, tx + px + aw / 2, cargo_y + py + sq / 2, text_anchor="middle", dominant_baseline="central", font_weight="bold", fill="black"))
@@ -781,7 +877,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
     links = [] # (delivery x, delivery y, pickup x, pickup y)
 
     for entry, rect, grouped_rect, g, scale_pos, (x, y), rec in rects_and_objects:
-        if entry.arrow: # connect vehicles with their destinations
+        if entry.arrow and entry.typ != "plan": # connect vehicles with their destinations
             moved_rect = grouped_rect if group_rectangles else rect
             xt, yt = rect.original_midx - moved_rect.deltax, rect.original_midy - moved_rect.deltay
 
@@ -798,11 +894,12 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
         overall_group.append(draw.Line(xf, yf, xt, yt, stroke=LINK_SELECTED_COLOR if selected else LINK_COLOR, stroke_width=3))
 
         # chevrons along the line point from the pickup to the delivery; the ends are covered by the boxes
-    for xf, yf, xt, yt, selected in links:
+    def draw_chevrons(xf, yf, xt, yt, fill):
+        """Chevrons along the line from (xt, yt) to (xf, yf), pointing toward (xf, yf)."""
         length = math.hypot(xf - xt, yf - yt)
 
         if length < 1:
-            continue
+            return
 
         ux, uy = (xf - xt) / length, (yf - yt) / length # unit vector pickup -> delivery
         count = max(1, int(length // LINK_ARROW_SPACING))
@@ -816,7 +913,42 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 return cx + ux * along - uy * across, cy + uy * along + ux * across
 
             points = [point(half_len, 0), point(-half_len, half_wid), point(-half_len + LINK_ARROW_NOTCH, 0), point(-half_len, -half_wid)]
-            overall_group.append(draw.Lines(*itertools.chain.from_iterable(points), close=True, fill=LINK_CHEVRON_COLOR, stroke=LINK_CHEVRON_STROKE, stroke_width=1, stroke_linejoin="round"))
+            overall_group.append(draw.Lines(*itertools.chain.from_iterable(points), close=True, fill=fill, stroke=LINK_CHEVRON_STROKE, stroke_width=1, stroke_linejoin="round"))
+
+    for xf, yf, xt, yt, selected in links:
+        draw_chevrons(xf, yf, xt, yt, LINK_CHEVRON_COLOR)
+
+        # delivery plan route: stop to stop (box centers), or out to / in from the gate toward a neighboring area
+    box_centers = {}
+
+    for entry, rect, grouped_rect, g, scale_pos, (x, y), rec in rects_and_objects:
+        if entry.typ == "plan":
+            moved_rect = grouped_rect if group_rectangles else rect
+            box_centers[entry.arrow.stop_id] = (rect.original_midx - moved_rect.deltax, rect.original_midy - moved_rect.deltay)
+
+    plan_links = [] # (from x, from y, to x, to y, selected)
+
+    for entry, *_ in rects_and_objects:
+        if entry.typ == "plan":
+            here = box_centers[entry.arrow.stop_id]
+
+            for kind, target in entry.arrow.targets:
+                if kind == "stop" and target in box_centers:
+                    plan_links.append((*here, *box_centers[target], entry.selected))
+                elif kind == "to_gate":
+                    plan_links.append((*here, *scaled_pos(*target), entry.selected))
+                elif kind == "from_gate":
+                    plan_links.append((*scaled_pos(*target), *here, entry.selected))
+
+    for width, color, opacity in LINK_CASING_LAYERS:
+        for xs, ys, xe, ye, selected in plan_links:
+            overall_group.append(draw.Line(xs, ys, xe, ye, stroke=color, stroke_width=width, stroke_opacity=opacity))
+
+    for xs, ys, xe, ye, selected in plan_links:
+        overall_group.append(draw.Line(xs, ys, xe, ye, stroke=PLAN_LINK_SELECTED_COLOR if selected else PLAN_LINK_COLOR, stroke_width=3))
+
+    for xs, ys, xe, ye, selected in plan_links:
+        draw_chevrons(xe, ye, xs, ys, PLAN_CHEVRON_COLOR)
 
     for (grouped_rect, scale_pos), rects_and_objects_bygroup in itertools.groupby(rects_and_objects, itemgetter(2, 4)):
         if group_rectangles:
@@ -843,7 +975,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             id = "id" + str(next(id_gen)) # selection dragging grabs these ids, gsap drag and drop grabs the ids of the groups
                 # we want to use from center of group, but can't uise scale_pos directly bc it may be different than what db holds (vertical grouping. moving away from edges)
 #            overall_group.append(draw.Use(g, scale_pos[0] - moved_rect.deltax, scale_pos[1] - moved_rect.deltay, id=id, class_="loc2"))
-            overall_group.append(draw.Use(g, use_left - x, use_top - y, id=id, class_="loc2"))
+            overall_group.append(draw.Use(g, use_left - x, use_top - y, id=id, class_="loc2 plan-stop" if entry.typ == "plan" else "loc2"))
 
             if (overlay := overlays.get(g.args["id"])):
                 og = draw.Group(class_=overlay[0], transform=f"translate({use_left - x} {use_top - y})", data_click_id=id) # clicks are forwarded to the entry underneath
@@ -869,14 +1001,39 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
     return d
 
-async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None):
+async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
-    objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions)
+    objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan)
     add_svg_image(d, img_path, size=size)
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
     s = d.as_svg(header="")
 #    s = d.as_svg()
     return s
+
+def region_layout(areas, best_offsets, size=main_scale):
+    """(offset_lookup, sub_size) used by generate_region_svg: where each area's tile sits and how big it is, in svg units."""
+    half_size = size // 2
+    margin = half_size // 10
+    half_margin = margin // 2
+    area_ids = [area_ids_by_area[area] for area in areas]
+    return dict((area_id, (ofs_x + half_margin, ofs_y + margin)) for area_id, (ofs_x, ofs_y) in zip(area_ids, best_offsets)), half_size - margin
+
+
+def svg_point_to_db(px, py, offset_lookup=None, sub_size=None, size=main_scale):
+    """Convert a point in map svg coordinates to (area_id, x, y) with x, y in the 0-1000 map units stored in the DB, or None if it isn't on a map.
+
+    Single area view: pass neither offset_lookup nor sub_size (the area is the caller's, so area_id is returned as None).
+    Region view: pass the layout from region_layout; the area whose tile contains the point is returned.
+    """
+    if offset_lookup is None:
+        return (None, round(px * 1000 / size), round(py * 1000 / size)) if 0 <= px <= size and 0 <= py <= size else None
+
+    for area_id, (ofs_x, ofs_y) in offset_lookup.items():
+        if ofs_x <= px <= ofs_x + sub_size and ofs_y <= py <= ofs_y + sub_size:
+            return area_id, round((px - ofs_x) * 1000 / sub_size), round((py - ofs_y) * 1000 / sub_size)
+
+    return None
+
 
 async def calculate_area_offsets_for_region(region, areas, size=main_scale):
     def have_db_pos(rec):
@@ -952,7 +1109,7 @@ async def calculate_area_offsets_for_region(region, areas, size=main_scale):
 #def offsets_ok(ofs):
 #    return ofs[0][0] == ofs[0][1] == 0
 
-async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, hlinks, size=main_scale, text_height=8, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions={}):
+async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, hlinks, size=main_scale, text_height=8, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions={}, plan=None):
     d, id_gen = create_drawing(width=size // 2 * x_tiles, height=size, text_height=text_height, loc_mode = loc_mode)
     overall_group = draw.Group(id="region_group")
     half_size = size//2
@@ -990,7 +1147,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         area_id = area_ids_by_area[area]
         hlink_group = Hyperlink(hlink)
         x_ofs, y_ofs = offset_lookup[area_id]
-        objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, overall_group=overall_group, offset_lookup=offset_lookup)
+        objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, overall_group=overall_group, offset_lookup=offset_lookup, plan=plan)
         all_objects.update(objects[0])
         all_gate_lines.update(objects[1])
         d.append(hlink_group)
