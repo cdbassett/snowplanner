@@ -584,8 +584,27 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         free_segments = [] # (pos, pos) lines between gates of this area, for routes passing through it without a stop here
 
         if multi_area: # every area of the region is on screen: a straight line, resolved against the other stop's drawn square
+            gates_by_id = {gate.id: gate for gate in await MapItem.filter(item_type="gate")}
+
+            def paired_gate(stop):
+                """For a stop on a gate: the gate it leads through to the neighboring area (if that gate has a position)."""
+                gate = gates_by_id.get(stop.map_item_id) if stop.map_item_id else None
+                pair = gate and gates_by_id.get(gate.to_map_item_id)
+                return pair if pair and pair.area_id != stop.area_id and have_db_pos(pair) else None
+
             for before, after in edges:
-                if before.area_id == area_id:
+                leaving = paired_gate(before)
+                arriving = paired_gate(after)
+
+                if leaving and leaving.area_id == after.area_id: # the route goes through the gate: on to the next stop from the paired gate in its own area
+                    if after.area_id == area_id:
+                        targets[after.id].append(("from_gate", db_pos(leaving), after.color))
+                        free_segments.append((db_pos(gates_by_id[before.map_item_id]), db_pos(leaving), after.color)) # the plan's line over the gate-to-gate line
+                elif arriving and arriving.area_id == before.area_id: # reaching a stop on the far side of a gate: the line ends at the gate on the last stop's own side
+                    if before.area_id == area_id:
+                        targets[before.id].append(("to_gate", db_pos(arriving), after.color))
+                        free_segments.append((db_pos(arriving), db_pos(gates_by_id[after.map_item_id]), after.color))
+                elif before.area_id == area_id:
                     targets[before.id].append(("stop", after.id, after.color))
         else:
             all_gates = {gate.id: gate for gate in await MapItem.filter(item_type="gate")}
@@ -1207,7 +1226,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         ]
 
 #    hide_types = set(svg_vis_togglers)
-    all_objects, all_gate_lines = dict(), set()
+    all_objects, all_gate_lines, all_plan_segments = dict(), set(), []
     hlink_groups = []
 
     for area, img_path, offset, hlink in zip(areas, img_paths, best_offsets, hlinks):
@@ -1218,12 +1237,13 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, overall_group=overall_group, offset_lookup=offset_lookup, plan=plan)
         all_objects.update(objects[0])
         all_gate_lines.update(objects[1])
+        all_plan_segments.extend(objects[2])
         d.append(hlink_group)
         hlink_groups.append(hlink_group)
         add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True)
 
 #    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, map_id = "map_svg_image_"+area_id, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region)
-    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
+    await render_area_svg_objects(d, (all_objects, all_gate_lines, all_plan_segments), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
     d.append(overall_group)
 
         # draw hlink text on top of everything (inter-area lines)

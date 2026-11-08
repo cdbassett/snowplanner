@@ -354,6 +354,7 @@ async def region(region_slug: str):
         id = rec.id
 
         if typ == "plan": # a delivery plan stop: edit it
+            await plan_panel.focus_stop(int(id.split(":")[1]))
             await plan_panel.open_editor(int(id.split(":")[1]))
             return
 

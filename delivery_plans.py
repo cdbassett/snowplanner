@@ -322,21 +322,60 @@ class PlanTree:
     def leg_title(self, leg):
         return f"{leg_letter(leg.number)}" + (f": {leg.name}" if leg.name else "")
 
+    def claimed(self, leg):
+        """What a leg takes out of the split's load: its net drop-offs (including those on legs nested inside it). Nothing needs to be allocated in advance."""
+        if not hasattr(self, "_claimed"):
+            self._claimed = {}
+
+        if leg.id not in self._claimed:
+            used = Counter()
+
+            def walk(leg_id):
+                for stop in self.seq.get(leg_id, []):
+                    for c in stop.cargo:
+                        used[(c.kind, c.name)] += -c.count if c.action == "pickup" else c.count # picked up on the leg itself, so not taken from the split's load
+
+                    for inner in self.legs_of.get(stop.id, []):
+                        walk(inner.id)
+
+            walk(leg.id)
+            used = +used # net drop-offs only
+
+            self._claimed[leg.id] = used
+
+        return self._claimed[leg.id]
+
     def split_totals(self, split):
-        """Counter of everything the split's legs are handed in total."""
+        """Counter of everything the split's legs take in total (their drop-offs)."""
         total = Counter()
 
         for leg in self.legs_of.get(split.id, []):
-            _apply(total, leg.cargo)
+            total.update(self.claimed(leg))
 
         return total
 
+    def leg_start(self, leg):
+        """What a leg starts with: everything carried after its split stop except what the split's other legs claim by dropping it off. What the leg claims itself is always available to it."""
+        split = self.stops[leg.split_stop_id]
+        base = Counter(self.held_before(split))
+        _apply(base, split.cargo)
+        held = Counter(base)
+
+        for other in self.legs_of[split.id]:
+            if other.id != leg.id:
+                held.subtract(Counter({k: min(v, base[k]) for k, v in self.claimed(other).items()}))
+
+        for k, v in self.claimed(leg).items():
+            held[k] = max(held[k], min(v, base[k]))
+
+        return +held
+
     def held_before(self, stop):
-        """What is being carried on arrival at this stop. A leg starts with what the split handed to it; completed stops count (the cargo really moved)."""
+        """What is being carried on arrival at this stop. A leg starts with its share of what the split carries (see leg_start); completed stops count (the cargo really moved)."""
         held = Counter()
 
         if stop.leg_id is not None:
-            _apply(held, self.legs[stop.leg_id].cargo)
+            held = Counter(self.leg_start(self.legs[stop.leg_id]))
 
         for other in self.seq[stop.leg_id]:
             if other.id == stop.id:
@@ -350,21 +389,29 @@ class PlanTree:
         return +held
 
     def leftover(self, leg_id):
-        """What is still being carried at the end of a sequence (the main route or a leg), i.e. never marked for drop-off anywhere. A sequence ending in a split hands its load to the legs instead."""
+        """What is still being carried at the end of a sequence (the main route or a leg), i.e. never marked for drop-off anywhere. A sequence ending in a split adds up what its legs end with."""
         seq = self.seq.get(leg_id, [])
 
         if not seq:
             held = Counter()
 
             if leg_id is not None:
-                _apply(held, self.legs[leg_id].cargo)
+                held = Counter(self.leg_start(self.legs[leg_id]))
 
             return +held
 
         last = seq[-1]
 
-        if self.is_split(last):
-            return Counter()
+        if self.is_split(last): # what each leg ends with; cargo nobody claimed is available to every leg, so it must only be counted once
+            legs = self.legs_of[last.id]
+            total = Counter()
+
+            for leg in legs:
+                total.update(self.leftover(leg.id))
+
+            unassigned, _ = self.balance(last)
+            total.subtract(Counter({k: v * (len(legs) - 1) for k, v in unassigned.items()}))
+            return +total
 
         held = Counter(self.held_before(last))
         _apply(held, last.cargo)
@@ -524,18 +571,30 @@ async def pickup_choices(plan, stop, region_area_ids):
     if stop.map_item_id:
         for cargo_item in await SourceCargoItem.filter(map_item_id=stop.map_item_id):
             if (cnt := current_cargo_count(cargo_item)) != 0:
-                add(Choice("cargo", cargo_item.name, cnt))
+                add(Choice("cargo", cargo_item.name, cnt, suggested=cnt or 0))
 
         for obj_item in await ObjectiveItem.filter(map_item_id=stop.map_item_id, item_type="cargo", completed=False, objective__completed=False):
-            add(Choice("cargo", obj_item.name, obj_item.count, obj_item.id, "from objective"))
+            add(Choice("cargo", obj_item.name, obj_item.count, obj_item.id, "from objective", obj_item.count or 0))
+
+        # cargo that appears at a spawn point: an objective often has several spawns on the same spot, one unit each, so add them up
+        if (spot := await MapItem.filter(id=stop.map_item_id).first()) and spot.x is not None:
+            spawned = Counter()
+            first_id = {}
+
+            for obj_item in await ObjectiveItem.filter(item_type="spawn", completed=False, objective__completed=False, map_item__area_id=spot.area_id, map_item__x=spot.x, map_item__y=spot.y):
+                spawned[obj_item.name] += obj_item.count or 1
+                first_id.setdefault(obj_item.name, obj_item.id)
+
+            for name, cnt in spawned.items():
+                add(Choice("cargo", name, cnt, first_id[name], "from objective", cnt))
 
     # loose trucks / trailers at this place
     for vehicle in await MapItem.filter(area_id=stop.area_id, item_type__in=("truck", "trailer"), completed=False):
         if vehicle.id == stop.map_item_id or (vehicle.x is not None and math.hypot(vehicle.x - stop.x, vehicle.y - stop.y) <= SNAP_TOLERANCE):
-            add(Choice(vehicle.item_type, vehicle.name, 1, vehicle.id))
+            add(Choice(vehicle.item_type, vehicle.name, 1, vehicle.id, "", 1))
 
     for (kind, name), cnt in (await dropped_by_other_plans(plan, stop)).items():
-        add(Choice(kind, name, cnt, None, "dropped by another plan"))
+        add(Choice(kind, name, cnt, None, "dropped by another plan", cnt))
 
     others = []
 
@@ -559,7 +618,7 @@ async def dropoff_choices(plan, stop):
 
     for (kind, name), cnt in held.items():
         need = needed.get(name, 0)
-        choices.append(Choice(kind, name, cnt, None, f"objective needs {need}" if need else "", min(cnt, need) if kind == "cargo" else 0))
+        choices.append(Choice(kind, name, cnt, None, f"objective needs {need}" if need else "", min(cnt, need)))
 
     choices.sort(key=lambda c: (not c.note, c.name))
     return choices

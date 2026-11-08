@@ -2,6 +2,7 @@
 
 One PlanPanel lives in each open region or area page. All edits go through delivery_plans (the DB) and then call on_changed, which the page uses to refresh itself and tell every other open view.
 """
+import re
 from collections import Counter
 
 from nicegui import ui
@@ -32,6 +33,17 @@ def rows_summary(stop):
     return "   ".join(parts)
 
 
+def cargo_slots(held):
+    """Cargo slots taken by a {(kind, name): count} Counter: a cargo's name ends in its size in brackets, e.g. 'Metal Beams [2]'. Vehicles take none."""
+    total = 0
+
+    for (kind, name), count in held.items():
+        if kind == "cargo" and (m := re.search(r"\[(\d+)\]\s*$", name)):
+            total += count * int(m.group(1))
+
+    return total
+
+
 class PlanPanel:
     def __init__(self, region, region_area_ids, point_to_location, on_changed, on_select_stop, cur_area_id=None, abbrevs=None):
         """point_to_location(svg_x, svg_y) -> (area_id, x, y) in map units, or None when the point isn't on a map (the page knows its own layout).
@@ -44,7 +56,9 @@ class PlanPanel:
         self.region_area_ids = region_area_ids
         self.point_to_location = point_to_location
         self.on_changed = on_changed
-        self.on_select_stop = on_select_stop
+        self._on_select_stop = on_select_stop
+        self.selected_stop_id = None # the stop highlighted in the list
+        self.show_tab = None # set by the page: switches the right-hand panel to this tab
         self.pick_mode = False
         self.show_completed = False
         self.header = None
@@ -66,6 +80,19 @@ class PlanPanel:
 
         await self.refresh()
 
+    async def on_select_stop(self, stop_id):
+        self.selected_stop_id = stop_id
+        await self._on_select_stop(stop_id)
+
+    async def focus_stop(self, stop_id):
+        """Show the Delivery Plans tab with this stop highlighted in the list (and its square on the map), scrolled into view."""
+        if self.show_tab:
+            self.show_tab()
+
+        await self.on_select_stop(stop_id)
+        await self.refresh()
+        ui.run_javascript(f"setTimeout(() => document.querySelector('[data-stop-row=\"{stop_id}\"]')?.scrollIntoView({{block: 'nearest', behavior: 'smooth'}}), 50)")
+
     async def refresh(self):
         plans = await dp.list_plans(self.region, self.show_completed)
         visible = await dp.get_visible_plan(self.region)
@@ -78,7 +105,11 @@ class PlanPanel:
                 if visible and visible.id not in options: # a completed plan that's visible while the completed toggle is off
                     options[visible.id] = visible.name + " ✔"
 
+                ids = list(options)
+                step = lambda d: self.choose_plan(ids[(ids.index(visible.id) + d) % len(ids)]) if visible and visible.id in ids else None
+                ui.button(icon="chevron_left", on_click=lambda: step(-1)).props("flat dense round").tooltip("Previous plan").set_enabled(len(ids) > 1)
                 ui.select(options, value=visible.id if visible else None, label="Plan", on_change=lambda e: self.choose_plan(e.value)).props("dense outlined options-dense").classes("flex-1 min-w-0")
+                ui.button(icon="chevron_right", on_click=lambda: step(1)).props("flat dense round").tooltip("Next plan").set_enabled(len(ids) > 1)
                 ui.button(icon="add", on_click=self.new_plan_dialog).props("flat dense round").tooltip("New plan")
 
             with ui.row().classes("w-full items-center gap-1 no-wrap"):
@@ -88,7 +119,7 @@ class PlanPanel:
                     ui.button(icon="delete", on_click=lambda: self.delete_dialog(visible)).props("flat dense round color=negative").tooltip("Delete plan")
 
                 ui.space()
-                ui.checkbox("completed", value=self.show_completed, on_change=self.toggle_show_completed).props("dense").classes("text-xs")
+                ui.checkbox("show completed", value=self.show_completed, on_change=self.toggle_show_completed).props("dense").classes("text-xs")
 
         self.stops_box.clear()
 
@@ -116,7 +147,7 @@ class PlanPanel:
         if not stops and leg_id is None:
             ui.label("No stops yet.").classes("text-xs text-gray-600")
 
-        if (left := tree.leftover(leg_id)) and (stops or leg_id is not None): # carried to the end without being dropped off anywhere
+        if leg_id is None and stops and (left := tree.leftover(None)): # carried to the end of the whole plan (all legs included) without being dropped off anywhere
             with ui.column().classes("w-full gap-0 px-2 py-1 rounded").style("background:#fff3cd;border:1px solid #e0b84c"):
                 ui.label("Still carried at the end, not dropped off anywhere:").classes("text-xs font-bold").style("color:#7a5b00")
 
@@ -147,9 +178,6 @@ class PlanPanel:
             with ui.row().classes("w-full items-center gap-1 no-wrap"):
                 ui.label(f"Leg {dp.leg_letter(leg.number)}" + (f": {leg.name}" if leg.name else "")).classes("flex-1 min-w-0 text-xs font-bold truncate").style(f"color:{color}")
 
-                if (sent := ", ".join(f"{c.count}× {c.name.split(' [')[0]}" for c in leg.cargo)):
-                    ui.label(sent).classes("text-xs text-gray-600 truncate max-w-[10rem]").tooltip("Handed to this leg at the split")
-
                 ui.button(icon="edit", on_click=lambda l=leg: self.rename_leg_dialog(l)).props("flat dense round size=sm").tooltip("Rename leg")
                 ui.button(icon="close", on_click=lambda l=leg: self.remove_leg(tree, l)).props("flat dense round size=sm color=negative").tooltip("Remove leg and its stops")
 
@@ -161,12 +189,15 @@ class PlanPanel:
         number = tree.number(stop)
         color = PLAN_LEG_COLORS[tree.color(stop)][0] if tree.color(stop) else "#c2410c"
 
-        with ui.column().classes("w-full gap-0 px-1 py-1 border rounded bg-white").style("border-color:#d0d0d0" + (";opacity:0.55" if done else "")):
+        selected = stop.id == self.selected_stop_id
+        row_style = ("border-color:#1976d2;box-shadow:0 0 0 2px #1976d2;" if selected else "border-color:#d0d0d0;") + ("opacity:0.55" if done else "")
+
+        with ui.column().classes("w-full gap-0 px-1 py-1 border rounded bg-white").props(f"data-stop-row={stop.id}").style(row_style):
             with ui.row().classes("w-full items-center gap-1 no-wrap"):
                 ui.icon("drag_indicator").classes("plan-handle cursor-move text-gray-500")
                 ui.label(number).classes("text-white text-xs font-bold rounded-full text-center px-1").style(f"background:{color};min-width:20px;line-height:20px")
                 ui.checkbox(value=done, on_change=lambda e, s=stop: self.set_stop_done(s, e.value)).props("dense").tooltip("Done: hides this stop from the map")
-                ui.label(self.stop_title(stop)).classes("flex-1 min-w-0 text-sm font-medium truncate" + (" line-through" if done else "")).on("click", lambda s=stop: self.on_select_stop(s.id)).style("cursor:pointer")
+                ui.label(self.stop_title(stop)).classes("flex-1 min-w-0 text-sm font-medium truncate" + (" line-through" if done else "")).on("click", lambda s=stop: self.focus_stop(s.id)).style("cursor:pointer")
 
                 if split:
                     ui.button(icon="alt_route", on_click=lambda s=stop: self.add_leg(s)).props("flat dense round size=sm").tooltip("Add another leg")
@@ -174,11 +205,20 @@ class PlanPanel:
                 else:
                     ui.button(icon="call_split", on_click=lambda s=stop: self.split(s)).props("flat dense round size=sm").tooltip("Split here: send cargo / trucks different ways")
 
-                ui.button(icon="edit", on_click=lambda s=stop: self.open_editor(s.id)).props("flat dense round size=sm").tooltip("Edit pickups / drop-offs" + (" and what each leg gets" if split else ""))
+                ui.button(icon="edit", on_click=lambda s=stop: self.open_editor(s.id)).props("flat dense round size=sm").tooltip("Edit pickups / drop-offs")
                 ui.button(icon="close", on_click=lambda s=stop: self.remove_stop(tree, s)).props("flat dense round size=sm color=negative").tooltip("Remove stop" + (" and everything on its legs" if split else ""))
 
-            if (summary := rows_summary(stop)):
-                ui.label(summary).classes("text-xs text-gray-700 pl-8")
+            carried = Counter(tree.held_before(stop))
+
+            for c in stop.cargo:
+                carried[(c.kind, c.name)] += c.count if c.action == "pickup" else -c.count
+
+            slots = cargo_slots(+carried)
+
+            if (summary := rows_summary(stop)) or slots:
+                with ui.row().classes("w-full items-baseline no-wrap gap-2 pl-8"):
+                    ui.label(summary).classes("text-xs text-gray-700 flex-1 min-w-0")
+                    ui.label(f"{slots} slots").classes("text-xs text-gray-700 shrink-0").tooltip("Cargo slots carried after this stop")
 
             if split:
                 unassigned, over = tree.balance(stop)
@@ -186,7 +226,7 @@ class PlanPanel:
                 if over:
                     ui.label("Handed out more than carried: " + ", ".join(f"{n} {k[1]}" for k, n in over.items())).classes("text-xs pl-8").style("color:#b23a48")
                 elif unassigned:
-                    ui.label("Not sent on a leg: " + ", ".join(f"{n}× {k[1]}" for k, n in unassigned.items())).classes("text-xs text-gray-600 pl-8")
+                    ui.label("Unassigned (not dropped off on any leg yet): " + ", ".join(f"{n}× {k[1]}" for k, n in unassigned.items())).classes("text-xs text-gray-600 pl-8")
 
     # ---------------------------------------------------------------------------------------------------------------
     # plan level actions
@@ -338,7 +378,6 @@ class PlanPanel:
     async def split(self, stop):
         await dp.split_stop(stop.id, 2)
         await self.changed()
-        await self.open_editor(stop.id) # the legs are empty: choose what each one gets
 
     async def add_leg(self, stop):
         await dp.add_leg(stop.id)
@@ -489,39 +528,6 @@ class PlanPanel:
 
                         inputs.append((action, choice, number))
 
-            leg_inputs = [] # (leg, choice, number input)
-
-            if tree.is_split(stop): # what each leg gets; based on what the plan carries after this stop as last saved
-                carried = Counter(tree.held_before(stop))
-                for c in stop.cargo:
-                    carried[(c.kind, c.name)] += c.count if c.action == "pickup" else -c.count
-
-                carried = +carried
-                ui.label("Send each way").classes("font-bold mt-3")
-                ui.label("Based on what is carried after this stop as saved; save and reopen after changing its pick-ups / drop-offs.").classes("text-xs text-gray-600")
-
-                for leg in tree.legs_of[stop.id]:
-                    color = PLAN_LEG_COLORS[tree.leg_color(leg)][0]
-                    ui.label(f"Leg {dp.leg_letter(leg.number)}" + (f": {leg.name}" if leg.name else "")).classes("font-bold mt-1").style(f"color:{color}")
-                    given = {(c.kind, c.name): c for c in leg.cargo}
-                    items = dict.fromkeys([*carried, *given])
-
-                    if not items:
-                        ui.label("Nothing is carried at this point.").classes("text-xs text-gray-600")
-
-                    for kind, name in items:
-                        choice = dp.Choice(kind, name, carried.get((kind, name)), None, "" if (kind, name) in carried else "not carried at this point")
-
-                        with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                            ui.html(icon_html(kind, name)).classes("shrink-0")
-                            ui.label(name + (f"  ({choice.note})" if choice.note else "")).classes("flex-1 min-w-0 text-sm")
-                            number = ui.number(value=given[(kind, name)].count if (kind, name) in given else 0, min=0, max=choice.max_count, step=1, precision=0).props("dense outlined").classes("w-20")
-
-                            if choice.max_count is not None:
-                                number.tooltip(f"{choice.max_count} carried")
-
-                        leg_inputs.append((leg, choice, number))
-
             section("Pick up here", "pickup", here, "Nothing is available at this location.")
 
             section("Drop off here", "dropoff", drops, "This plan isn't carrying anything at this point.")
@@ -540,9 +546,6 @@ class PlanPanel:
                         rows.append((action, choice.kind, choice.name, int(number.value), choice.ref_id))
 
                 await dp.set_stop_cargo(stop.id, rows)
-
-                for leg in tree.legs_of.get(stop.id, []):
-                    await dp.set_leg_cargo(leg.id, [(choice.kind, choice.name, int(number.value), None) for lg, choice, number in leg_inputs if lg is leg and number.value])
 
                 dialog.close()
                 await self.changed()

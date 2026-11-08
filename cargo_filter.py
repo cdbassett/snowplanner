@@ -78,6 +78,7 @@ async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, sho
 
             with ui.tab_panel(plans_tab).classes('p-0 h-full'):
                 if plan_panel:
+                    plan_panel.show_tab = lambda: tabs.set_value(plans_tab)
                     await plan_panel.build()
 
     await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, show_all)

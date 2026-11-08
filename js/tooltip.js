@@ -39,5 +39,10 @@
         const el = e.target.closest ? e.target.closest('[data-click-id]') : null;
         if (el && typeof emitEvent === 'function') emitEvent('js_click_event', { id: el.dataset.clickId });
     });
+    // the region view has no d3 click handlers: an entry without icons (e.g. a gate) has no overlay, so a click on the entry itself is forwarded here (the area view's d3 handlers do this there)
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest ? e.target.closest('.loc2') : null;
+        if (el && el.id && location.pathname.startsWith('/region/') && typeof emitEvent === 'function') emitEvent('js_click_event', { id: el.id });
+    });
     document.addEventListener('mousemove', (e) => { if (tip && tip.style.display !== 'none') place(e); });
 })();
