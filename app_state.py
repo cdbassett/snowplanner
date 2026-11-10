@@ -1,5 +1,6 @@
 """Shared registries (regions, areas), cross-page events and small constants used by the pages."""
 from collections import defaultdict, namedtuple
+from pathlib import Path
 from types import SimpleNamespace
 import itertools
 from itertools import pairwise
@@ -16,7 +17,7 @@ from plan_panel import PlanPanel
 from database import db
 from database.models import *
 from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
-from snowrunner_read_game_save import find_newest_game_save, apply_game_save, apply_game_save_summary
+from snowrunner_read_game_save import find_newest_game_save, list_game_saves, apply_game_save, apply_game_save_summary
 
 AreaInfo = namedtuple("AreaInfo", "region,area,region_slug,area_slug,abbrev,area_id,partial_abbrev")
 
@@ -41,9 +42,22 @@ map_updated = Event[AreaInfo]()
 save_loaded = Event() # fired after the DB was updated from a game save; every open view refreshes
 plans_changed = Event[str]() # a delivery plan of this region (name) changed; every open view of that region refreshes
 
+def selected_game_save():
+    """The save slot the user picked (kept until they pick another or go back to 'newest'), or None for the newest save."""
+    if (name := app.storage.general.get("save_file")) and Path(name).is_file():
+        return Path(name)
+
+    return None
+
+
+def select_game_save(path):
+    """Remember a save slot for every later load; None goes back to using the newest."""
+    app.storage.general["save_file"] = str(path) if path else None
+
+
 async def load_game_save():
     try:
-        save_file = find_newest_game_save()
+        save_file = selected_game_save() or find_newest_game_save()
         result = await apply_game_save(save_file)
     except Exception as e:
         ui.notify(f"Failed to load game save: {e}", type="negative")
@@ -51,6 +65,7 @@ async def load_game_save():
 
     ui.notify(f"Loaded {save_file.name}: {apply_game_save_summary(result)}")
     save_loaded.emit()
+
 
 d3_init_js_cache = FileCache("d3_init.js", ReadFile)
 d3_brush_selection_js_cache = FileCache("d3_brush_selection.js", ReadFile)

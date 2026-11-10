@@ -35,7 +35,42 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
             ui.button(icon='menu', on_click=toggle_panel)
 
         ui.button(icon='refresh', on_click=update_svg).classes('m-0')
-        ui.button(icon='save', on_click=load_game_save).props('color=secondary').classes('m-0').tooltip('Refresh from newest game save')
+        with ui.button_group().classes('m-0'):
+            save_button = ui.button(icon='save', on_click=load_game_save).props('color=secondary').classes('m-0')
+
+            with save_button:
+                save_tip = ui.tooltip('')
+
+            with ui.button(icon='arrow_drop_down').props('color=secondary dense').classes('m-0'):
+                save_menu = ui.menu()
+
+        def fill_save_menu():
+            """List the save slots (newest first); the chosen one is kept for every later refresh until another is chosen."""
+            import time
+            current = selected_game_save()
+            save_menu.clear()
+
+            async def choose(path):
+                select_game_save(path)
+                await load_game_save()
+
+            with save_menu:
+                ui.menu_item(('✔ ' if current is None else '') + 'Newest save (automatic)', on_click=lambda: choose(None))
+
+                try:
+                    saves = list_game_saves()
+                except Exception as e:
+                    saves = []
+                    ui.label(f'Cannot list saves: {e}').classes('text-xs px-2')
+
+                for path in saves:
+                    when = time.strftime('%Y-%m-%d %H:%M', time.localtime(path.stat().st_mtime))
+                    ui.menu_item(('✔ ' if current == path else '') + f'{path.name}  ({when})', on_click=lambda p=path: choose(p))
+
+            save_tip.set_text(f'Refresh from {current.name}' if current else 'Refresh from newest game save')
+
+        save_menu.on('before-show', fill_save_menu)
+        fill_save_menu()
 
         with ui.link(target='/'):
             ui.icon('home', color='primary').classes('text-4xl')

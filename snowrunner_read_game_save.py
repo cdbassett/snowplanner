@@ -37,6 +37,11 @@ def _candidate_saves(save_dir):
     return saves
 
 
+def list_game_saves(save_dir=None):
+    """All game save slots, newest first."""
+    return sorted(_candidate_saves(Path(save_dir or config.saved_game_dir)), key=lambda p: p.stat().st_mtime, reverse=True)
+
+
 def find_newest_game_save(save_dir=None):
     """Return the most recently modified save file in the configured saved game dir."""
     save_dir = Path(save_dir or config.saved_game_dir)
