@@ -585,7 +585,10 @@ async def area(area_slug: str):
 
     # delivery plans
     async def plan_select_stop(stop_id):
-        set_highlighted_ids(f"plan:{stop_id}" if stop_id else None)
+        if stop_id:
+            set_highlighted_ids(f"plan:{stop_id}")
+        elif isinstance(highlight_ids, str) and highlight_ids.startswith("plan:"): # only drop a plan highlight: a cargo selected in the filter stays highlighted
+            set_highlighted_ids(None)
         await update_svg()
 
     async def plan_changed():

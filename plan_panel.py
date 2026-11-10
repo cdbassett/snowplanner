@@ -8,7 +8,7 @@ from collections import Counter
 from nicegui import ui
 
 import delivery_plans as dp
-from cargo_icons import CargoStack
+from cargo_icons import CargoStack, vehicle_stack
 from snowrunner_gen_map_text_svg import PLAN_LEG_COLORS
 
 ACTION_TEXT = {"pickup": "▲", "dropoff": "▼"}
@@ -16,7 +16,7 @@ ACTION_COLOR = {"pickup": "#2e7d32", "dropoff": "#b23a48"}
 
 
 def icon_html(kind, name, size=22):
-    stack = CargoStack(name, None, name, False, None, kind)
+    stack = CargoStack(name, None, name) if kind == "cargo" else vehicle_stack(name) # the kind is guessed from the name, as on the map: some trailers are stored as trucks
     uris = stack.art_uris
     return "".join(f'<img src="{u}" style="width:{size}px;height:{size}px">' for u in uris) if uris else f'<span style="font-size:{size - 4}px">{stack.icon}</span>'
 
@@ -115,6 +115,8 @@ class PlanPanel:
             with ui.row().classes("w-full items-center gap-1 no-wrap"):
                 if visible:
                     ui.button(icon="edit", on_click=lambda: self.rename_dialog(visible)).props("flat dense round").tooltip("Rename plan")
+                    ui.button(icon="content_copy", on_click=lambda: self.duplicate_dialog(visible)).props("flat dense round").tooltip("Duplicate plan")
+                    ui.button(icon="playlist_add", on_click=lambda: self.append_dialog(visible, plans)).props("flat dense round").tooltip("Append a copy of another plan to this one").set_enabled(len(plans) > 1)
                     ui.button(icon="undo" if visible.completed else "task_alt", on_click=lambda: self.toggle_plan_completed(visible)).props("flat dense round").tooltip("Mark plan not complete" if visible.completed else "Mark plan complete")
                     ui.button(icon="delete", on_click=lambda: self.delete_dialog(visible)).props("flat dense round color=negative").tooltip("Delete plan")
 
@@ -297,6 +299,53 @@ class PlanPanel:
 
             with ui.row():
                 ui.button("Rename", on_click=rename)
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+
+        dialog.open()
+
+    def duplicate_dialog(self, plan):
+        with self.dialog_host, ui.dialog() as dialog, ui.card():
+            ui.label("Duplicate plan").classes("font-bold")
+            name = ui.input("Name", value=f"{plan.name} copy").props("autofocus outlined dense")
+
+            async def duplicate():
+                await self.set_pick_mode(False)
+                copy = await dp.duplicate_plan(plan.id, name.value.strip() or f"{plan.name} copy")
+                await dp.set_visible(copy)
+                dialog.close()
+                await self.changed()
+
+            name.on("keydown.enter", duplicate)
+            ui.timer(0.3, lambda: name.run_method("focus"), once=True)
+
+            with ui.row():
+                ui.button("Duplicate", on_click=duplicate)
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+
+        dialog.open()
+
+    def append_dialog(self, plan, plans):
+        others = {p.id: p.name + (" ✔" if p.completed else "") for p in plans if p.id != plan.id}
+
+        with self.dialog_host, ui.dialog() as dialog, ui.card():
+            ui.label(f'Append a copy of another plan to "{plan.name}"').classes("font-bold")
+            source = ui.select(others, value=next(iter(others), None), label="Plan to copy").props("outlined dense").classes("w-64")
+
+            async def append():
+                await self.set_pick_mode(False)
+
+                if source.value is None:
+                    return
+
+                if not await dp.append_plan(source.value, plan.id):
+                    ui.notify("This plan ends in a split; nothing can be added after it.", type="warning")
+                    return
+
+                dialog.close()
+                await self.changed()
+
+            with ui.row():
+                ui.button("Append", on_click=append)
                 ui.button("Cancel", on_click=dialog.close).props("flat")
 
         dialog.open()

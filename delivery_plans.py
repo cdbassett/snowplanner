@@ -11,7 +11,7 @@ from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from database.models import DeliveryPlan, PlanStop, PlanCargo, PlanLeg, PlanLegCargo, MapItem, Objective, ObjectiveItem, SourceCargoItem, current_cargo_count
-from cargo_icons import CargoStack, PlanRow
+from cargo_icons import CargoStack, PlanRow, vehicle_stack
 
 PLAN_LEG_COLOR_COUNT = 6 # size of PLAN_LEG_COLORS in the map generator: the main route plus five leg colours
 SNAP_TOLERANCE = 12 # map units (of 1000); a click / drop this close to a location snaps to it, and plan items this close are "at" a location
@@ -53,6 +53,39 @@ async def create_plan(region, name):
         await set_visible(plan)
         await plan.refresh_from_db()
 
+    return plan
+
+
+async def _copy_sequence(src_plan_id, src_leg_id, dst_plan_id, dst_leg_id, start):
+    """Copy the stops of one list (with their cargo and, recursively, their legs) to the end of another list, which has `start` stops already."""
+    for index, stop in enumerate(await _sequence(src_plan_id, src_leg_id).order_by("position", "id").prefetch_related("cargo")):
+        new_stop = await PlanStop.create(plan_id=dst_plan_id, position=start + index, area_id=stop.area_id, x=stop.x, y=stop.y, map_item_id=stop.map_item_id, label=stop.label, leg_id=dst_leg_id)
+
+        for c in stop.cargo:
+            await PlanCargo.create(stop_id=new_stop.id, action=c.action, kind=c.kind, name=c.name, count=c.count, ref_id=c.ref_id)
+
+        for leg in await PlanLeg.filter(split_stop_id=stop.id).order_by("number", "id"):
+            new_leg = await PlanLeg.create(split_stop_id=new_stop.id, number=leg.number, name=leg.name)
+            await _copy_sequence(src_plan_id, leg.id, dst_plan_id, new_leg.id, 0)
+
+
+async def append_plan(src_plan_id, dst_plan_id):
+    """Add a copy of a plan's stops (legs included, not marked done) to the end of another plan's main route. Returns False when that route ends in a split, since nothing can follow one."""
+    main = await _sequence(dst_plan_id, None).order_by("position", "id")
+
+    if main and await PlanLeg.filter(split_stop_id=main[-1].id).exists():
+        return False
+
+    async with in_transaction():
+        await _copy_sequence(src_plan_id, None, dst_plan_id, None, len(main))
+
+    return True
+
+
+async def duplicate_plan(plan_id, name):
+    src = await DeliveryPlan.filter(id=plan_id).first()
+    plan = await create_plan(src.region, name)
+    await append_plan(plan_id, plan.id)
     return plan
 
 
@@ -213,7 +246,17 @@ async def add_leg(stop_id):
 
 
 async def split_stop(stop_id, leg_count=2):
-    """Turn a stop into a split with (at least) leg_count legs."""
+    """Turn a stop into a split with (at least) leg_count legs. Stops that already follow it on its list carry on as the first leg, so only one extra leg is added."""
+    if (stop := await PlanStop.filter(id=stop_id).first()) and not await PlanLeg.filter(split_stop_id=stop_id).exists():
+        seq = list(await _sequence(stop.plan_id, stop.leg_id).order_by("position", "id"))
+        after = seq[[s.id for s in seq].index(stop_id) + 1:]
+
+        if after:
+            async with in_transaction():
+                leg = await add_leg(stop_id)
+                for position, s in enumerate(after):
+                    await PlanStop.filter(id=s.id).update(leg_id=leg.id, position=position)
+
     while await PlanLeg.filter(split_stop_id=stop_id).count() < max(2, leg_count):
         await add_leg(stop_id)
 
@@ -570,8 +613,9 @@ async def pickup_choices(plan, stop, region_area_ids):
 
     if stop.map_item_id:
         for cargo_item in await SourceCargoItem.filter(map_item_id=stop.map_item_id):
+            # warehouse stock is only available, not wanted: nothing is preselected
             if (cnt := current_cargo_count(cargo_item)) != 0:
-                add(Choice("cargo", cargo_item.name, cnt, suggested=cnt or 0))
+                add(Choice("cargo", cargo_item.name, cnt, suggested=0))
 
         for obj_item in await ObjectiveItem.filter(map_item_id=stop.map_item_id, item_type="cargo", completed=False, objective__completed=False):
             add(Choice("cargo", obj_item.name, obj_item.count, obj_item.id, "from objective", obj_item.count or 0))
@@ -633,7 +677,7 @@ def stop_rows(stop):
     rows = []
 
     for action in ("pickup", "dropoff"):
-        stacks = [CargoStack(c.name, c.count, c.name, False, None, c.kind) for c in stop.cargo if c.action == action]
+        stacks = [CargoStack(c.name, c.count, c.name) if c.kind == "cargo" else vehicle_stack(c.name, count=c.count) for c in stop.cargo if c.action == action]
 
         if stacks:
             rows.append(PlanRow(action, stacks))
