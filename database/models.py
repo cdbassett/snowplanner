@@ -108,6 +108,15 @@ class SourceCargoItem(Model):
 # --- Delivery plans: user-specific data, deliberately NOT in database/config.py TABLE_ORDER (never dumped to or seeded from fixtures).
 # Map items / objective items are referenced by plain string ids, not FKs, so reseeding the reference tables can't cascade into plans.
 
+class RegionNote(Model): # free text the user keeps per region (shown in the Notes tab of the region and area views)
+    id = fields.IntField(pk=True)
+    region = fields.CharField(max_length=100, unique=True) # region name as used by the app
+    text = fields.TextField(default="")
+
+    class Meta:
+        table = "region_note"
+
+
 class DeliveryPlan(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=100)

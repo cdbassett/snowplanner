@@ -59,12 +59,35 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
                 ui.label(item)
 
 
-async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, show_all=False, plan_panel=None):
+async def build_notes_editor(region):
+    """A text editor for the region's notes. Saved as you type; every other open view of the region is updated."""
+    note = await RegionNote.filter(region=region).first()
+    editor_id = id(object())
+    editor = ui.textarea(value=note.text if note else "", placeholder="Notes for this region").props('outlined debounce=600').classes('w-full notes-editor').style('height:100%')
+    ui.add_css('.notes-editor .q-field__control, .notes-editor .q-field__native {height:100%; resize:none}')
+
+    async def save(e):
+        text = e.value or ""
+        await RegionNote.update_or_create(region=region, defaults={"text": text})
+        notes_changed.emit((region, text, editor_id))
+
+    def other_view_saved(args):
+        if editor.is_deleted:
+            notes_changed.unsubscribe(other_view_saved)
+        elif args[0] == region and args[2] != editor_id and editor.value != args[1]:
+            editor.set_value(args[1])
+
+    editor.on_value_change(save)
+    notes_changed.subscribe(other_view_saved)
+
+
+async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, show_all=False, plan_panel=None, region=None):
     """The right-hand panel: tabs for the cargo filter and the delivery plans. Returns the cargo filter's list element."""
     with ui.column().classes('w-96 h-full bg-gray-50 p-2 flex flex-col shrink-0 min-h-0'):
         with ui.tabs().props('dense').classes('w-full') as tabs:
             filter_tab = ui.tab('Cargo Filter')
             plans_tab = ui.tab('Delivery Plans')
+            notes_tab = ui.tab('Notes') if region else None
 
         with ui.tab_panels(tabs, value=filter_tab, animated=False).classes('w-full flex-1 min-h-0 bg-gray-50').props('keep-alive'):
             with ui.tab_panel(filter_tab).classes('p-0 h-full flex flex-col'):
@@ -80,6 +103,10 @@ async def build_cargo_filter_list(region_area_ids, filter_list_item_clicked, sho
                 if plan_panel:
                     plan_panel.show_tab = lambda: tabs.set_value(plans_tab)
                     await plan_panel.build()
+
+            if region:
+                with ui.tab_panel(notes_tab).classes('p-0 h-full'):
+                    await build_notes_editor(region)
 
     await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, show_all)
     return filter_cargo_items

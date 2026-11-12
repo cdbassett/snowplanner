@@ -40,6 +40,7 @@ for area_info in area_infos:
 tree_updated = Event[AreaInfo]()
 map_updated = Event[AreaInfo]()
 save_loaded = Event() # fired after the DB was updated from a game save; every open view refreshes
+notes_changed = Event[tuple]() # (region name, text, id of the editor it came from): every other open view of that region shows the new text
 plans_changed = Event[str]() # a delivery plan of this region (name) changed; every open view of that region refreshes
 
 def selected_game_save():
