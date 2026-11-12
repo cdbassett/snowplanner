@@ -335,7 +335,7 @@ async def region(region_slug: str):
                                 ui.image(get_image_name_ex(area_info, "icon")).classes('w-100 rounded shadow-md')
 
             # Right Panel: Cargo Filter List
-            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel)
+            filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel, region=plan_region)
 
     async def select_clicked_node(node_id, id, objective_id=None):
         clear_filter_if_hiding(node_id)

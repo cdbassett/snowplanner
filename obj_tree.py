@@ -16,7 +16,7 @@ from plan_panel import PlanPanel
 from database import db
 from database.models import *
 from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
-from snowrunner_read_game_save import find_newest_game_save, apply_game_save, apply_game_save_summary
+from snowrunner_read_game_save import sync_spawn_completion, find_newest_game_save, apply_game_save, apply_game_save_summary
 from app_state import *
 
 class __TREE_FUNCTIONS__: pass
@@ -344,6 +344,9 @@ async def apply_tree_ticks(ticked_ids, unticked_ids):
 
     ticked_oi_ids, unticked_oi_ids = get_actual_ids(ticked_ids, unticked_ids, "OI_")
     await update_completed(ticked_oi_ids, unticked_oi_ids, ObjectiveItem)
+
+    if ticked_oi_ids or unticked_oi_ids: # a spawn is spent once its delivery is made, so ticking a delivery changes its spawn too
+        await sync_spawn_completion(await ObjectiveItem.filter(id__in=ticked_oi_ids + unticked_oi_ids).values_list("objective_id", flat=True))
 
     ticked_t_ids, unticked_t_ids = get_actual_ids(ticked_ids, unticked_ids, "T_")
     ticked_s_ids, unticked_s_ids = get_actual_ids(ticked_ids, unticked_ids, "S_")

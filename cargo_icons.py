@@ -7,8 +7,9 @@ import icon_art
 from utils.snowrunner_utils import read_truck_types
 
 
-class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", defaults=(False, None, "cargo"))):
-    """A quantity of one cargo type. count None means unlimited. text is the plain-text form used where icons aren't drawn."""
+class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shortage", defaults=(False, None, "cargo", None))):
+    """A quantity of one cargo type. count None means unlimited. text is the plain-text form used where icons aren't drawn.
+    shortage, when set, says why an objective's cargo can't be fully supplied from its area; the icon gets a red outline."""
     __slots__ = ()
 
     def __str__(self):
@@ -72,6 +73,9 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
         if self.is_vehicle:
             return VEHICLE_BORDERS[self.kind], 2
 
+        if self.shortage:
+            return "red", 2.5
+
         return ("blue", 1) if self.loaded else ("#555", 1)
 
     @property
@@ -89,7 +93,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind", de
         if self.is_vehicle:
             return self.kind.capitalize() + (f" ({label})" if self.kind == "truck" and (label := truck_type_label(self.name)) else "")
 
-        return ("Unlimited ∞" if self.count is None else f"Count: {self.count}") + (" (loaded on trailer)" if self.loaded else "")
+        return ("Unlimited ∞" if self.count is None else f"Count: {self.count}") + (" (loaded on trailer)" if self.loaded else "") + (f" — {self.shortage}" if self.shortage else "")
 
 
 class PlanRow(namedtuple("PlanRow", "action,stacks")):

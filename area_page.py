@@ -741,7 +741,7 @@ async def area(area_slug: str):
                 initialize_d3()
                 svg_html.on('dblclick', svg_double_clicked)
 
-            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel)
+            filter_cargo_items = await build_cargo_filter_list([cur_area_info.area_id], filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel, region=cur_area_info.region)
 
         area_client_alive_checker = obj_tree
         tree_updated.subscribe(update_obj_tree_event)

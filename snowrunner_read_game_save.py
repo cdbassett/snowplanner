@@ -4,7 +4,7 @@ import json
 import argparse
 import os
 import re
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from pathlib import Path
 
 from tortoise import Tortoise, run_async
@@ -100,6 +100,57 @@ async def apply_source_counts(save):
     return len(matched), len(wanted) - len(matched)
 
 
+SPAWN_PAIR_RE = re.compile(r"_(\d+)_(?:SPAWN|S)$|_(?:SPAWN|S)_(\d+)$", re.I)
+
+
+def spawn_pair_key(zone_id):
+    """The number that ties a spawn zone to its delivery zone (US_12_01_WATER_PROBE_02_SPAWN and ..._02_S share '02'); None if there isn't one."""
+    if zone_id and (m := SPAWN_PAIR_RE.search(zone_id)):
+        return m.group(1) or m.group(2)
+
+    return None
+
+
+async def sync_spawn_completion(objective_ids):
+    """Mark the spawn items of these objectives spent or not from their cargo deliveries (which come from the save or from ticking the objective tree).
+
+    Neither says whether a spawned cargo was picked up. A spawn is spent once its delivery is done, matched by the number in the zone names
+    (..._02_SPAWN / ..._02_S); without such a pairing, as many spawns count as spent as deliveries were made."""
+    cargo_done = defaultdict(list) # (objective, stage, name) -> [(pairing key, delivered)]
+    spawns = defaultdict(list)
+
+    for item in await ObjectiveItem.filter(objective_id__in=list(objective_ids)):
+        key = (item.objective_id, item.id.split("|")[-3], item.name)
+
+        if item.item_type == "spawn":
+            spawns[key].append(item)
+        elif item.item_type == "cargo":
+            cargo_done[key].append((spawn_pair_key(item.deliver_loc_id), item.completed))
+
+    changed = []
+
+    for key, group in spawns.items():
+        if not (deliveries := cargo_done.get(key)):
+            continue
+
+        by_key = dict(deliveries)
+        group.sort(key=lambda i: i.id)
+
+        if len(by_key) == len(deliveries) and None not in by_key and all(spawn_pair_key(i.map_item_id) in by_key for i in group):
+            states_for = [by_key[spawn_pair_key(i.map_item_id)] for i in group]
+        else:
+            spent = sum(d for _, d in deliveries)
+            states_for = [n < spent for n in range(len(group))]
+
+        for spawn, done in zip(group, states_for):
+            if spawn.completed != done:
+                spawn.completed = done
+                changed.append(spawn)
+
+    if changed:
+        await ObjectiveItem.bulk_update(changed, fields=["completed"])
+
+
 async def apply_objective_item_progress(save):
     """Set ObjectiveItem.completed from the save's objectiveStates for objectives that are in progress.
 
@@ -109,7 +160,9 @@ async def apply_objective_item_progress(save):
     changed = []
     delivered = 0
 
-    for item in await ObjectiveItem.filter(objective_id__in=list(states)):
+    items = await ObjectiveItem.filter(objective_id__in=list(states))
+
+    for item in items:
         stage_no, idx, kind = item.id.split("|")[-3:]
 
         try:
@@ -134,6 +187,7 @@ async def apply_objective_item_progress(save):
     if changed:
         await ObjectiveItem.bulk_update(changed, fields=["completed"])
 
+    await sync_spawn_completion(list(states))
     return delivered
 
 

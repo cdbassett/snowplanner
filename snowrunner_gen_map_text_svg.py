@@ -16,7 +16,7 @@ from utils.iter_utils import arithtuple, first_true, flatten
 from utils.correct_overlaps import Rectangle, correct_rect_overlaps, correct_rect_overlaps_cached
 from database.models import *
 import icon_art
-from cargo_icons import CargoStack, Recipe, PlanRow, parse_recipe, vehicle_stack
+from cargo_icons import normalize_cargo_name, CargoStack, Recipe, PlanRow, parse_recipe, vehicle_stack
 from utils.timer_utils import Timer
 from database.config import snowplanner_db_url
 
@@ -212,6 +212,56 @@ def create_drawing(width=main_scale, height=main_scale, text_height = 8, loc_mod
     id_gen = itertools.count(1)
     return d, id_gen
 
+
+
+LIQUID_CARGO = {"fuel", "water", "repair parts"}
+
+
+async def cargo_shortages(area_id):
+    """Cargo name -> why the area can't supply what its open deliveries need (no source at all, or fewer than needed); names that are fine are absent.
+
+    Supply is what sources, crafting sites and loaded trucks/trailers in the area hold now (unlimited counts as plenty), plus spawned cargo of open objectives.
+    Deliveries that name a specific pickup (a map item of their own) bring their own cargo and aren't counted. Names are compared without the size suffix ("[2]")."""
+    demand = defaultdict(int)
+    shown_name = {}
+    objective_ids = set()
+
+    for oi in await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id=area_id, map_item_id__isnull=True):
+        if oi.name.startswith("Cargo") and " " not in oi.name: # an unresolved internal name, nothing to compare it with
+            continue
+
+        key = normalize_cargo_name(oi.name)
+
+        if key in LIQUID_CARGO: # amounts of fuel / water are litres, filled anywhere
+            continue
+
+        demand[key] += oi.count or 1
+        shown_name[key] = oi.name
+        objective_ids.add(oi.objective_id)
+
+    if not demand:
+        return {}
+
+    supply = defaultdict(int)
+
+    for cargo_item in await SourceCargoItem.filter(map_item__area_id=area_id):
+        if (key := normalize_cargo_name(cargo_item.name)) in demand:
+            ccnt = current_cargo_count(cargo_item)
+            supply[key] += math.inf if ccnt is None else ccnt
+
+    for oi in await ObjectiveItem.filter(item_type="spawn", completed=False, objective_id__in=list(objective_ids)):
+        if (key := normalize_cargo_name(oi.name)) in demand:
+            supply[key] += oi.count or 1
+
+    result = {}
+
+    for key, need in demand.items():
+        have = supply[key]
+
+        if have < need:
+            result[shown_name[key]] = "Not available from any source in this area" if not have else f"Only {have} available in this area, {need} needed"
+
+    return result
 
 
 async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = False,
@@ -439,7 +489,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
             for (x, y, name, o_id), map_items in itertools.groupby(await MapItem.filter(Q(area_id=area_id) & Q(item_type="spawn")) \
                     .prefetch_related("obj_items__objective__obj_prereqs__prereq_obj", "obj_items__objective__obj_items__deliver_loc", "obj_items__deliver_loc")
                     .order_by("x", "y", "name"), lambda mi: (mi.x, mi.y, mi.name, (mi_oi := mi.obj_items) and mi_oi[0].objective_id)):
-                map_items = list(map_item for map_item in map_items if show_all or not map_item.completed)
+                map_items = list(map_item for map_item in map_items if show_all or not (map_item.completed or any(oi.completed for oi in map_item.obj_items))) # a spawn whose objective item is done (its delivery was made) is spent
                 flt = MapItem.filter(id__in=[map_item.id for map_item in map_items])
                     # is part of an objective
 
@@ -463,14 +513,12 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         else:
                             arrow = None
 
-                            targets = link_targets(obj_item.deliver_loc, map_item)
+                            # a spawn's own deliver_loc isn't reliable (a stage's spawns may all name the same zone), so the line goes to where this cargo is still wanted in its stage
+                            dests = {oi.deliver_loc_id: oi.deliver_loc for oi in obj_item.objective.obj_items if oi.name == obj_item.name and oi.stage == obj_item.stage and oi.item_type != "spawn" and (show_all or not oi.completed)} or {obj_item.deliver_loc_id: obj_item.deliver_loc}
+                            targets = list(dict.fromkeys(t for dest in dests.values() for t in (link_targets(dest, map_item) or [])))
 
                             if targets and not (hide_tasks if is_task else hide_contracts):
                                 arrow = targets
-
-                                if len(map_items) > 1: # identical spawns can go to different places, which only the objective's other items for that cargo show
-                                    dests = {oi.deliver_loc_id: oi.deliver_loc for oi in obj_item.objective.obj_items if oi.name == obj_item.name}
-                                    arrow = list(dict.fromkeys(t for dest in dests.values() for t in (link_targets(dest, map_item) or [])))
 
                             if targets:
                                 spawn_stack = CargoStack(map_item.name, len(map_items), counted_cargo(len(map_items), desc)) # a spawn is the cargo itself
@@ -484,6 +532,8 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
         # read deliveries for region and add to list
         # deliveries are ObjectiveItem records with optional MapItem "truck/trailer" records
 #    filtered_obj_items = ObjectiveItem.filter(area_id=area_id).prefetch_related("map_item", "deliver_loc")
+
+    shortages = {} if loc_mode else await cargo_shortages(area_id)
 
     task_klass = element_classes.get("Tasks", "location-task")
     contract_klass = element_classes.get("Contracts", "location-contract")
@@ -527,7 +577,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         if (not obj_item.map_item or obj_item.map_item.item_type != "spawn") and (show_all or not obj_item.completed):
                             cargo_text = counted_cargo(obj_item.count, abbreviate_line(obj_item.name))
                             is_vehicle = obj_item.item_type in ("truck", "trailer")
-                            cargo_label = vehicle_stack(obj_item.name, cargo_text, kind=obj_item.item_type) if is_vehicle else CargoStack(obj_item.name, obj_item.count, cargo_text)
+                            cargo_label = vehicle_stack(obj_item.name, cargo_text, kind=obj_item.item_type) if is_vehicle else CargoStack(obj_item.name, obj_item.count, cargo_text, shortage=None if obj_item.map_item else shortages.get(obj_item.name))
                             cargo_labels = [cargo_label]
 
                                 # extra info if between 2 areas
