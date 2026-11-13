@@ -321,7 +321,8 @@ async def get_cargo_highlight_ids(area_ids, cargo_item_name, only_incomplete):
     cargo_highlight_ids = []
     completed_filter = (Q(completed=False) | Q(completed=None)) if only_incomplete else Q()
     cargo_highlight_ids.extend(await MapItem.filter(Q(area_id__in=area_ids) & completed_filter).prefetch_related("cargo_items").filter(Q(cargo_items__name__icontains=cargo_item_name) & (Q(cargo_items__current_cnt=None) | Q(cargo_items__current_cnt__gt=0))).values_list("id", flat=True))
-    cargo_highlight_ids.extend(await ObjectiveItem.filter(Q(name__icontains=cargo_item_name) & completed_filter).prefetch_related("deliver_loc").filter(deliver_loc__area_id__in=area_ids).values_list("id", flat=True))
+    obj_item_filter = completed_filter & (Q(objective__completed=False) | Q(objective__completed=None)) if only_incomplete else Q() # an item of a finished objective is done too
+    cargo_highlight_ids.extend(await ObjectiveItem.filter(Q(name__icontains=cargo_item_name) & obj_item_filter).prefetch_related("deliver_loc").filter(deliver_loc__area_id__in=area_ids).values_list("id", flat=True))
     return ic(cargo_highlight_ids)
 
 async def update_completed(ticked_ids, unticked_ids, model):
