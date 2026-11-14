@@ -128,20 +128,22 @@ def layout_cargo(cargo_items, text_height):
 
                 width = max(width, sq)
                 y += (row + 1) * (sq + gap)
-        elif item_kind == "recipe": # one equation per row: product <- ingredients
+        elif item_kind == "recipe": # one equation per row: ingredients -> product
             arrow_w = sq * 0.4
             arrow_gap = gap / 2 # tighter than between icons so the equation reads as one unit
 
             for recipe in group:
-                placements.append(("icon", recipe.product, 0, y))
-                placements.append(("arrow", sq + arrow_gap, y, arrow_w))
-                x = sq + arrow_gap + arrow_w + arrow_gap
+                x = 0
 
                 for ingredient in recipe.ingredients:
                     placements.append(("icon", ingredient, x, y))
                     x += sq + gap
 
-                width = max(width, x - gap)
+                x -= gap # drop the gap after the last ingredient
+                placements.append(("arrow", x + arrow_gap, y, arrow_w))
+                x += arrow_gap + arrow_w + arrow_gap
+                placements.append(("icon", recipe.product, x, y))
+                width = max(width, x + sq)
                 y += sq + gap
         elif item_kind == "icon":
             cols = 2 if len(group) == 4 else ICON_MAX_COLS # exactly 4 icons: one square of 4 rather than 3 + 1
@@ -407,7 +409,11 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
         if not show_all:
             region_area_ids = [r.area_id for r in iterate_region_area() if r.region == region]
-            needed_cargo = set(await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True))
+            needed_cargo = {normalize_cargo_name(n) for n in await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True)}
+            recipes = [r for ci in await SourceCargoItem.filter(map_item__area_id__in=region_area_ids, map_item__item_type="craft") if (r := parse_recipe(ci.craft_desc))]
+
+            while (more := {normalize_cargo_name(i.name) for r in recipes if normalize_cargo_name(r.product.name) in needed_cargo for i in r.ingredients} - needed_cargo): # ingredients of a needed product are needed too, and so on down the chain
+                needed_cargo |= more
 
         for map_item in await MapItem.filter(Q(area_id=area_id) & (Q(item_type="source") | Q(item_type="craft"))).prefetch_related("cargo_items", "obj_locker"):
 #            if 1 or have_db_pos(map_item):
@@ -415,7 +421,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
             if not check_hide and (show_all or not map_item.completed):
                 flt = MapItem.filter(id=map_item.id)
-                cargo_items = sorted((make_source_cargo(cargo_item, ccnt) for cargo_item in map_item.cargo_items if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type == "craft" or cargo_item.name in needed_cargo)), key=lambda c: (c.product if isinstance(c, Recipe) else c).name)
+                cargo_items = sorted((make_source_cargo(cargo_item, ccnt) for cargo_item in map_item.cargo_items if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type == "craft" or normalize_cargo_name(cargo_item.name) in needed_cargo)), key=lambda c: (c.product if isinstance(c, Recipe) else c).name)
                 blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                 selected, source_color = get_selected_color("yellow", map_item.id, blocked, "gold")
                 desc = abbreviate_line(map_item.name) + (" Craft" if map_item.item_type=="craft" else "")
@@ -948,7 +954,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                         g.append(draw.Text(glyph, sq * 0.6, mx + sq / 2, my + sq * 0.5, text_anchor="middle", dominant_baseline="central", fill="white", font_weight="bold"))
                 elif placement[0] == "arrow":
                     _, px, py, aw = placement
-                    g.append(draw.Text("←", sq * 0.5, tx + px + aw / 2, cargo_y + py + sq / 2, text_anchor="middle", dominant_baseline="central", font_weight="bold", fill="black"))
+                    g.append(draw.Text("→", sq * 0.5, tx + px + aw / 2, cargo_y + py + sq / 2, text_anchor="middle", dominant_baseline="central", font_weight="bold", fill="black"))
                 else:
                     _, stack, px, py = placement
                     sx, sy = tx + px, cargo_y + py
