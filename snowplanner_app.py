@@ -138,5 +138,11 @@ def main():
         for region_slug, region in regions_slugs:
             ui.link(region, f'/region/{region_slug}')
 
-ui.run(root, port=8081, title='SnowPlanner')
+import argparse
+
+parser = argparse.ArgumentParser(description="SnowPlanner web app")
+parser.add_argument("--no-browser", action="store_true", help="don't open a browser tab on startup")
+args, _ = parser.parse_known_args()
+
+ui.run(root, port=8081, title='SnowPlanner', show=not args.no_browser)
 
