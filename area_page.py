@@ -10,7 +10,7 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+from snowrunner_gen_map_text_svg import main_scale, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
 import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
@@ -138,7 +138,7 @@ async def area(area_slug: str):
 
         await update_svg()
 
-    async def update_location_dict_for_rec(id, new_pos):
+    async def update_location_dict_for_rec(id, new_pos, db_units=False):
         rec = location_items[id]
         map_item_id = rec.map_item_id
         flt = rec.flt
@@ -148,7 +148,7 @@ async def area(area_slug: str):
             ic("pre", map_item_id, rec.cur_pos)
             ic(await flt.values("id", "x", "y"))
 #            await flt.update(x=new_pos[0], y=new_pos[1])
-            temp_positions[map_item_id] = (flt, new_pos)
+            temp_positions[map_item_id] = (flt, list(new_pos) if db_units else [round(c * 1000 / main_scale) for c in new_pos]) # drags give map svg units, the DB holds 0-1000
 #            ic(await flt.values("map_item_id", "x", "y"))
             rec.cur_pos[:] = rec.adjusted_pos[:] = new_pos
             ic("post", map_item_id, rec.cur_pos)
@@ -174,7 +174,7 @@ async def area(area_slug: str):
         new_pos = (avg_x, avg_y)
 
         for id in selected_ids:
-            await update_location_dict_for_rec(id, new_pos)
+            await update_location_dict_for_rec(id, new_pos, db_units=True)
 
         await update_svg()
 
@@ -361,7 +361,7 @@ async def area(area_slug: str):
 #        await Objective.filter(id__in=tree_ids).update(
 #            completed = Case(When(id__in  = hide_ids, then = True), default=False))
 
-        await apply_tree_ticks(ticked_ids, unticked_ids)
+        await apply_tree_ticks(ticked_ids, unticked_ids, old_ticked_ids)
 
             # update to show any objectives that have become unblocked
 #        await update_obj_tree()
@@ -461,9 +461,8 @@ async def area(area_slug: str):
         typ = rec.typ
         extra = rec.extra
 
-        if (extra or typ) == "plan": # a delivery plan stop: edit it
+        if (extra or typ) == "plan": # a delivery plan stop: show it in the Delivery Plans tab
             await plan_panel.focus_stop(int(id.split(":")[1]))
-            await plan_panel.open_editor(int(id.split(":")[1]))
             return
 
         if plan_panel.pick_mode: # choosing a delivery plan location: use the clicked location's real position

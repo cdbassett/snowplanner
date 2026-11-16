@@ -38,8 +38,10 @@ area_ids_by_area = get_area_ids_by_area()
 areas_by_area_id = get_areas_by_area_id()
 abbreviations_by_area_id = get_abbreviations_by_area_id()
 
-DrawItem = namedtuple("DrawItem", "flt,map_item_id,id,typ,disp_name,cargo_items,selected,blocked,back,fore,width,loc_name,extra,classes,arrow,tip")
-DrawRec = namedtuple("DrawRec", "flt,map_item_id,id,typ,disp_name,cargo_items,selected,blocked,back,fore,width,loc_name,extra,classes,arrow,tip,html_id,cur_pos,adjusted_pos")
+LOC_MODE_EXTRA = {"src": "cargo", "pickup": "pickup", "dst": "dst", "truck": "truck"} # kind of an entry in the normal view -> what the location editor calls it
+
+DrawItem = namedtuple("DrawItem", "flt,map_item_id,id,typ,disp_name,cargo_items,selected,blocked,back,fore,width,loc_name,extra,classes,arrow,tip,row_key", defaults=(None,)) # entries at one position with the same row_key are drawn side by side
+DrawRec = namedtuple("DrawRec", "flt,map_item_id,id,typ,disp_name,cargo_items,selected,blocked,back,fore,width,loc_name,extra,classes,arrow,tip,row_key,html_id,cur_pos,adjusted_pos")
 
 precedence = [
     "loc",
@@ -151,9 +153,13 @@ def layout_cargo(cargo_items, text_height):
             row = x = used = 0
             on_vehicle_row = False # cargo loaded on a truck or trailer stays on the vehicle's line
 
-            for stack in group: # trailer squares are wider; trucks and trailers otherwise get a line of their own
+            group = [v for _, run in itertools.groupby(group, lambda st: st.is_vehicle) for v in sorted(run, key=lambda st: st.kind != "truck")] # a truck comes before its trailer
+            prev_vehicle = False
+
+            for stack in group: # trailer squares are wider; vehicles otherwise get a line of their own, but a truck and trailer delivered together share one
                 w = stack.width_factor * sq
-                new_row = stack.is_vehicle or (on_vehicle_row and not stack.loaded)
+                new_row = (stack.is_vehicle and not prev_vehicle) or (on_vehicle_row and not stack.loaded and not stack.is_vehicle)
+                prev_vehicle = stack.is_vehicle
 
                 if x and (new_row or x + w > max_w + 0.01):
                     row += 1
@@ -216,6 +222,17 @@ def create_drawing(width=main_scale, height=main_scale, text_height = 8, loc_mod
 
 
 
+async def needed_cargo_names(region_area_ids):
+    """Normalized names of cargo that plain sources should show: what open objectives in these areas still need, plus the ingredients (down the whole chain) of crafts whose product is needed."""
+    needed = {normalize_cargo_name(n) for n in await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True)}
+    recipes = [r for ci in await SourceCargoItem.filter(map_item__area_id__in=region_area_ids, map_item__item_type="craft") if (r := parse_recipe(ci.craft_desc))]
+
+    while (more := {normalize_cargo_name(i.name) for r in recipes if normalize_cargo_name(r.product.name) in needed for i in r.ingredients} - needed):
+        needed |= more
+
+    return needed
+
+
 LIQUID_CARGO = {"fuel", "water", "repair parts"}
 
 
@@ -269,6 +286,7 @@ async def cargo_shortages(area_id):
 async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = False,
         element_classes = {}, hide_types = set(), show_all=False, selected_ids=None, detail_in_loc_mode=False,
         override_positions=None, overall_group=None, offset_lookup={}, plan=None):
+    detail_in_loc_mode = detail_in_loc_mode or loc_mode # editing locations shows the same cargo and icons as the normal view
     selected_ids = as_set(selected_ids)
     override_positions = override_positions or dict()
     multi_area = overall_group is not None
@@ -280,15 +298,14 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
     def calc_text_width(title, lst):
         return max(max(map(len, wrap_title(title)), default=0) * text_width_mult, layout_cargo(lst, text_height)[1]) + text_h_margin * 2
 
-    def make_draw_item(flt, map_item_id, id, typ, disp_name, cargos, selected, blocked, back, fore="black", loc_name=None, extra=None, classes=None, arrow=None, tip=None):
-        if loc_mode: # icons aren't drawn when editing locations
-            cargos = [str(c) for c in cargos]
+    def make_draw_item(flt, map_item_id, id, typ, disp_name, cargos, selected, blocked, back, fore="black", loc_name=None, extra=None, classes=None, arrow=None, tip=None, row_key=None):
+        if loc_mode and typ in LOC_MODE_EXTRA: # editing locations draws exactly what the normal view does; only the kind moves to extra (which the editor reads) and there are no delivery lines
+            typ, extra, arrow = "loc", LOC_MODE_EXTRA[typ], None
 
         sl = abbreviate_line(disp_name)
-        return DrawItem(flt, map_item_id, id, typ, disp_name, cargos, selected, blocked, back, fore, calc_text_width('' if tip else sl, cargos), loc_name, extra, classes, arrow, tip)
+        return DrawItem(flt, map_item_id, id, typ, disp_name, cargos, selected, blocked, back, fore, calc_text_width('' if tip else sl, cargos), loc_name, extra, classes, arrow, tip, row_key)
 
     def make_location_item(flt, map_item_id, id, disp_name, selected, blocked, back="lightblue", fore="black", loc_name=None, extra=None, lst=[], classes=None, arrow=None):
-        lst = [str(c) for c in lst]
         sl = abbreviate_line(disp_name.split("|")[0])
 #        return (id, "loc" if loc_mode else "location", sl, lst, back, fore, calc_text_width(sl, lst), loc_name, extra)
         return DrawItem(flt, map_item_id, id, "loc" if loc_mode else "location", sl, lst, selected, blocked, back, fore, calc_text_width(sl, lst), loc_name, extra, classes, arrow, None)
@@ -409,11 +426,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
         if not show_all:
             region_area_ids = [r.area_id for r in iterate_region_area() if r.region == region]
-            needed_cargo = {normalize_cargo_name(n) for n in await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True)}
-            recipes = [r for ci in await SourceCargoItem.filter(map_item__area_id__in=region_area_ids, map_item__item_type="craft") if (r := parse_recipe(ci.craft_desc))]
-
-            while (more := {normalize_cargo_name(i.name) for r in recipes if normalize_cargo_name(r.product.name) in needed_cargo for i in r.ingredients} - needed_cargo): # ingredients of a needed product are needed too, and so on down the chain
-                needed_cargo |= more
+            needed_cargo = await needed_cargo_names(region_area_ids)
 
         for map_item in await MapItem.filter(Q(area_id=area_id) & (Q(item_type="source") | Q(item_type="craft"))).prefetch_related("cargo_items", "obj_locker"):
 #            if 1 or have_db_pos(map_item):
@@ -426,10 +439,8 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 selected, source_color = get_selected_color("yellow", map_item.id, blocked, "gold")
                 desc = abbreviate_line(map_item.name) + (" Craft" if map_item.item_type=="craft" else "")
 
-                if loc_mode:
-                    cargo_by_pos[db_pos(map_item)].append(make_location_item(flt, map_item.id, map_item.id, desc, selected, blocked, back=source_color, extra="cargo", classes=klass, lst=cargo_items if detail_in_loc_mode else []))
-                else:
-                    cargo_by_pos[db_pos(map_item)].append(make_draw_item(flt, map_item.id, map_item.id, "src", desc, cargo_items, selected, blocked, source_color, "blue", map_item.name, classes=klass, tip=("📍", map_item.name, "Crafting site" if map_item.item_type == "craft" else "Source") if cargo_items else None))
+                if 1:
+                    cargo_by_pos[db_pos(map_item)].append(make_draw_item(flt, map_item.id, map_item.id, "src", desc, cargo_items, selected, blocked, source_color, "blue", map_item.name, classes=klass, tip=("📍", map_item.name, "Crafting site" if map_item.item_type == "craft" else "Source") if cargo_items else None, row_key="src")) # sources sharing a spot sit side by side
 
 
         # trucks/trailers on map
@@ -462,28 +473,23 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 #                ic(map_item.name, obj_item.objective_id, obj_item.id)
                     selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id, map_item.id), blocked, "limegreen")
 
-                    if loc_mode:
-                        rec = make_location_item(flt, map_item.id, obj_item.id, desc, selected, blocked, back=back_color, fore="blue", extra="pickup", lst=[cur_task] + (cargo_items  if detail_in_loc_mode else []), classes=klass)
-                    else:
+                    if 1:
                         arrow = None
 
                         if not (hide_tasks if is_task else hide_contracts):
                             arrow = link_targets(obj_item.deliver_loc, map_item)
 
-                        cargo_list = [vehicle_stack(map_item.name, desc)] + cargo_items
+                        cargo_list = [CargoStack(map_item.name, 1, desc) if is_spawn else vehicle_stack(map_item.name, desc)] + cargo_items
 
                         rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                 elif not is_spawn:
                     blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                     selected, back_color = get_selected_color("mediumpurple", map_item.id, blocked, "darkslateblue")
-                    if loc_mode:
-                        tip = None
-                    else:
-                        vehicle = vehicle_stack(map_item.name, desc)
-                        cargo_items = [vehicle] + cargo_items
-                        tip = (vehicle.icon, map_item.name, vehicle.tip_sub, " ".join(vehicle.art_uris or []))
+                    vehicle = vehicle_stack(map_item.name, desc)
+                    cargo_items = [vehicle] + cargo_items
+                    tip = (vehicle.icon, map_item.name, vehicle.tip_sub, " ".join(vehicle.art_uris or []))
 
-                    rec = make_draw_item(flt, map_item.id, map_item.id, "loc" if loc_mode else "truck", desc, cargo_items, selected, blocked, back=back_color, extra="truck", classes=truck_klass, tip=tip)
+                    rec = make_draw_item(flt, map_item.id, map_item.id, "truck", desc, cargo_items, selected, blocked, back=back_color, extra="truck", classes=truck_klass, tip=tip)
 #                    if map_item.id == "US_09_01|scout_trailer_oiltank|6":
 #                        ic(rec)
 
@@ -510,7 +516,8 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         cur_task = abbreviate_line(obj_item.objective.name)
                         is_task = obj_item.objective.obj_type == "task"
                         klass = truck_klass
-                        blocked = any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
+                        multi_stages, blocked_stages = determine_stage_blocking(obj_item.objective.obj_items, obj_item.objective.obj_prereqs)
+                        blocked = obj_item.stage in blocked_stages or any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
     #                ic(map_item.name, obj_item.objective_id, obj_item.id)
                         selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id, map_item.id), blocked, "limegreen")
 
@@ -571,9 +578,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 obj_items = list(obj_items)
                 blocked = stage_blocked or any(not prereq.prereq_obj.completed for prereq in objective.obj_prereqs)
 
-                if loc_mode and not detail_in_loc_mode:
-                    obj_item = obj_items[0]
-                else:
+                if 1:
                     for obj_item in obj_items:
                         if obj_item.map_item and obj_item.map_item.area_id != obj_item.deliver_loc.area_id and (show_all or not obj_item.completed) \
                                 and gates_to_area.get(obj_item.map_item.area_id) and have_db_pos(obj_item.deliver_loc):
@@ -604,11 +609,8 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     ids = await MapItem.filter(obj_item_deliveries__deliver_loc_id=deliver_loc_id).distinct().values_list("id", flat=True)
                     flt = MapItem.filter(id__in=ids)
 
-                    if loc_mode:
-                        # when editing we show position then task, if more than one task in same position then join them instead of creating a new entry
-                        dst_list.append(make_location_item(flt, deliver_loc_id, deliver_loc_id, obj_item.deliver_loc.name, selected, blocked, back=back_color, fore="green", extra="dst", lst = [abbr_task] + cargo_list if detail_in_loc_mode else [abbr_task], classes=klass))
-                    else:
-                        dst_list.append(make_draw_item(flt, deliver_loc_id, deliver_loc_id, "dst", abbr_task, cargo_list, selected, blocked, back_color, "green", obj_item.deliver_loc.name, classes=klass, tip=("📍", obj_item.deliver_loc.name, "; ".join(["Objective: " + objective.name] + from_notes))))
+                    if 1:
+                        dst_list.append(make_draw_item(flt, deliver_loc_id, deliver_loc_id, "dst", abbr_task, cargo_list, selected, blocked, back_color, "green", obj_item.deliver_loc.name, classes=klass, tip=("📍", obj_item.deliver_loc.name, "; ".join(["Objective: " + objective.name] + from_notes)), row_key=objective.id)) # an objective's stages at one spot sit side by side
 
 
     gate_lines = []
@@ -753,7 +755,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 selected, back = get_selected_color(PLAN_BACK_COLOR, f"plan:{stop.id}")
                 stop_title = f"{stop.label} ({abbreviations_by_area_id[stop.area_id]})" if multi_area and stop.area_id in abbreviations_by_area_id else stop.label
                 stop_title += f" - split: {', '.join(stop.legs)}" if stop.legs else ""
-                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop_title, stop.rows, selected, False, back, "black", stop_title, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]), stop.color)))
+                cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop_title, stop.rows, selected, False, back, "black", stop_title, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]), stop.color), row_key="plan")) # stops at one spot sit side by side
 
     return cargo_by_pos, gate_lines, (free_segments if plan and not loc_mode else [])
 
@@ -873,14 +875,32 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             ic(pos, lst)
 
         scale_pos = scaled_pos(pos, ofs)
-            # position all items at same location one above one another, vertically centered
-        th = sum(map(entry_height, lst))
+            # position all items at same location one above one another, vertically centered; an objective's items (e.g. its stages) share a row
+        rows = []
+
+        for entry in sorted(lst, key=lambda e: (precedence.get(e.typ, 100), e.disp_name)):
+            if rows and entry.row_key is not None and rows[-1][0].row_key == entry.row_key:
+                rows[-1].append(entry)
+            else:
+                rows.append([entry])
+
+        row_gap = text_h_margin
+        row_hs = [max(map(entry_height, row)) for row in rows]
+        th = sum(row_hs)
         y_map = first_y = -th // 2
+        placed = []
+
+        for row, height in zip(rows, row_hs):
+            row_x = -(sum(e.width for e in row) + row_gap * (len(row) - 1)) // 2
+
+            for n, entry in enumerate(row):
+                placed.append((entry, row_x, n == len(row) - 1, height))
+                row_x += entry.width + row_gap
 
 #        if th < H:
 #            y_map = min(H-th-scale_pos[1]-inset, max(-scale_pos[1]+inset, first_y))
 
-        for entry in sorted(lst, key=lambda e: (precedence.get(e.typ, 100), e.disp_name)):
+        for entry, entry_x, ends_row, this_row_h in placed:
             id = "id" + str(next(id_gen))
             c = entry.typ
             no_cargo = int(not entry.cargo_items)
@@ -892,7 +912,8 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 #            g = draw.Group(id=id, class_=c, mask=drag_mask if loc_mode else None)
             g = draw.Group(id=id, class_=c)
             h = entry_height(entry)
-            pre_x = x = -entry.width // 2
+            x = entry_x
+            pre_x = -entry.width // 2 # where a lone entry's left edge would be; the difference gives the box's center offset from the position (used when dragging)
             y = -h // 2
             rec = None
 
@@ -978,7 +999,9 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                     stack.count_text and sg.append(draw.Text(stack.count_text, text_height * 0.9, sx + sw - 1, sy + sq - 1, text_anchor="end", font_weight="bold", fill="black", stroke="white", stroke_width=2, paint_order="stroke"))
                     overlay_elements.append(sg)
 
-            if overlay_elements:
+            if overlay_elements and loc_mode:
+                g.extend(overlay_elements) # editing: the icons are part of the entry so they move with it when dragged
+            elif overlay_elements:
                 overlays[id] = (c, overlay_elements)
 
             rect = Rectangle(map_pos_x, map_pos_y, entry.width, h - 1) # slightly decrease the height because overlapping one pixel on borders is A-OK
@@ -1000,7 +1023,8 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             if (not loc_mode or len(lst) > 1) and entry.typ != "gate":
                 dots.append(draw.Circle(scale_pos[0], scale_pos[1], half_height, fill='purple', stroke_width=1, stroke='black', class_="location-dot"))
 
-            y_map += h
+            if ends_row:
+                y_map += this_row_h
 
 #    ic(area_id)
     if fix_overlaps:
@@ -1118,10 +1142,16 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             id = "id" + str(next(id_gen)) # selection dragging grabs these ids, gsap drag and drop grabs the ids of the groups
                 # we want to use from center of group, but can't uise scale_pos directly bc it may be different than what db holds (vertical grouping. moving away from edges)
 #            overall_group.append(draw.Use(g, scale_pos[0] - moved_rect.deltax, scale_pos[1] - moved_rect.deltay, id=id, class_="loc2"))
-            overall_group.append(draw.Use(g, use_left - x, use_top - y, id=id, class_="loc2 plan-stop" if entry.typ == "plan" else "loc2"))
+            tip_attrs = {}
+
+            if loc_mode and entry.tip: # the box's own hover text; no overlay catches the mouse while editing, so the box can be dragged
+                tip_icon, tip_title, tip_sub, *tip_rest = entry.tip
+                tip_attrs = dict(data_tip_icon=tip_icon, data_tip_img=tip_rest[0] if tip_rest else "", data_tip_title=tip_title, data_tip_sub=tip_sub)
+
+            overall_group.append(draw.Use(g, use_left - x, use_top - y, id=id, class_="loc2 plan-stop" if entry.typ == "plan" else "loc2", **tip_attrs))
 
             if (overlay := overlays.get(g.args["id"])):
-                og = draw.Group(class_=overlay[0], transform=f"translate({use_left - x} {use_top - y})", data_click_id=id) # clicks are forwarded to the entry underneath
+                og = draw.Group(class_=overlay[0], transform=f"translate({use_left - x} {use_top - y})", data_click_id=id, **({"pointer_events": "none"} if loc_mode else {})) # clicks are forwarded to the entry underneath
                 og.extend(overlay[1])
                 overlay_groups.append(og)
 

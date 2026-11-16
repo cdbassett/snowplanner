@@ -33,23 +33,50 @@ function initialize_d3_js() {
 
         if (1)
             {
+            // Rubber-band selection. d3.brush can't be used on the map image: that group is only drawn through a <use>, and browsers now report the use's cloned elements (which have no d3 data) as the event target, which makes d3.brush throw.
             console.log("brushing turned on")
-            map_image.call(d3.brush().on("end", ({selection, sourceEvent}) => {
-//                if (!sourceEvent) return; // use this if changes to brush here trigger more events
-                console.log("brush end", selection)
-                var [[x0, y0], [x1, y1]] = [[0, 0], [0, 0]];
-                console.log("initial", x0, y0, x1, y1)
+            const image_use = () => svg.selectAll("use").filter(function() { return (this.getAttribute("href") || this.getAttribute("xlink:href")) === map_svg_image_group; }).node();
+            let band = null, start = null;
 
-                if (selection)
-                    [[x0, y0], [x1, y1]] = selection;
+            svg.on("mousedown.rubberband", function(event) {
+                const use = image_use();
 
-                console.log("js_brush_end_event", x0, y0, x1, y1)
-                emitEvent('js_brush_end_event', { x0: x0, x1: x1, y0: y0, y1: y1 });
-//                d3.event.stopPropagation();
+                if (event.button !== 0 || !use || (event.target !== use && event.target !== svg.node())) return; // only blank map starts a selection; entries start a drag instead
 
-           // Inform downstream cells that the selection has changed.
-//         svg.property("value", value).dispatch("input");
-         }));}
+                start = [event.clientX, event.clientY];
+                band = document.createElement("div");
+                band.style.cssText = "position:fixed; border:1px dashed #1976d2; background:rgba(25,118,210,0.15); pointer-events:none; z-index:9999";
+                document.body.appendChild(band);
+                event.preventDefault();
+
+                const move = (e) => {
+                    band.style.left = Math.min(start[0], e.clientX) + "px";
+                    band.style.top = Math.min(start[1], e.clientY) + "px";
+                    band.style.width = Math.abs(e.clientX - start[0]) + "px";
+                    band.style.height = Math.abs(e.clientY - start[1]) + "px";
+                };
+
+                const up = (e) => {
+                    window.removeEventListener("mousemove", move);
+                    window.removeEventListener("mouseup", up);
+                    band.remove();
+                    band = null;
+                    var [x0, y0, x1, y1] = [0, 0, 0, 0];
+
+                    if (Math.abs(e.clientX - start[0]) > 2 || Math.abs(e.clientY - start[1]) > 2) { // map image coordinates, so zooming is accounted for
+                        const inv = use.getScreenCTM().inverse();
+                        const a = new DOMPoint(start[0], start[1]).matrixTransform(inv), b = new DOMPoint(e.clientX, e.clientY).matrixTransform(inv);
+                        [x0, y0, x1, y1] = [Math.min(a.x, b.x), Math.min(a.y, b.y), Math.max(a.x, b.x), Math.max(a.y, b.y)];
+                    }
+
+                    console.log("js_brush_end_event", x0, y0, x1, y1)
+                    emitEvent('js_brush_end_event', { x0: x0, x1: x1, y0: y0, y1: y1 });
+                };
+
+                window.addEventListener("mousemove", move);
+                window.addEventListener("mouseup", up);
+            });
+            }
 
         g.selectAll(".loc2")
             .call(d3.drag()

@@ -10,7 +10,7 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+from snowrunner_gen_map_text_svg import needed_cargo_names, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
 import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
@@ -24,12 +24,12 @@ async def fill_cargo_filter_list(list_el, region_area_ids, filter_list_item_clic
     filter_cargo_items = set()
 
         # plain sources only list cargo that an incomplete objective still needs, same as the map
-    needed_cargo = None if show_all else set(await ObjectiveItem.filter(item_type="cargo", completed=False, objective__completed=False, deliver_loc__area_id__in=region_area_ids).values_list("name", flat=True))
+    needed_cargo = None if show_all else await needed_cargo_names(region_area_ids)
 
     for map_item in await MapItem.filter(Q(area_id__in=region_area_ids)).prefetch_related("cargo_items"):
         if show_all or not map_item.completed:
             for cargo_item in map_item.cargo_items:
-                if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type != "source" or cargo_item.name in needed_cargo):
+                if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type != "source" or normalize_cargo_name(cargo_item.name) in needed_cargo):
                     filter_cargo_items.add(cargo_item.name)
 
     for objective in await Objective.filter(obj_items__deliver_loc__area_id__in=region_area_ids).prefetch_related("obj_items__map_item"):

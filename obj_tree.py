@@ -16,7 +16,7 @@ from plan_panel import PlanPanel
 from database import db
 from database.models import *
 from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
-from snowrunner_read_game_save import sync_spawn_completion, find_newest_game_save, apply_game_save, apply_game_save_summary
+from snowrunner_read_game_save import sync_cargo_from_spawns, find_newest_game_save, apply_game_save, apply_game_save_summary
 from app_state import *
 
 class __TREE_FUNCTIONS__: pass
@@ -238,6 +238,7 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
         if objective.obj_items:
             items_by_location = [(loc_name, list(loc_items)) for loc_name, loc_items in itertools.groupby(sorted(objective.obj_items, key=obj_item_stage_loc_key), obj_item_loc_key)]
             multi_stages, blocked_stages = determine_stage_blocking(objective.obj_items, objective.obj_prereqs)
+            spawned = {(oi.stage, oi.name) for oi in objective.obj_items if oi.item_type == "spawn"}
 
             for loc_name, loc_items in items_by_location:
                 loc_id = "L_" + loc_name
@@ -255,6 +256,9 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
                         oi_children.append({"id": "OST_" + o_id +"_"+str(stage), "label": f"-  stage {stage+1}  -", "noTick": True})
 
                     for obj_item in stage_obj_items:
+                        if obj_item.item_type == "cargo" and (obj_item.stage, obj_item.name) in spawned: # its pickups are listed instead; ticking them marks the delivery
+                            continue
+
                         oi_id = "OI_" + str(obj_item.id)
                         obj_item_name = obj_item.name
                         if obj_item.map_item: obj_item_name = "*" + get_area_desc(obj_item_name, obj_item.map_item.area_id)
@@ -337,8 +341,33 @@ async def update_completed(ticked_ids, unticked_ids, model):
         await model.filter(id__in=unticked_ids, completed=True).update(completed=False)
 
 
-async def apply_tree_ticks(ticked_ids, unticked_ids):
-    """Write the completed state of the ticked / unticked objective tree nodes to the DB."""
+async def mirror_vehicle_ticks(ticked_ids, unticked_ids, old_ticked_ids):
+    """A truck or trailer to deliver has two tree nodes (the vehicle under Trucks, and its delivery under the objective); whichever one the user just changed decides both."""
+    ticked_ids, unticked_ids = set(ticked_ids), set(unticked_ids)
+
+    for oi in await ObjectiveItem.filter(item_type__in=["truck", "trailer"], map_item_id__isnull=False):
+        o_node, t_node = "OI_" + oi.id, "T_" + oi.map_item_id
+
+        # the vehicle's own node isn't in the tree while it is completed and completed items are hidden, so it can't be required to be present
+        if (o_node in ticked_ids) != (o_node in old_ticked_ids):
+            state = o_node in ticked_ids
+        elif (t_node in ticked_ids) != (t_node in old_ticked_ids):
+            state = t_node in ticked_ids
+        else:
+            continue
+
+        for node in (o_node, t_node):
+            (ticked_ids if state else unticked_ids).add(node)
+            (unticked_ids if state else ticked_ids).discard(node)
+
+    return ticked_ids, unticked_ids
+
+
+async def apply_tree_ticks(ticked_ids, unticked_ids, old_ticked_ids=None):
+    """Write the completed state of the ticked / unticked objective tree nodes to the DB. old_ticked_ids (the tree as it was before the click) lets a vehicle's two nodes follow each other."""
+    if old_ticked_ids is not None:
+        ticked_ids, unticked_ids = await mirror_vehicle_ticks(ticked_ids, unticked_ids, old_ticked_ids)
+
     ticked_o_ids, unticked_o_ids = get_actual_ids(ticked_ids, unticked_ids, "O_")
     #    ic(ticked_o_ids)
     await update_completed(ticked_o_ids, unticked_o_ids, Objective)
@@ -346,8 +375,8 @@ async def apply_tree_ticks(ticked_ids, unticked_ids):
     ticked_oi_ids, unticked_oi_ids = get_actual_ids(ticked_ids, unticked_ids, "OI_")
     await update_completed(ticked_oi_ids, unticked_oi_ids, ObjectiveItem)
 
-    if ticked_oi_ids or unticked_oi_ids: # a spawn is spent once its delivery is made, so ticking a delivery changes its spawn too
-        await sync_spawn_completion(await ObjectiveItem.filter(id__in=ticked_oi_ids + unticked_oi_ids).values_list("objective_id", flat=True))
+    if (spawn_ids := [i for i in ticked_oi_ids + unticked_oi_ids if i.endswith("|s")]): # a spawned cargo's delivery follows its pickups
+        await sync_cargo_from_spawns(await ObjectiveItem.filter(id__in=spawn_ids).values_list("objective_id", flat=True))
 
     ticked_t_ids, unticked_t_ids = get_actual_ids(ticked_ids, unticked_ids, "T_")
     ticked_s_ids, unticked_s_ids = get_actual_ids(ticked_ids, unticked_ids, "S_")

@@ -151,6 +151,41 @@ async def sync_spawn_completion(objective_ids):
         await ObjectiveItem.bulk_update(changed, fields=["completed"])
 
 
+async def sync_cargo_from_spawns(objective_ids):
+    """Mark the cargo deliveries of these objectives done from their picked-up spawns (the tree lists the pickups, not those deliveries).
+
+    A delivery is done once the spawns picked up so far cover it, counting each spawn as one unit of cargo; deliveries are filled in id order."""
+    spawns_done = defaultdict(int) # (objective, stage, name) -> spawns picked up
+    cargo = defaultdict(list)
+
+    for item in await ObjectiveItem.filter(objective_id__in=list(objective_ids)):
+        key = (item.objective_id, item.id.split("|")[-3], item.name)
+
+        if item.item_type == "spawn":
+            spawns_done[key] += bool(item.completed)
+        elif item.item_type == "cargo":
+            cargo[key].append(item)
+
+    changed = []
+
+    for key, items in cargo.items():
+        if key not in spawns_done: # no spawned cargo here
+            continue
+
+        covered = 0
+
+        for item in sorted(items, key=lambda i: i.id):
+            covered += item.count or 1
+            done = covered <= spawns_done[key]
+
+            if item.completed != done:
+                item.completed = done
+                changed.append(item)
+
+    if changed:
+        await ObjectiveItem.bulk_update(changed, fields=["completed"])
+
+
 async def apply_objective_item_progress(save):
     """Set ObjectiveItem.completed from the save's objectiveStates for objectives that are in progress.
 

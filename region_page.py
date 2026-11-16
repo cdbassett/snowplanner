@@ -87,7 +87,7 @@ async def region(region_slug: str):
         print("handle_tree_tick:")
         ticked_ids = set(e.value)
         ic(ticked_ids)
-        await apply_tree_ticks(ticked_ids, set(tree_ids) - ticked_ids)
+        await apply_tree_ticks(ticked_ids, set(tree_ids) - ticked_ids, set(tree_ticked_ids or ()))
         await update_obj_tree()
         await update_svg()
         info = region_areas[0] # lets the other open pages for this region refresh too
@@ -356,9 +356,8 @@ async def region(region_slug: str):
         typ = rec.extra or rec.typ
         id = rec.id
 
-        if typ == "plan": # a delivery plan stop: edit it
+        if typ == "plan": # a delivery plan stop: show it in the Delivery Plans tab
             await plan_panel.focus_stop(int(id.split(":")[1]))
-            await plan_panel.open_editor(int(id.split(":")[1]))
             return
 
         if plan_panel.pick_mode: # choosing a delivery plan location: use the clicked location's real position
