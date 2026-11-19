@@ -15,7 +15,7 @@ import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
 from database.models import *
-from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind
+from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind, parse_recipe
 from snowrunner_read_game_save import sync_cargo_from_spawns, find_newest_game_save, apply_game_save, apply_game_save_summary
 from app_state import *
 
@@ -108,7 +108,7 @@ reward_map_items = {
     "source": "Location",
     }
 
-async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cur_area_id=None):
+async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cur_area_id=None, show_ids=False):
     def get_area_desc(desc, area_id):
         return desc if area_id == cur_area_id else f"{desc} ({area_infos_by_area_id[area_id].abbrev})"
 
@@ -116,10 +116,10 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
         m_id = prefix + map_item.id
         should_tick = map_item.completed
         prereq_obj = map_item.obj_locker
-        map_item_name = get_area_desc(map_item.name + (" Craft" if map_item.item_type=="craft" else ""), map_item.area_id)
+        map_item_name = get_area_desc((map_item.id if show_ids else map_item.name) + (" Craft" if map_item.item_type=="craft" else ""), map_item.area_id)
 
         if obj_item:
-            map_item_name = map_item_name + "->" + get_area_desc(obj_item.deliver_loc.name, obj_item.deliver_loc.area_id)
+            map_item_name = map_item_name + "->" + get_area_desc(obj_item.deliver_loc_id if show_ids else obj_item.deliver_loc.name, obj_item.deliver_loc.area_id)
 
         node = {"id": m_id, "label": map_item_name}
 
@@ -242,7 +242,7 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
 
             for loc_name, loc_items in items_by_location:
                 loc_id = "L_" + loc_name
-                loc_node = {"id": loc_id, "label": get_area_desc(loc_name, loc_items[0].deliver_loc.area_id), "header": "location", "noTick": True}
+                loc_node = {"id": loc_id, "label": get_area_desc(loc_items[0].deliver_loc_id if show_ids else loc_name, loc_items[0].deliver_loc.area_id), "header": "location", "noTick": True}
                 ids.append(loc_id)
                 obj_children.append(loc_node)
 #                    oi_children = add_obj_items(loc_items)
@@ -325,6 +325,12 @@ async def get_cargo_highlight_ids(area_ids, cargo_item_name, only_incomplete):
     cargo_highlight_ids = []
     completed_filter = (Q(completed=False) | Q(completed=None)) if only_incomplete else Q()
     cargo_highlight_ids.extend(await MapItem.filter(Q(area_id__in=area_ids) & completed_filter).prefetch_related("cargo_items").filter(Q(cargo_items__name__icontains=cargo_item_name) & (Q(cargo_items__current_cnt=None) | Q(cargo_items__current_cnt__gt=0))).values_list("id", flat=True))
+    needle = cargo_item_name.casefold()
+
+    for ci in await SourceCargoItem.filter(map_item__area_id__in=area_ids, map_item__item_type="craft").prefetch_related("map_item"): # crafting sites that use it as an ingredient
+        if (recipe := parse_recipe(ci.craft_desc)) and any(needle in i.name.casefold() for i in recipe.ingredients) and (not only_incomplete or not ci.map_item.completed):
+            cargo_highlight_ids.append(ci.map_item_id)
+
     obj_item_filter = completed_filter & (Q(objective__completed=False) | Q(objective__completed=None)) if only_incomplete else Q() # an item of a finished objective is done too
     cargo_highlight_ids.extend(await ObjectiveItem.filter(Q(name__icontains=cargo_item_name) & obj_item_filter).prefetch_related("deliver_loc").filter(deliver_loc__area_id__in=area_ids).values_list("id", flat=True))
     return ic(cargo_highlight_ids)

@@ -20,7 +20,7 @@ from snowrunner_read_game_save import find_newest_game_save, apply_game_save, ap
 from app_state import *
 
 
-def create_map_header(region_name, partial_title, prev_item, next_item, is_region, update_svg, all_changed, make_visibility_toggler, toggle_panel=None, switch_map=None, edit_save_locations=None, group_locations=None, cancel_save_locations=None):
+def create_map_header(region_name, partial_title, prev_item, next_item, is_region, update_svg, all_changed, make_visibility_toggler, toggle_panel=None, switch_map=None, edit_save_locations=None, group_locations=None, cancel_save_locations=None, ids_changed=None):
     """The header row shared by the region and area pages: buttons, title with prev / next links and the view checkboxes.
 
     The callbacks come from the page (they are only called when the user acts, so late-bound lambdas are fine). Returns a namespace with the widgets the page needs afterwards.
@@ -28,7 +28,13 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
     def checkbox(text, **kw):
         return ui.checkbox(text, **kw).props("dense")
 
-    w = SimpleNamespace(checkboxes=None, checkbox_all=None, checkbox_overlap=None, checkbox_detail=None, save_button=None, group_button=None, cancel_button=None)
+    async def update_ids(): # map ids instead of names: redraw the map and relabel the objective tree
+        await update_svg()
+
+        if ids_changed:
+            await ids_changed()
+
+    w = SimpleNamespace(checkboxes=None, checkbox_all=None, checkbox_overlap=None, checkbox_ids=None, save_button=None, group_button=None, cancel_button=None)
 
     with ui.row(align_items='center').classes('gap-1 no-wrap flex-none'):
         if not is_region:
@@ -94,17 +100,19 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
 
             with ui.column().classes('gap-0'):
                 w.checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).bind_value(app.storage.tab, 'Overlap')
-                w.checkbox_detail = checkbox("Det", value=False, on_change=update_svg).bind_value(app.storage.tab, 'Detail')
+                w.checkbox_ids = checkbox("Ids", value=False, on_change=update_ids).bind_value(app.storage.tab, 'MapIds') # show map ids instead of location names
+
+            with ui.column().classes('gap-0'):
+                checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot"))
+                w.checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).bind_value(app.storage.tab, 'Completed')
         else:
             with ui.column().classes('gap-0'):
                 w.checkbox_overlap = checkbox("Ovl", value=False, on_change=update_svg).bind_value(app.storage.tab, 'RegionOverlap')
                 checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot"))
-                w.checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).bind_value(app.storage.tab, 'Completed')
 
-        if not is_region:
             with ui.column().classes('gap-0'):
-                checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot"))
                 w.checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).bind_value(app.storage.tab, 'Completed')
+                w.checkbox_ids = checkbox("Ids", value=False, on_change=update_ids).bind_value(app.storage.tab, 'MapIds')
 
         with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
             w.checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).bind_value(app.storage.tab, title)) for title in svg_vis_togglers)

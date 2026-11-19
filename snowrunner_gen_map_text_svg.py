@@ -285,7 +285,7 @@ async def cargo_shortages(area_id):
 
 async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = False,
         element_classes = {}, hide_types = set(), show_all=False, selected_ids=None, detail_in_loc_mode=False,
-        override_positions=None, overall_group=None, offset_lookup={}, plan=None):
+        override_positions=None, overall_group=None, offset_lookup={}, plan=None, show_ids=False):
     detail_in_loc_mode = detail_in_loc_mode or loc_mode # editing locations shows the same cargo and icons as the normal view
     selected_ids = as_set(selected_ids)
     override_positions = override_positions or dict()
@@ -437,10 +437,11 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 cargo_items = sorted((make_source_cargo(cargo_item, ccnt) for cargo_item in map_item.cargo_items if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type == "craft" or normalize_cargo_name(cargo_item.name) in needed_cargo)), key=lambda c: (c.product if isinstance(c, Recipe) else c).name)
                 blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                 selected, source_color = get_selected_color("yellow", map_item.id, blocked, "gold")
-                desc = abbreviate_line(map_item.name) + (" Craft" if map_item.item_type=="craft" else "")
+                shown_name = map_item.id if show_ids else map_item.name # the map id instead of the location's name when asked for
+                desc = (map_item.id if show_ids else abbreviate_line(map_item.name)) + (" Craft" if map_item.item_type=="craft" else "")
 
                 if 1:
-                    cargo_by_pos[db_pos(map_item)].append(make_draw_item(flt, map_item.id, map_item.id, "src", desc, cargo_items, selected, blocked, source_color, "blue", map_item.name, classes=klass, tip=("📍", map_item.name, "Crafting site" if map_item.item_type == "craft" else "Source") if cargo_items else None, row_key="src")) # sources sharing a spot sit side by side
+                    cargo_by_pos[db_pos(map_item)].append(make_draw_item(flt, map_item.id, map_item.id, "src", desc, cargo_items, selected, blocked, source_color, "blue", map_item.name, classes=klass, tip=("📍", shown_name, "Crafting site" if map_item.item_type == "craft" else "Source") if cargo_items else None, row_key="src")) # sources sharing a spot sit side by side
 
 
         # trucks/trailers on map
@@ -468,8 +469,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     cur_task = abbreviate_line(obj_item.objective.name)
                     is_task = obj_item.objective.obj_type == "task"
                     klass = truck_klass
-                    multi_stages, blocked_stages = determine_stage_blocking(obj_item.objective.obj_items, obj_item.objective.obj_prereqs)
-                    blocked = obj_item.stage in blocked_stages or any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs)
+                    blocked = any(not prereq.prereq_obj.completed for prereq in obj_item.objective.obj_prereqs) # a vehicle can be picked up before its stage; only its delivery waits (and anything it carries rides along)
 #                ic(map_item.name, obj_item.objective_id, obj_item.id)
                     selected, back_color = get_selected_color("greenyellow", (obj_item.objective_id, obj_item.id, map_item.id), blocked, "limegreen")
 
@@ -588,7 +588,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         if (not obj_item.map_item or obj_item.map_item.item_type != "spawn") and (show_all or not obj_item.completed):
                             cargo_text = counted_cargo(obj_item.count, abbreviate_line(obj_item.name))
                             is_vehicle = obj_item.item_type in ("truck", "trailer")
-                            cargo_label = vehicle_stack(obj_item.name, cargo_text, kind=obj_item.item_type) if is_vehicle else CargoStack(obj_item.name, obj_item.count, cargo_text, shortage=None if obj_item.map_item else shortages.get(obj_item.name))
+                            cargo_label = vehicle_stack(obj_item.name, cargo_text) if is_vehicle else CargoStack(obj_item.name, obj_item.count, cargo_text, shortage=None if obj_item.map_item else shortages.get(obj_item.name))
                             cargo_labels = [cargo_label]
 
                                 # extra info if between 2 areas
@@ -610,7 +610,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                     flt = MapItem.filter(id__in=ids)
 
                     if 1:
-                        dst_list.append(make_draw_item(flt, deliver_loc_id, deliver_loc_id, "dst", abbr_task, cargo_list, selected, blocked, back_color, "green", obj_item.deliver_loc.name, classes=klass, tip=("📍", obj_item.deliver_loc.name, "; ".join(["Objective: " + objective.name] + from_notes)), row_key=objective.id)) # an objective's stages at one spot sit side by side
+                        dst_list.append(make_draw_item(flt, deliver_loc_id, deliver_loc_id, "dst", abbr_task, cargo_list, selected, blocked, back_color, "green", obj_item.deliver_loc.name, classes=klass, tip=("📍", obj_item.deliver_loc_id if show_ids else obj_item.deliver_loc.name, "; ".join(["Objective: " + objective.name] + from_notes)), row_key=objective.id)) # an objective's stages at one spot sit side by side
 
 
     gate_lines = []
@@ -884,6 +884,21 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
             else:
                 rows.append([entry])
 
+            # many rows of one type: pack them into a roughly square grid (several rows side by side) instead of one tall column
+        packed = []
+
+        for typ, grp in itertools.groupby(rows, key=lambda r: r[0].typ):
+            grp = list(grp)
+
+            if len(grp) > 2:
+                avg_w = sum(sum(e.width for e in r) for r in grp) / len(grp)
+                avg_h = sum(max(map(entry_height, r)) for r in grp) / len(grp)
+                cols = max(1, min(len(grp), round(math.sqrt(len(grp) * avg_h / max(avg_w, 1)))))
+                grp = [sum(grp[i:i + cols], []) for i in range(0, len(grp), cols)]
+
+            packed.extend(grp)
+
+        rows = packed
         row_gap = text_h_margin
         row_hs = [max(map(entry_height, row)) for row in rows]
         th = sum(row_hs)
@@ -1174,9 +1189,9 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
     return d
 
-async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None):
+async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
-    objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan)
+    objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan, show_ids=show_ids)
     add_svg_image(d, img_path, size=size)
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
     s = d.as_svg(header="")
@@ -1282,7 +1297,7 @@ async def calculate_area_offsets_for_region(region, areas, size=main_scale):
 #def offsets_ok(ofs):
 #    return ofs[0][0] == ofs[0][1] == 0
 
-async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, hlinks, size=main_scale, text_height=8, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions={}, plan=None):
+async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, hlinks, size=main_scale, text_height=8, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions={}, plan=None, show_ids=False):
     d, id_gen = create_drawing(width=size // 2 * x_tiles, height=size, text_height=text_height, loc_mode = loc_mode)
     overall_group = draw.Group(id="region_group")
     half_size = size//2
@@ -1320,7 +1335,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         area_id = area_ids_by_area[area]
         hlink_group = Hyperlink(hlink)
         x_ofs, y_ofs = offset_lookup[area_id]
-        objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, overall_group=overall_group, offset_lookup=offset_lookup, plan=plan)
+        objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, overall_group=overall_group, offset_lookup=offset_lookup, plan=plan, show_ids=show_ids)
         all_objects.update(objects[0])
         all_gate_lines.update(objects[1])
         all_plan_segments.extend(objects[2])

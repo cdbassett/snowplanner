@@ -53,7 +53,7 @@ async def region(region_slug: str):
             obj_tree.filter = ""
 
     async def build_obj_tree_data():
-        return await build_obj_tree_data_base(region_area_ids, all_objs=True, completed_objs=switch_completed_objs.value)
+        return await build_obj_tree_data_base(region_area_ids, all_objs=True, completed_objs=switch_completed_objs.value, show_ids=bool(checkbox_ids and checkbox_ids.value))
 
     async def update_obj_tree():
 #        tree_and_map.refresh()
@@ -190,7 +190,7 @@ async def region(region_slug: str):
         img_paths = [get_image_name_ex(area_info, typ="icon") for area_info in region_areas]
         hlinks = [f'/area/{area_info.area_slug}' for area_info in region_areas]
 #        highlight_ids = []
-        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=checkbox_overlap.value, selected_ids=highlight_ids, plan=await dp.get_plan_view(plan_region))
+        return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=checkbox_overlap.value, selected_ids=highlight_ids, plan=await dp.get_plan_view(plan_region), show_ids=checkbox_ids.value)
 
     def filter_list_item_clicked(item):
         ic(filter_list_item_clicked, item)
@@ -295,13 +295,13 @@ async def region(region_slug: str):
     checkbox_all = None
     filter_cargo_items = None
     checkbox_overlap = None
-    checkbox_detail = None
+    checkbox_ids = None
 
     with ui.column().classes('w-full h-screen flex flex-col no-wrap overflow-hidden'):
         prev_region_item = (prev_region[0], prev_region[1]) if prev_region else None
         next_region_item = (next_region[0], next_region[1]) if next_region else None
-        header = create_map_header(region_areas[0].region, "Region Map", prev_region_item, next_region_item, True, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler)
-        checkboxes, checkbox_all, checkbox_overlap = header.checkboxes, header.checkbox_all, header.checkbox_overlap
+        header = create_map_header(region_areas[0].region, "Region Map", prev_region_item, next_region_item, True, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler, ids_changed=lambda: update_obj_tree())
+        checkboxes, checkbox_all, checkbox_overlap, checkbox_ids = header.checkboxes, header.checkbox_all, header.checkbox_overlap, header.checkbox_ids
 
         with ui.row().classes('w-full flex-1 no-wrap gap-2 p-2 flex flex-row overflow-hidden bg-gray-100'):
             # Left Panel: Objective Tree
@@ -386,7 +386,7 @@ async def region(region_slug: str):
                 select_single_top_tree_node(obj_tree, obj_item.objective.obj_type + "s")
                 await select_clicked_node("OI_" + obj_item.id, obj_item.id, obj_item.objective_id)
         elif typ == "dst":
-            if (obj_item := await ObjectiveItem.filter(deliver_loc_id=id).prefetch_related("objective").first()):
+            if (obj_item := await ObjectiveItem.filter(deliver_loc_id=id, **({'objective_id': rec.row_key} if rec.row_key else {})).prefetch_related("objective").first()):
                 await select_objective(obj_item.objective)
 
     ui.on('js_click_event', handle_js_click_event)
