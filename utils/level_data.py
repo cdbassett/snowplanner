@@ -134,3 +134,32 @@ def area_half_span(data, zones=None):
 def world_to_db(x, z, half=1000):
     """World position -> the app's 0-1000 map coordinates (same conversion as the gates), clamped to the map."""
     return max(0, min(1000, round((x + half) / (2 * half) * 1000))), max(0, min(1000, round((half - z) / (2 * half) * 1000)))
+
+
+_UI_DESC = re.compile(r'uiDesc\s*=\s*"([^"]+)"(?=(.{0,400}))', re.S)
+_ZONE_REF = re.compile(r'globalZone(?:Delivery)?Id\s*=\s*(?:\{\s*globalZoneId\s*=\s*)?"([^"|]+?)\s*\|\|\s*([^"]+)"')
+
+
+def delivery_zones():
+    """{delivery location id: (area id, zone id)} from the objective scripts: a delivery's id is the uiDesc of its zoneToFill / truckDelivery entry
+    and the zone it sits in is the zone reference next to it (after it for cargo, before it for truck deliveries). Zones that only block or give tasks are ignored."""
+    from utils.snowrunner_utils import fname_to_area_id
+
+    out = {}
+
+    for fname in gamefiles.list_ps_files(r".*"):
+        text = gamefiles.read_ps_text(fname)
+
+        for m in _UI_DESC.finditer(text):
+            ui, tail = m.group(1), m.group(2).split("uiDesc")[0]
+            back = text[max(0, m.start() - 350):m.start()].split("uiDesc")[-1]
+            found = list(_ZONE_REF.finditer(back))
+            ref = found[-1] if found else _ZONE_REF.search(tail)
+
+            if ref and "GIVER" not in ref.group(2):
+                try:
+                    out.setdefault(ui, set()).add((fname_to_area_id(ref.group(1)), ref.group(2)))
+                except Exception:
+                    pass # test levels and the like
+
+    return out

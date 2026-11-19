@@ -14,6 +14,7 @@ and the names of the zones), and then
     python3 import_new_regions.py --area US_19_01  # only this area
 """
 import argparse
+import functools
 import asyncio
 import os
 import re
@@ -280,6 +281,11 @@ def objective_ids_by_area():
 
 # ---------------------------------------------------------------- map positions
 
+@functools.cache
+def delivery_zone_refs():
+    return level_data.delivery_zones()
+
+
 async def fill_positions(area_ids):
     """Give the map items of these areas that have no position yet the one the game files hold for them (zones from data_for_ssl.bin, placed trucks from the item list),
     converted to the app's 0-1000 coordinates. Positions that are already set (e.g. by hand in edit mode) are never touched."""
@@ -299,6 +305,10 @@ async def fill_positions(area_ids):
 
         for map_item in await MapItem.filter(area_id=area_id, x=None, y=None):
             pos = coords.get(map_item.id)
+
+            if not pos and map_item.item_type == "delivery": # the id is the objective's uiDesc, not a zone: follow it to the zone it is delivered in
+                zone_refs = [z for a, z in delivery_zone_refs().get(map_item.id, ()) if a == area_id and z in coords]
+                pos = coords[zone_refs[0]] if zone_refs else None
 
             if not pos and map_item.item_type == "spawn" and (found := level_data.placement_by_id(data, map_item.id)):
                 pos = (found.x, found.z)
