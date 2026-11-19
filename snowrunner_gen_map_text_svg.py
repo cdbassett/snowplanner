@@ -350,6 +350,10 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
         return (x, y), (ofs_x, ofs_y)
 
+    def pickup_tip(cargo, title, sub):
+        """Hover tip of a pickup: the icon of what is picked up (cargo, truck or trailer)."""
+        return (cargo.icon, title, sub, " ".join(cargo.art_uris or []))
+
     def pickup_tip_sub(map_item, obj_item):
         """Hover subtitle for a pickup; says where it goes when that is in another area."""
         sub = "Pickup"
@@ -481,7 +485,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
                         cargo_list = [CargoStack(map_item.name, 1, desc) if is_spawn else vehicle_stack(map_item.name, desc)] + cargo_items
 
-                        rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
+                        rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=pickup_tip(cargo_list[0], obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                 elif not is_spawn:
                     blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                     selected, back_color = get_selected_color("mediumpurple", map_item.id, blocked, "darkslateblue")
@@ -539,7 +543,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                             else:
                                 cargo_list = [CargoStack(map_item.name, len(map_items), desc)]
 
-                            rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=("🚚", obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
+                            rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=pickup_tip(cargo_list[0], obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                             cargo_by_pos[db_pos(map_item)].append(rec)
 
         # read deliveries for region and add to list
