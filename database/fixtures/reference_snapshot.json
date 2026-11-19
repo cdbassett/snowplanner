@@ -15768,8 +15768,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 216,
-      "y": 268,
+      "x": 90,
+      "y": 653,
       "id": "US_04_01_CR_MET_02",
       "name": "Metal framing B",
       "item_type": "source",
@@ -15792,8 +15792,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 82,
-      "y": 650,
+      "x": 221,
+      "y": 266,
       "id": "US_04_01_CR_MET_04",
       "name": "Metal framing D",
       "item_type": "source",
@@ -15816,8 +15816,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 268,
-      "y": 450,
+      "x": 589,
+      "y": 519,
       "id": "US_04_01_CR_BR_01",
       "name": "Brick framing A",
       "item_type": "source",
@@ -15828,8 +15828,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 325,
-      "y": 420,
+      "x": 591,
+      "y": 730,
       "id": "US_04_01_CR_BR_02",
       "name": "Brick framing B",
       "item_type": "source",
@@ -15840,8 +15840,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 281,
-      "y": 663,
+      "x": 694,
+      "y": 174,
       "id": "US_04_01_CR_BR_03",
       "name": "Brick framing C",
       "item_type": "source",
@@ -15852,8 +15852,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 315,
-      "y": 248,
+      "x": 326,
+      "y": 412,
       "id": "US_04_01_CR_BR_04",
       "name": "Brick framing D",
       "item_type": "source",
@@ -15864,8 +15864,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 530,
-      "y": 505,
+      "x": 370,
+      "y": 775,
       "id": "US_04_01_CR_BR_05",
       "name": "Brick framing E",
       "item_type": "source",
@@ -15876,8 +15876,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 377,
-      "y": 200,
+      "x": 181,
+      "y": 817,
       "id": "US_04_01_CR_BR_06",
       "name": "Brick framing F",
       "item_type": "source",
@@ -15888,8 +15888,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 693,
-      "y": 314,
+      "x": 281,
+      "y": 656,
       "id": "US_04_01_CR_BR_07",
       "name": "Brick framing G",
       "item_type": "source",
@@ -15900,8 +15900,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 611,
-      "y": 110,
+      "x": 509,
+      "y": 417,
       "id": "US_04_01_CR_BR_08",
       "name": "Brick framing H",
       "item_type": "source",
@@ -15912,8 +15912,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 690,
-      "y": 171,
+      "x": 522,
+      "y": 335,
       "id": "US_04_01_CR_BR_09",
       "name": "Brick framing I",
       "item_type": "source",
@@ -15924,8 +15924,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 232,
-      "y": 733,
+      "x": 603,
+      "y": 102,
       "id": "US_04_01_CR_BR_10",
       "name": "Brick framing J",
       "item_type": "source",
@@ -15936,8 +15936,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 181,
-      "y": 825,
+      "x": 198,
+      "y": 592,
       "id": "US_04_01_CR_BR_11",
       "name": "Brick framing K",
       "item_type": "source",
@@ -15948,8 +15948,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 412,
-      "y": 933,
+      "x": 49,
+      "y": 590,
       "id": "US_04_01_CR_BR_12",
       "name": "Brick framing L",
       "item_type": "source",
@@ -15960,8 +15960,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 713,
-      "y": 710,
+      "x": 99,
+      "y": 372,
       "id": "US_04_01_CR_BR_13",
       "name": "Brick framing M",
       "item_type": "source",
@@ -15972,8 +15972,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 591,
-      "y": 733,
+      "x": 531,
+      "y": 505,
       "id": "US_04_01_CR_BR_14",
       "name": "Brick framing N",
       "item_type": "source",
@@ -15984,8 +15984,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 326,
-      "y": 770,
+      "x": 714,
+      "y": 708,
       "id": "US_04_01_CR_BR_15",
       "name": "Brick framing O",
       "item_type": "source",
@@ -15996,8 +15996,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 594,
-      "y": 520,
+      "x": 382,
+      "y": 204,
       "id": "US_04_01_CR_BR_16",
       "name": "Brick framing P",
       "item_type": "source",
@@ -16008,8 +16008,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 521,
-      "y": 343,
+      "x": 317,
+      "y": 252,
       "id": "US_04_01_CR_BR_17",
       "name": "Brick framing Q",
       "item_type": "source",
@@ -16020,8 +16020,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 201,
-      "y": 604,
+      "x": 266,
+      "y": 448,
       "id": "US_04_01_CR_BR_18",
       "name": "Brick framing R",
       "item_type": "source",
@@ -16032,8 +16032,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 590,
-      "y": 463,
+      "x": 410,
+      "y": 931,
       "id": "US_04_01_CR_BR_19",
       "name": "Brick framing S",
       "item_type": "source",
@@ -16044,8 +16044,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 47,
-      "y": 597,
+      "x": 590,
+      "y": 466,
       "id": "US_04_01_CR_BR_20",
       "name": "Brick framing T",
       "item_type": "source",
@@ -16056,8 +16056,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 102,
-      "y": 375,
+      "x": 232,
+      "y": 736,
       "id": "US_04_01_CR_BR_21",
       "name": "Brick framing U",
       "item_type": "source",
@@ -16068,8 +16068,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 514,
-      "y": 424,
+      "x": 694,
+      "y": 302,
       "id": "US_04_01_CR_BR_22",
       "name": "Brick framing V",
       "item_type": "source",
@@ -16080,8 +16080,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 426,
-      "y": 610,
+      "x": 368,
+      "y": 443,
       "id": "US_04_01_CR_WD_01",
       "name": "Wood framing A",
       "item_type": "source",
@@ -16092,8 +16092,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 620,
-      "y": 614,
+      "x": 408,
+      "y": 519,
       "id": "US_04_01_CR_WD_02",
       "name": "Wood framing B",
       "item_type": "source",
@@ -16104,8 +16104,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 408,
-      "y": 521,
+      "x": 480,
+      "y": 551,
       "id": "US_04_01_CR_WD_03",
       "name": "Wood framing C",
       "item_type": "source",
@@ -16116,8 +16116,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 569,
-      "y": 417,
+      "x": 443,
+      "y": 192,
       "id": "US_04_01_CR_WD_04",
       "name": "Wood framing D",
       "item_type": "source",
@@ -16128,8 +16128,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 356,
-      "y": 842,
+      "x": 424,
+      "y": 605,
       "id": "US_04_01_CR_WD_05",
       "name": "Wood framing E",
       "item_type": "source",
@@ -16140,8 +16140,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 427,
-      "y": 252,
+      "x": 451,
+      "y": 335,
       "id": "US_04_01_CR_WD_06",
       "name": "Wood framing F",
       "item_type": "source",
@@ -16152,8 +16152,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 450,
-      "y": 338,
+      "x": 428,
+      "y": 250,
       "id": "US_04_01_CR_WD_07",
       "name": "Wood framing G",
       "item_type": "source",
@@ -16164,8 +16164,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 834,
-      "y": 484,
+      "x": 356,
+      "y": 208,
       "id": "US_04_01_CR_WD_08",
       "name": "Wood framing H",
       "item_type": "source",
@@ -16188,8 +16188,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 820,
-      "y": 358,
+      "x": 524,
+      "y": 520,
       "id": "US_04_01_CR_WD_10",
       "name": "Wood framing J",
       "item_type": "source",
@@ -16200,8 +16200,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 447,
-      "y": 199,
+      "x": 621,
+      "y": 612,
       "id": "US_04_01_CR_WD_11",
       "name": "Wood framing K",
       "item_type": "source",
@@ -16212,8 +16212,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 352,
-      "y": 205,
+      "x": 356,
+      "y": 839,
       "id": "US_04_01_CR_WD_12",
       "name": "Wood framing L",
       "item_type": "source",
@@ -16224,8 +16224,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 524,
-      "y": 522,
+      "x": 803,
+      "y": 705,
       "id": "US_04_01_CR_WD_13",
       "name": "Wood framing M",
       "item_type": "source",
@@ -16236,8 +16236,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 482,
-      "y": 559,
+      "x": 568,
+      "y": 413,
       "id": "US_04_01_CR_WD_14",
       "name": "Wood framing N",
       "item_type": "source",
@@ -16260,8 +16260,8 @@
     },
     {
       "area_id": "US_04_01",
-      "x": 802,
-      "y": 715,
+      "x": 816,
+      "y": 355,
       "id": "US_04_01_CR_WD_16",
       "name": "Wood framing P",
       "item_type": "source",
@@ -16308,8 +16308,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 834,
-      "y": 655,
+      "x": 279,
+      "y": 731,
       "id": "US_04_02_WOODC_1",
       "name": "Wood framing A",
       "item_type": "source",
@@ -16320,8 +16320,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 140,
-      "y": 459,
+      "x": 533,
+      "y": 897,
       "id": "US_04_02_WOODC_2",
       "name": "Wood framing D",
       "item_type": "source",
@@ -16332,8 +16332,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 68,
-      "y": 102,
+      "x": 603,
+      "y": 921,
       "id": "US_04_02_WOODC_3",
       "name": "Wood framing E",
       "item_type": "source",
@@ -16356,8 +16356,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 611,
-      "y": 931,
+      "x": 242,
+      "y": 491,
       "id": "US_04_02_WOODC_5",
       "name": "Wood framing G",
       "item_type": "source",
@@ -16368,8 +16368,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 530,
-      "y": 904,
+      "x": 141,
+      "y": 452,
       "id": "US_04_02_WOODC_6",
       "name": "Wood framing H",
       "item_type": "source",
@@ -16380,8 +16380,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 654,
-      "y": 302,
+      "x": 67,
+      "y": 98,
       "id": "US_04_02_WOODC_7",
       "name": "Wood framing I",
       "item_type": "source",
@@ -16392,8 +16392,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 242,
-      "y": 495,
+      "x": 916,
+      "y": 762,
       "id": "US_04_02_WOODC_8",
       "name": "Wood framing J",
       "item_type": "source",
@@ -16404,8 +16404,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 278,
-      "y": 734,
+      "x": 835,
+      "y": 649,
       "id": "US_04_02_WOODC_9",
       "name": "Wood framing K",
       "item_type": "source",
@@ -16416,8 +16416,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 913,
-      "y": 766,
+      "x": 718,
+      "y": 479,
       "id": "US_04_02_WOODC_10",
       "name": "Wood framing B",
       "item_type": "source",
@@ -16428,8 +16428,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 726,
-      "y": 483,
+      "x": 653,
+      "y": 296,
       "id": "US_04_02_WOODC_11",
       "name": "Wood framing C",
       "item_type": "source",
@@ -16440,8 +16440,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 365,
-      "y": 261,
+      "x": 560,
+      "y": 878,
       "id": "US_04_02_BRICKC_1",
       "name": "Brick framing A",
       "item_type": "source",
@@ -16452,8 +16452,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 288,
-      "y": 226,
+      "x": 710,
+      "y": 947,
       "id": "US_04_02_BRICKC_2",
       "name": "Brick framing B",
       "item_type": "source",
@@ -16464,8 +16464,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 121,
-      "y": 295,
+      "x": 77,
+      "y": 543,
       "id": "US_04_02_BRICKC_3",
       "name": "Brick framing C",
       "item_type": "source",
@@ -16476,8 +16476,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 77,
-      "y": 555,
+      "x": 121,
+      "y": 290,
       "id": "US_04_02_BRICKC_4",
       "name": "Brick framing D",
       "item_type": "source",
@@ -16488,8 +16488,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 560,
-      "y": 882,
+      "x": 286,
+      "y": 217,
       "id": "US_04_02_BRICKC_5",
       "name": "Brick framing E",
       "item_type": "source",
@@ -16500,8 +16500,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 708,
-      "y": 955,
+      "x": 365,
+      "y": 255,
       "id": "US_04_02_BRICKC_6",
       "name": "Brick framing F",
       "item_type": "source",
@@ -16524,8 +16524,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 42,
-      "y": 479,
+      "x": 49,
+      "y": 474,
       "id": "US_04_02_METALC_1",
       "name": "Metal framing A",
       "item_type": "source",
@@ -16536,8 +16536,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 842,
-      "y": 484,
+      "x": 427,
+      "y": 434,
       "id": "US_04_02_METALC_2",
       "name": "Metal framing C",
       "item_type": "source",
@@ -16548,8 +16548,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 608,
-      "y": 402,
+      "x": 108,
+      "y": 189,
       "id": "US_04_02_METALC_3",
       "name": "Metal framing D",
       "item_type": "source",
@@ -16560,8 +16560,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 431,
-      "y": 444,
+      "x": 215,
+      "y": 166,
       "id": "US_04_02_METALC_4",
       "name": "Metal framing E",
       "item_type": "source",
@@ -16572,8 +16572,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 825,
-      "y": 579,
+      "x": 328,
+      "y": 103,
       "id": "US_04_02_METALC_5",
       "name": "Metal framing F",
       "item_type": "source",
@@ -16584,8 +16584,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 218,
-      "y": 171,
+      "x": 826,
+      "y": 573,
       "id": "US_04_02_METALC_6",
       "name": "Metal framing G",
       "item_type": "source",
@@ -16596,8 +16596,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 709,
-      "y": 290,
+      "x": 850,
+      "y": 471,
       "id": "US_04_02_METALC_7",
       "name": "Metal framing H",
       "item_type": "source",
@@ -16608,8 +16608,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 328,
-      "y": 107,
+      "x": 710,
+      "y": 285,
       "id": "US_04_02_METALC_8",
       "name": "Metal framing I",
       "item_type": "source",
@@ -16620,8 +16620,8 @@
     },
     {
       "area_id": "US_04_02",
-      "x": 103,
-      "y": 193,
+      "x": 605,
+      "y": 394,
       "id": "US_04_02_METALC_9",
       "name": "Metal framing J",
       "item_type": "source",
@@ -21728,7 +21728,7 @@
       "to_area_id": null,
       "to_map_item_id": null,
       "completed": false,
-      "obj_locker_id": null
+      "obj_locker_id": "RU_17_02_TRUCK_HELP_04"
     },
     {
       "area_id": "RU_17_02",
@@ -28248,8 +28248,8 @@
     },
     {
       "area_id": "US_03_02",
-      "x": 930,
-      "y": 378,
+      "x": 927,
+      "y": 377,
       "id": "US_03_02_MINIWAREHOUSE_01",
       "name": "Mini Warehouse A",
       "item_type": "source",
@@ -35904,8 +35904,8 @@
     },
     {
       "area_id": "US_03_02",
-      "x": 756,
-      "y": 589,
+      "x": 927,
+      "y": 377,
       "id": "US_03_02_TUBE_IN_RIVER_ST1",
       "name": "Unloading Site",
       "item_type": "delivery",
@@ -57964,7 +57964,7 @@
     {
       "id": "RU_08_01_WIND_POWER|1|0|t",
       "item_type": "truck",
-      "name": "Assembled rocket",
+      "name": "Wind Turbine Blade",
       "count": null,
       "completed": false,
       "stage": 1,
@@ -58173,7 +58173,7 @@
     {
       "id": "RU_08_04_WINDMILL|0|0|t",
       "item_type": "truck",
-      "name": "Assembled rocket",
+      "name": "Wind Turbine Blade",
       "count": null,
       "completed": false,
       "stage": 0,
@@ -90075,7 +90075,7 @@
       "name": "Metal Beams [2]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "1 Metal Beams [2]=(2 Metal Rolls [1])",
+      "craft_desc": "1 Metal Beams [2]=(2 Metal Rolls [1]+100 energy)",
       "map_item_id": "US_06_02_METAL_CRAFT"
     },
     {
@@ -90083,7 +90083,7 @@
       "name": "Metal Rolls [1]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "2 Metal Rolls [1]=(1 Metal Beams [2])",
+      "craft_desc": "2 Metal Rolls [1]=(1 Metal Beams [2]+100 energy)",
       "map_item_id": "US_06_02_METAL_CRAFT"
     },
     {
@@ -90091,7 +90091,7 @@
       "name": "Concrete Slab [2]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "1 Concrete Slab [2]=(2 Cement [1])",
+      "craft_desc": "1 Concrete Slab [2]=(2 Cement [1]+100 energy)",
       "map_item_id": "US_06_02_CONCRETE_CRAFT"
     },
     {
@@ -90099,7 +90099,7 @@
       "name": "Concrete Blocks [1]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "1 Concrete Blocks [1]=(1 Cement [1])",
+      "craft_desc": "1 Concrete Blocks [1]=(1 Cement [1]+100 energy)",
       "map_item_id": "US_06_02_CONCRETE_CRAFT"
     },
     {
@@ -90755,7 +90755,7 @@
       "name": "Cabin [2]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "1 Cabin [2]=(2 Metal Rolls [1]+1 Wooden Planks [1])",
+      "craft_desc": "1 Cabin [2]=(2 Metal Rolls [1]+1 Wooden Planks [1]+50 energy)",
       "map_item_id": "US_11_01_CRAFT_01"
     },
     {
@@ -90763,7 +90763,7 @@
       "name": "Wooden Planks [1]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "2 Wooden Planks [1]=(1 Short Logs)",
+      "craft_desc": "2 Wooden Planks [1]=(1 Short Logs+30 energy)",
       "map_item_id": "US_11_01_CRAFT_01"
     },
     {
@@ -90779,7 +90779,7 @@
       "name": "Metal Rolls [1]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "2 Metal Rolls [1]=(1 Metal Beams [2])",
+      "craft_desc": "2 Metal Rolls [1]=(1 Metal Beams [2]+20 energy)",
       "map_item_id": "US_11_01_CRAFT_02"
     },
     {
@@ -93267,7 +93267,7 @@
       "name": "Cabin [2]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "1 Cabin [2]=(1 Cargo Container [2]+1 Consumables [1])",
+      "craft_desc": "1 Cabin [2]=(1 Cargo Container [2]+1 Consumables [1]+250 energy)",
       "map_item_id": "RU_08_03_CRAFT_ZONE"
     },
     {
@@ -94219,7 +94219,7 @@
       "name": "Metal Rolls [1]",
       "initial_cnt": null,
       "current_cnt": null,
-      "craft_desc": "2 Metal Rolls [1]=(1 Metal Beams [2])",
+      "craft_desc": "2 Metal Rolls [1]=(1 Metal Beams [2]+100 energy)",
       "map_item_id": "US_12_04_FACTORY_CRAFT_METAL"
     },
     {
