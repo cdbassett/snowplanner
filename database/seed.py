@@ -9,6 +9,7 @@ from database.config import TABLE_ORDER, FIXTURE_PATH
 from database import models
 from utils.timer_utils import timefunction
 
+EMPTY_FILL_TABLES = {"region_area", "truck_info"} # reference tables filled from the fixture whenever they are empty
 USER_STATE_COLUMNS = {"completed", "current_cnt"} # set by playing, never overwritten from the fixture
 
 @timefunction
@@ -16,9 +17,15 @@ async def run_seeding(force_refresh: bool = False):
     if not os.path.exists(FIXTURE_PATH):
         return
 
-    # Skip heavy execution if data already exists and a quarterly overwrite isn't forced
+    # Skip heavy execution if data already exists and a quarterly overwrite isn't forced; reference tables that are still
+    # empty (e.g. added by a newer version) are filled anyway
+    only_tables = None
+
     if not force_refresh and await models.MapItem.all().count() > 0:
-        return
+        only_tables = [table for table, model in TABLE_ORDER.items() if table in EMPTY_FILL_TABLES and await model.all().count() == 0]
+
+        if not only_tables:
+            return
 
     with open(FIXTURE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -35,6 +42,9 @@ async def run_seeding(force_refresh: bool = False):
         print("Executing bulk reference upserts")
 
         for table, model in TABLE_ORDER.items():
+            if only_tables is not None and table not in only_tables:
+                continue
+
             rows = data.get(table, [])
 
             if not rows:
@@ -47,8 +57,9 @@ async def run_seeding(force_refresh: bool = False):
 
             # Upsert on ID keys. Not INSERT OR REPLACE: that deletes the existing row first, and with foreign keys on, the
             # ON DELETE CASCADE wipes every child row not in the fixture (e.g. all objective items) and resets user progress.
-            updates = ", ".join(f"`{c}`=excluded.`{c}`" for c in columns if c != "id" and c not in USER_STATE_COLUMNS)
-            query = f"INSERT INTO `{table}` ({col_string}) VALUES ({placeholders}) ON CONFLICT(`id`) DO UPDATE SET {updates}"
+            pk = model._meta.db_pk_column
+            updates = ", ".join(f"`{c}`=excluded.`{c}`" for c in columns if c != pk and c not in USER_STATE_COLUMNS)
+            query = f"INSERT INTO `{table}` ({col_string}) VALUES ({placeholders}) ON CONFLICT(`{pk}`) DO UPDATE SET {updates}"
 
             # Execute batch inserts natively on the transaction pool connection
             await txn.execute_many(query, rows)

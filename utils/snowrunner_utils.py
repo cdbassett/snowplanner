@@ -17,16 +17,14 @@ from utils.utilities import ReadFile, FileCache, read_tsv_file
 from utils.iter_utils import arithtuple
 from utils.text_data_utils import *
 from utils.yaml_utils import *
+from utils import gamefiles, refdata
 
 snowrunner_main_dir = Path(__file__).resolve().parent.parent
 
 snowrunner_doc_dir = Path("~/Documents/SnowRunner").expanduser()
 snowrunner_doc_dir.mkdir(exist_ok=True)
 snowrunner_data_dir = snowrunner_main_dir / "data"
-snowrunner_initial_pak_dir = snowrunner_doc_dir / "initialpak"
-snowrunner_initial_pak_dir = "/mnt/nas_docs/Games/snowrunner/initialpak"
-snowrunner_data_for_ssl_dir = snowrunner_doc_dir / "data_for_ssl_files"
-snowrunner_data_for_ssl_dir = "/mnt/nas_docs/Games/snowrunner/data_for_ssl_files"
+# game files are read straight from the packs in client_dir (see utils/gamefiles.py)
 
 def make_snowrunner_doc_path(fname):
     return os.path.join(snowrunner_doc_dir, fname)
@@ -60,12 +58,9 @@ TruckInfo = namedtuple("TruckInfo", "kind,id,ui_key,truck_type")
 
 
 def read_truck_trailer_info():
-    """Records of the truck/trailer info file: (truck|trailer, file id, UI name key, truck type). Trailers have no truck type.
-
-    Tolerates extra columns being added to the file, and older files without the truck type column."""
-    for row in read_snowrunner_data_tsv_file(TRUCK_TRAILER_INFO_FILE):
-        if len(row) >= 3:
-            yield TruckInfo(*row[:3], row[3] if len(row) > 3 else "")
+    """Records of the truck_info table: (truck|trailer, file id, UI name key, truck type). Trailers have no truck type."""
+    for kind, id, ui_key, name, truck_type in refdata.truck_info_rows():
+        yield TruckInfo(kind, id, ui_key, truck_type or "")
 
 
 def read_truck_id_lookup():
@@ -73,17 +68,9 @@ def read_truck_id_lookup():
     return {info.id: info.ui_key for info in read_truck_trailer_info()}
 
 
-def write_truck_types_file():
-    """Write display name -> truck type for every truck in the truck/trailer info file (needs the game's english strings)."""
-    ed = get_english_lang_dict()
-    rows = sorted({(ed[info.ui_key.upper()], info.truck_type) for info in read_truck_trailer_info() if info.kind == "truck" and info.truck_type and info.ui_key.upper() in ed})
-    write_snowrunner_data_tsv_file(TRUCK_TYPES_FILE, rows)
-    return len(rows)
-
-
 def read_truck_types():
     """display name -> truck type (HEAVY, HEAVY_DUTY, HIGHWAY, OFFROAD, SCOUT)"""
-    return dict(read_snowrunner_data_tsv_file(TRUCK_TYPES_FILE))
+    return {name: truck_type for kind, id, ui_key, name, truck_type in refdata.truck_info_rows() if kind == "truck" and truck_type and name}
 
 
 def read_snowrunner_data_yaml_file(fname):
@@ -735,16 +722,9 @@ def convert_mapping_line(s):
     k, v = s.replace("\t\t", "\t").replace("\t\t", "\t").strip().split("\t")
     return k.upper(), v[1:-1]
 
-@functools.cache
 def get_english_lang_dict():
-    with open(Path(snowrunner_initial_pak_dir, "[strings]", "strings_english.str"), encoding="utf-16") as english_file:
-        lines = list(english_file)
-#        print(seq(lines).map(convert_mapping_line).take(10))
-#        lines = seq(english_file).map(str.split).list()
-#        print(lines[:10])
-#        return seq(lines).dict()
-        #return seq(lines).map(convert_mapping_line).dict()
-        return dict(map(convert_mapping_line, lines))
+    """The game's English text (upper case key -> text), read from initial.pak in client_dir."""
+    return gamefiles.english_strings()
 
 def area_string(ed, level):
     level = (ed.get("LEVEL_"+level) or ed.get("LEVEL_"+level+"_NAME") or ed.get(level+"_NAME") or ed.get(level+"_NEW_NAME") or ed[level]).split(",")[0]
@@ -811,14 +791,7 @@ def build_region_area(line):
 
 @functools.cache
 def get_region_area_lines():
-    fname = make_snowrunner_data_path("snowrunner_region_area.tsv")
-
-    with open(fname) as csvFile:
-        reader = csv.reader(csvFile, delimiter="\t")
-        lines = tuple(map(build_region_area, reader))
-#        lines = tuple(itertools.starmap(RegionArea, reader))
-
-    return lines
+    return tuple(map(build_region_area, map(list, refdata.region_area_rows())))
 
 def get_areas_by_abbreviation():
     areas_by_abbreviation = dict(map(itemgetter(4,3), get_region_area_lines()))
@@ -904,14 +877,13 @@ mis_named_obj_files = {
 
 
 def iterate_objective_files_basic():
-    p = Path(snowrunner_initial_pak_dir) / "[ps]"
-    paths = [p / "objective_settings.sso"] + list(p.glob('??_??_??_objects.sso')) + list(p.glob('level_??_??_??_objects.sso'))
+    paths = ["objective_settings.sso"] + gamefiles.list_ps_files(r"\w\w_\d\d_\d\d_objects\.sso") + gamefiles.list_ps_files(r"level_\w\w_\d\d_\d\d_objects\.sso")
+    paths = list(dict.fromkeys(paths))
 #    ic("iterate_objective_files_basic")
 
-    for fpath in paths:
+    for fname in paths:
 #        ic(fpath)
-        fname = fpath.name
-        file_text = ReadFile(fpath)
+        file_text = gamefiles.read_ps_text(fname)
         python_data = parse_sso(file_text)
 
         # early levels contain a bunch in this file then parcelled out to individual files for individual task
@@ -939,7 +911,7 @@ def iterate_objective_files_basic():
                             try:
 #                            if objid == "RU_02_02_STUCK_TRUCK_02_TSK":
                                 fname = mis_named_obj_files.get(objid, objid) + ".sso"
-                                obj_data = parse_sso(ReadFile(p / fname))
+                                obj_data = parse_sso(gamefiles.read_ps_text(fname))
                                 obj.update(obj_data)
 
 #                            if objid == "RU_02_02_STUCK_TRUCK_02_TSK":
@@ -964,7 +936,7 @@ def iterate_objective_files_basic():
                     try:
 #                        if objid == "RU_02_02_STUCK_TRUCK_02_TSK":
 #                            ic(objid)
-                        obj_data = parse_sso(ReadFile(p / (objid +".sso")))
+                        obj_data = parse_sso(gamefiles.read_ps_text(objid + ".sso"))
 
 #                        if objid == "RU_02_02_STUCK_TRUCK_02_TSK":
 #                            ic(obj_data)
@@ -1018,14 +990,10 @@ def crafted_cargo_desc(cargo):
     return f"{counted_cargo(cargo.get('craftCount', '1'), cargo_names_dict[cargo['name']])}={crafted_cargo_ingredients(cargo)}"
 
 def iterate_level_files_basic():
-    p = Path(snowrunner_initial_pak_dir) / "[ps]"
-    paths = list(f for f in p.glob('level_??_??_??*.sso') if not f.stem.endswith("objects"))
+    paths = [f for f in gamefiles.list_ps_files(r"level_\w\w_\d\d_\d\d.*\.sso") if not f.endswith("objects.sso")]
 
-    for fpath in paths:
-        fname = fpath.name
-#        continue
-
-        file_text = fpath.read_text()
+    for fname in paths:
+        file_text = gamefiles.read_ps_text(fname)
         python_data = parse_sso(file_text)
         yield fname, python_data
 

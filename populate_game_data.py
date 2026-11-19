@@ -20,24 +20,21 @@ type_mapping = {
     "Crafting": "craft",
     }
 
-areas_by_abbreviation = get_areas_by_abbreviation()
-abbreviations_by_area = get_abbreviations_by_area()
-area_ids_by_area = get_area_ids_by_area()
-areas_by_area_id = get_areas_by_area_id()
-#completed_deliveries = get_completed_deliveries() # [area][objective][item] = count, special item ALL
-# map_item_positions = get_map_item_positions()
-# location_positions = get_location_positions() # [area][location name] = pos
-#cargo_initial_counts = get_cargo_initial_counts() # [area][location name][cargo] = count
-# delivery_positions = get_delivery_positions() # [area][objective][item] = pos
-truck_lookup = dict(map(itemgetter(1, 2), read_snowrunner_data_tsv_file("level_items_list.generated.tsv")))
-truck_id_lookup = read_truck_id_lookup()
-
-source_name_lookup = dict((parts[1][4:], cargo.loc) for cargo in get_cargo_list_iter() if len(parts := cargo.url.split("?"))>1)
 ed = get_english_lang_dict()
 
-# location_positions_by_area_id = dict((area_ids_by_area[area], dct) for area, dct in location_positions.items())
 
-level_item_seasons = set(rec[0][:5] for rec in read_snowrunner_data_tsv_file("level_items_list.generated.tsv"))
+class Context:
+    """What the import needs besides the game's level / objective scripts. Filled in by the caller (see import_new_regions.py)."""
+    areas_by_area_id = {} # area id -> area name, for the areas known so far (gate names mention the destination area)
+    truck_id_lookup = {} # truck/trailer file id -> UI name key
+    truck_lookup = {} # objective vehicle id (the task id of a placed truck) -> truck file id
+    level_items = [] # rows (area_id, task_id, truck file id, UI key, display name, index, cargo string) of the trucks / trailers placed in the levels
+    source_names = {} # zone id -> display name of the source / craft
+    level_item_seasons = set() # seasons (US_19) whose placed trucks are in level_items
+
+
+ctx = Context
+
 _warned_missing = set()
 
 def warn_missing(area_id, kind):
@@ -56,11 +53,11 @@ def region_area_or_warn(area_id):
         warn_missing(area_id, "region/area names (language strings)")
         return None
 
-    if area_id not in areas_by_area_id:
+    if area_id not in ctx.areas_by_area_id:
         warn_missing(area_id, "area list (region/area abbreviations)")
 
-    if area_id[:5] not in level_item_seasons:
-        warn_missing(area_id, "trucks/trailers list (level_items_list.generated.tsv)")
+    if area_id[:5] not in ctx.level_item_seasons:
+        warn_missing(area_id, "placed trucks/trailers (data_for_ssl.bin)")
 
     return result
 
@@ -68,9 +65,9 @@ def region_area_or_warn(area_id):
 def delivered_truck_name(truck_id, area_id):
     """Display name of a truck from the level items list; the raw truck id (with a warning) if its season's trucks aren't in the list yet."""
     try:
-        return ed[truck_id_lookup[truck_lookup[truck_id]].upper()]
+        return ed[ctx.truck_id_lookup[ctx.truck_lookup[truck_id]].upper()]
     except KeyError:
-        warn_missing(area_id, "trucks/trailers list (level_items_list.generated.tsv)")
+        warn_missing(area_id, "placed trucks/trailers (data_for_ssl.bin)")
         return truck_id
 
 
@@ -116,10 +113,10 @@ def update_if_diff(rec, attr, val):
 
 
 def get_name_x_y(area_id, loc_id):
-    name = source_name_lookup.get(loc_id)
+    name = ctx.source_names.get(loc_id)
 
     if not name:
-        ic("missing name", area_id, loc_id) # so far only one item missing, can't see it on maprunner
+        print(f"WARNING: no display name found in the game files for {loc_id}; skipped")
         return None
 
     # loc_key = (location_positions_by_area_id.get(area_id) or dict()).get(name)
@@ -239,7 +236,7 @@ async def handle_gateway(area_id, loc_id, sub_prop, objective = None):
 #        ic(area_id, loc_id, x, y)
 
 #    check(loc_id, "gate", None)
-    if (to_area_name := areas_by_area_id.get(to_area_id)) is None:
+    if (to_area_name := ctx.areas_by_area_id.get(to_area_id)) is None:
         warn_missing(to_area_id, "area list (region/area abbreviations)")
         to_area_name = to_area_id
 
@@ -273,19 +270,20 @@ def get_rewards(props):
     return reward_money, reward_exp, reward_item
 
 
-#@init_memory_sqlite
-async def run(area_id_filter=None) -> None:
-#    area_id_filter = "US_16_01"
-#    area_id_filter = "US_09_01"
+async def populate(area_ids=None):
+    """Add the cargo sources / gates, placed trucks and objectives of these areas (all areas when None) to the database. Assumes Tortoise is initialized and ctx is set up."""
+    area_ids = set(area_ids) if area_ids is not None else None
 
+    def wanted(area_id):
+        return area_ids is None or area_id in area_ids
 
-    async def populate():
+    if 1:
         print("Cargo sources/Gates")
 
         for fname, python_data in iterate_level_files_basic():
             area_id = fname_to_area_id(fname)
 
-            if not region_area_or_warn(area_id):
+            if not wanted(area_id) or not region_area_or_warn(area_id):
                 continue
 
             region, area = region_area(ed, area_id)
@@ -335,7 +333,7 @@ async def run(area_id_filter=None) -> None:
 
         print("Trucks/trailers")
 
-        for area_id, area_recs in itertools.groupby(area_id_filterer(read_snowrunner_data_tsv_file("level_items_list.generated.tsv"), area_id_filter), itemgetter(0)):
+        for area_id, area_recs in itertools.groupby((row for row in ctx.level_items if wanted(row[0])), itemgetter(0)):
             if not region_area_or_warn(area_id):
                 continue
 
@@ -362,7 +360,7 @@ async def run(area_id_filter=None) -> None:
 
         print("Objectives")
 
-        for area_id, python_data in sorted(fname_to_area_id_it(iterate_objective_files_basic(), area_id_filter)):
+        for area_id, python_data in sorted((x for x in fname_to_area_id_it(iterate_objective_files_basic()) if wanted(x[0])), key=itemgetter(0)):
             if not region_area_or_warn(area_id):
                 continue
 
@@ -536,7 +534,7 @@ async def run(area_id_filter=None) -> None:
 
                                     if pickup_id and item_type in ("truck", "trailer") and not await MapItem.filter(id=pickup_id).exists():
                                         # the vehicle isn't in the level items list (its season's data isn't present yet), so make a placeholder to link to
-                                        warn_missing(area_id, "trucks/trailers list (level_items_list.generated.tsv)")
+                                        warn_missing(area_id, "placed trucks/trailers (data_for_ssl.bin)")
                                         await get_or_create_map_item(pickup_id, area_id, item_type, item_name)
 
                                     obj_item_id = "|".join(map(str, (objective.id, nstage, idx, item_type[0]))) # objective_id + stage index + zone index
@@ -578,20 +576,3 @@ async def run(area_id_filter=None) -> None:
                                     res = await ObjectiveItem.filter(objective_id=objective.id, deliver_loc_id=deliver_loc_id, name=item_name).values("objective_id", "deliver_loc_id", "name", "area_id", "count")
                                     ic(res)
                                     raise
-
-    if 0:
-        await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["database.models"]})
-    else:
-#        os.remove(snowplanner_db_filename)
-        await Tortoise.init(db_url=snowplanner_db_url, modules={"models": ["database.models"]})
-
-    await Tortoise.generate_schemas()
-
-    await populate()
-#    await report()
-
-
-if __name__ == "__main__":
-    print(Style.RESET_ALL)
-    run_async(run())
-

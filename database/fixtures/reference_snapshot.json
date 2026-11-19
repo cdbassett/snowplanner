@@ -1,4 +1,1755 @@
 {
+  "region_area": [
+    {
+      "area_id": "US_02_02",
+      "seq": 0,
+      "region_id": "US_02",
+      "region": "Alaska",
+      "area": "Mountain River",
+      "abbrev": "MR"
+    },
+    {
+      "area_id": "US_02_01",
+      "seq": 1,
+      "region_id": "US_02",
+      "region": "Alaska",
+      "area": "North Port",
+      "abbrev": "NP"
+    },
+    {
+      "area_id": "US_02_04",
+      "seq": 2,
+      "region_id": "US_02",
+      "region": "Alaska",
+      "area": "Pedro Bay",
+      "abbrev": "PB"
+    },
+    {
+      "area_id": "US_02_03",
+      "seq": 3,
+      "region_id": "US_02",
+      "region": "Alaska",
+      "area": "White Valley",
+      "abbrev": "WV"
+    },
+    {
+      "area_id": "RU_13_01",
+      "seq": 4,
+      "region_id": "RU_13",
+      "region": "Almaty Region",
+      "area": "Zherbai Quarries",
+      "abbrev": "ZQ"
+    },
+    {
+      "area_id": "RU_04_04",
+      "seq": 5,
+      "region_id": "RU_04",
+      "region": "Amur",
+      "area": "Chernokamensk",
+      "abbrev": "Ch"
+    },
+    {
+      "area_id": "RU_04_02",
+      "seq": 6,
+      "region_id": "RU_04",
+      "region": "Amur",
+      "area": "Cosmodrome",
+      "abbrev": "Co"
+    },
+    {
+      "area_id": "RU_04_03",
+      "seq": 7,
+      "region_id": "RU_04",
+      "region": "Amur",
+      "area": "Northern Aegis Installation",
+      "abbrev": "NAI"
+    },
+    {
+      "area_id": "RU_04_01",
+      "seq": 8,
+      "region_id": "RU_04",
+      "region": "Amur",
+      "area": "Urska River",
+      "abbrev": "UR"
+    },
+    {
+      "area_id": "US_14_02",
+      "seq": 9,
+      "region_id": "US_14",
+      "region": "Austria",
+      "area": "Foothills",
+      "abbrev": "F"
+    },
+    {
+      "area_id": "US_14_01",
+      "seq": 10,
+      "region_id": "US_14",
+      "region": "Austria",
+      "area": "Unterfeld",
+      "abbrev": "U"
+    },
+    {
+      "area_id": "RU_08_01",
+      "seq": 11,
+      "region_id": "RU_08",
+      "region": "Belozersk Glades",
+      "area": "Crossroads",
+      "abbrev": "C"
+    },
+    {
+      "area_id": "RU_08_04",
+      "seq": 12,
+      "region_id": "RU_08",
+      "region": "Belozersk Glades",
+      "area": "HarvestCorp",
+      "abbrev": "Ha"
+    },
+    {
+      "area_id": "RU_08_03",
+      "seq": 13,
+      "region_id": "RU_08",
+      "region": "Belozersk Glades",
+      "area": "Heartlands",
+      "abbrev": "He"
+    },
+    {
+      "area_id": "RU_08_02",
+      "seq": 14,
+      "region_id": "RU_08",
+      "region": "Belozersk Glades",
+      "area": "The Institute",
+      "abbrev": "TI"
+    },
+    {
+      "area_id": "US_10_01",
+      "seq": 15,
+      "region_id": "US_10",
+      "region": "British Columbia",
+      "area": "Duncan Bay",
+      "abbrev": "DB"
+    },
+    {
+      "area_id": "US_10_02",
+      "seq": 16,
+      "region_id": "US_10",
+      "region": "British Columbia",
+      "area": "North Peak National Park",
+      "abbrev": "NPNP"
+    },
+    {
+      "area_id": "US_18_01",
+      "seq": 17,
+      "region_id": "US_18",
+      "region": "Chiapas",
+      "area": "Costa Atardecer",
+      "abbrev": "CA"
+    },
+    {
+      "area_id": "US_18_02",
+      "seq": 18,
+      "region_id": "US_18",
+      "region": "Chiapas",
+      "area": "Sierra Fuerte",
+      "abbrev": "SF"
+    },
+    {
+      "area_id": "RU_05_02",
+      "seq": 19,
+      "region_id": "RU_05",
+      "region": "Don",
+      "area": "Antonovskiy Nature Reserve",
+      "abbrev": "ANR"
+    },
+    {
+      "area_id": "RU_05_01",
+      "seq": 20,
+      "region_id": "RU_05",
+      "region": "Don",
+      "area": "Factory Grounds",
+      "abbrev": "FG"
+    },
+    {
+      "area_id": "RU_03_02",
+      "seq": 21,
+      "region_id": "RU_03",
+      "region": "Kola Peninsula",
+      "area": "Imandra",
+      "abbrev": "I"
+    },
+    {
+      "area_id": "RU_03_01",
+      "seq": 22,
+      "region_id": "RU_03",
+      "region": "Kola Peninsula",
+      "area": "Lake Kovd",
+      "abbrev": "LK"
+    },
+    {
+      "area_id": "US_06_01",
+      "seq": 23,
+      "region_id": "US_06",
+      "region": "Maine",
+      "area": "The Lowland",
+      "abbrev": "TL"
+    },
+    {
+      "area_id": "US_06_02",
+      "seq": 24,
+      "region_id": "US_06",
+      "region": "Maine",
+      "area": "Yellowrock National Forest",
+      "abbrev": "YNF"
+    },
+    {
+      "area_id": "US_01_01",
+      "seq": 25,
+      "region_id": "US_01",
+      "region": "Michigan",
+      "area": "Black River",
+      "abbrev": "BR"
+    },
+    {
+      "area_id": "US_01_04",
+      "seq": 26,
+      "region_id": "US_01",
+      "region": "Michigan",
+      "area": "Drummond Island",
+      "abbrev": "DI"
+    },
+    {
+      "area_id": "US_01_03",
+      "seq": 27,
+      "region_id": "US_01",
+      "region": "Michigan",
+      "area": "Island Lake",
+      "abbrev": "IL"
+    },
+    {
+      "area_id": "US_01_02",
+      "seq": 28,
+      "region_id": "US_01",
+      "region": "Michigan",
+      "area": "Smithville Dam",
+      "abbrev": "SD"
+    },
+    {
+      "area_id": "US_12_03",
+      "seq": 29,
+      "region_id": "US_12",
+      "region": "North Carolina",
+      "area": "Flatland",
+      "abbrev": "F"
+    },
+    {
+      "area_id": "US_12_04",
+      "seq": 30,
+      "region_id": "US_12",
+      "region": "North Carolina",
+      "area": "Oviro Hills",
+      "abbrev": "OH"
+    },
+    {
+      "area_id": "US_12_01",
+      "seq": 31,
+      "region_id": "US_12",
+      "region": "North Carolina",
+      "area": "Pineline Bay",
+      "abbrev": "PB"
+    },
+    {
+      "area_id": "US_12_02",
+      "seq": 32,
+      "region_id": "US_12",
+      "region": "North Carolina",
+      "area": "Reactive Zone",
+      "abbrev": "RZ"
+    },
+    {
+      "area_id": "US_09_02",
+      "seq": 33,
+      "region_id": "US_09",
+      "region": "Ontario",
+      "area": "Burned Forest",
+      "abbrev": "BF"
+    },
+    {
+      "area_id": "US_09_01",
+      "seq": 34,
+      "region_id": "US_09",
+      "region": "Ontario",
+      "area": "The Albany River",
+      "abbrev": "TAR"
+    },
+    {
+      "area_id": "US_15_01",
+      "seq": 35,
+      "region_id": "US_15",
+      "region": "Quebec",
+      "area": "Harbor",
+      "abbrev": "H"
+    },
+    {
+      "area_id": "US_15_02",
+      "seq": 36,
+      "region_id": "US_15",
+      "region": "Quebec",
+      "area": "Lake Ribiere",
+      "abbrev": "LR"
+    },
+    {
+      "area_id": "US_11_02",
+      "seq": 37,
+      "region_id": "US_11",
+      "region": "Scandinavia",
+      "area": "By the Lake",
+      "abbrev": "BtL"
+    },
+    {
+      "area_id": "US_11_01",
+      "seq": 38,
+      "region_id": "US_11",
+      "region": "Scandinavia",
+      "area": "Mountain Ridge",
+      "abbrev": "MR"
+    },
+    {
+      "area_id": "RU_02_02",
+      "seq": 39,
+      "region_id": "RU_02",
+      "region": "Taymyr",
+      "area": "Drowned Lands",
+      "abbrev": "DL"
+    },
+    {
+      "area_id": "RU_02_01",
+      "seq": 40,
+      "region_id": "RU_02",
+      "region": "Taymyr",
+      "area": "Quarry",
+      "abbrev": "Q"
+    },
+    {
+      "area_id": "RU_02_04",
+      "seq": 41,
+      "region_id": "RU_02",
+      "region": "Taymyr",
+      "area": "Rift",
+      "abbrev": "R"
+    },
+    {
+      "area_id": "RU_02_03",
+      "seq": 42,
+      "region_id": "RU_02",
+      "region": "Taymyr",
+      "area": "Zimnegorsk",
+      "abbrev": "Z"
+    },
+    {
+      "area_id": "US_07_01",
+      "seq": 43,
+      "region_id": "US_07",
+      "region": "Tennessee",
+      "area": "Burning Mill",
+      "abbrev": "BM"
+    },
+    {
+      "area_id": "US_16_03",
+      "seq": 44,
+      "region_id": "US_16",
+      "region": "Washington",
+      "area": "Selten River Mountains",
+      "abbrev": "SRM"
+    },
+    {
+      "area_id": "US_16_02",
+      "seq": 45,
+      "region_id": "US_16",
+      "region": "Washington",
+      "area": "Selten River National Park",
+      "abbrev": "SRNP"
+    },
+    {
+      "area_id": "US_16_01",
+      "seq": 46,
+      "region_id": "US_16",
+      "region": "Washington",
+      "area": "Solace Bay",
+      "abbrev": "SB"
+    },
+    {
+      "area_id": "US_03_01",
+      "seq": 47,
+      "region_id": "US_03",
+      "region": "Wisconsin",
+      "area": "Black Badger Lake",
+      "abbrev": "BBL"
+    },
+    {
+      "area_id": "US_03_02",
+      "seq": 48,
+      "region_id": "US_03",
+      "region": "Wisconsin",
+      "area": "Grainwoods River",
+      "abbrev": "GR"
+    },
+    {
+      "area_id": "US_04_02",
+      "seq": 49,
+      "region_id": "US_04",
+      "region": "Yukon",
+      "area": "Big Salmon Peak",
+      "abbrev": "BSP"
+    },
+    {
+      "area_id": "US_04_01",
+      "seq": 50,
+      "region_id": "US_04",
+      "region": "Yukon",
+      "area": "Flooded Foothills",
+      "abbrev": "FF"
+    },
+    {
+      "area_id": "RU_17_02",
+      "seq": 51,
+      "region_id": "RU_17",
+      "region": "Zurdania",
+      "area": "The Valley of Falling Rocks",
+      "abbrev": "TVoFR"
+    },
+    {
+      "area_id": "RU_17_01",
+      "seq": 52,
+      "region_id": "RU_17",
+      "region": "Zurdania",
+      "area": "Zurdanian Valley",
+      "abbrev": "ZV"
+    }
+  ],
+  "truck_info": [
+    {
+      "id": "ank_mk38",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ANK_MK38_NAME",
+      "name": "ANK MK38",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "azov_4220_antarctic",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AZOV_4220_ANTARCTIC_NAME",
+      "name": "Azov 42-20 Antarctic",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "azov_5319",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AZOV_5319_NAME",
+      "name": "Azov 5319",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "azov_64131",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AZOV_64131_NAME",
+      "name": "Azov 64131",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "azov_73210",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AZOV_73210_NAME",
+      "name": "Azov 73210",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "cat_745c",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CAT_745C_NAME",
+      "name": "Caterpillar 745\u0421",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "cat_ct680",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CAT_CT680_NAME",
+      "name": "Caterpillar CT680",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "chevrolet_kodiakc70",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CHEVROLET_KODIAKC70_NAME",
+      "name": "Chevrolet Kodiak C70",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "dan_96320",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_DAN_96320_NAME",
+      "name": "DAN 96320",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "derry_longhorn_3194",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_DERRY_LONGHORN_3194_NAME",
+      "name": "Derry Longhorn 3194",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "derry_longhorn_4520",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_DERRY_LONGHORN_4520_NAME",
+      "name": "Derry Longhorn 4520",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "don_71",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_DON_71_NAME",
+      "name": "DON 71",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "ford_clt9000",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FORD_CLT9000_NAME",
+      "name": "Ford CLT9000",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "freightliner_114sd",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FREIGHTLINER_114SD_NAME",
+      "name": "Freightliner 114SD",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "gmc_9500",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_GMC_9500_NAME",
+      "name": "GMC MH9500",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "hummer_h2",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_HUMMER_H2_NAME",
+      "name": "Hummer H2",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "international_fleetstar_f2070a",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FLEETSTAR_F2070A_NAME",
+      "name": "Fleetstar F2070A",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "international_loadstar_1700",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_INTERNATIONAL_LOADSTAR_1700_NAME",
+      "name": "International Loadstar 1700",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "international_paystar_5070",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_INTERNATIONAL_PAYSTAR_5070_NAME",
+      "name": "International Paystar 5070",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "international_scout_800",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_INTERNATIONAL_SCOUT_800_NAME",
+      "name": "Scout 800",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "international_transtar_4070a",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_INTERNATIONAL_TRANSTAR_4070A_NAME",
+      "name": "International Transtar 4070A",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "khan_lo4f",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KHAN_Lo4F_NAME",
+      "name": "KHAN Lo4F",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "kolob_74760",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KOLOB_74760_NAME",
+      "name": "KOLOB 74760",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "kolob_74941",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KOLOB_74941_NAME",
+      "name": "KOLOB 74941",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "navistar_5000mv",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_NAVISTAR_5000_NAME",
+      "name": "Navistar 5000-MV",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "pacific_p12w",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_PACIFIC_P12W_NAME",
+      "name": "Pacific P12",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "pacific_p16",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_PACIFIC_P16_NAME",
+      "name": "Pacific P16",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "royal_bm17",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ROYAL_BM17_NAME",
+      "name": "Royal BM17",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "step_310e",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_STEP_310E_NAME",
+      "name": "Step 310\u0415",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "chevrolet_ck1500",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CHEVROLET_CK1500_NAME",
+      "name": "Chevrolet CK1500",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "freightliner_m916a1",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FREIGHTLINER_M916A1_NAME",
+      "name": "Freightliner M916A1",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "khan_39_marshall",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KHAN_39_MARSHALL_NAME",
+      "name": "KHAN 39 Marshall",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tayga_6436",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TAYGA_6436_NAME",
+      "name": "Tayga 6436",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "tuz_166",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TUZ_166_NAME",
+      "name": "TUZ 166",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tuz_420_tatarin",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TUZ_420_TATARIN_NAME",
+      "name": "TUZ 420 \\\"Tatarin\\\"",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "voron_ae4380",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_VORON_AE4380_NAME",
+      "name": "Voron AE-4380",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "voron_d53233",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_VORON_D53233_NAME",
+      "name": "Voron D-53233",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "voron_grad",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_VORON_GRAD_NAME",
+      "name": "Voron Grad",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "ws_4964_white",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WS_4964_WHITE_NAME",
+      "name": "White Western Star 4964",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "ws_6900xd_twin",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WS_6900XD_TWIN_NAME",
+      "name": "Western Star 6900 TwinSteer",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "yar_87",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_YAR_87_NAME",
+      "name": "YAR 87",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "zikz_5368",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ZIKZ_5368_NAME",
+      "name": "ZiKZ 5368",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "boar_45318",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_BOAR_45318_NAME",
+      "name": "BOAR 45318",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "pacific_p512",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_PACIFIC_P512_NAME",
+      "name": "Pacific P512 PF",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "paystar_5600ts",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_INTERNATIONAL_PAYSTAR_5600TS_NAME",
+      "name": "International Paystar 5600TS",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "kenworth_963",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KENWORTH_963_NAME",
+      "name": "Kenworth 963",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "kenworth_w990",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KENWORTH_W990_NAME",
+      "name": "Kenworth W990",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "mack_defense_m917",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MACK_DEFENSE_M917_NAME",
+      "name": "Mack Defense M917",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "burlak_6x6",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_BURLAK_6X6_NAME",
+      "name": "Burlak 6x6",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "neo_falcon_2000",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_NEO_FALCON_2000_NAME",
+      "name": "Neo Falcon 2000",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "femm_37at",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FEMM_37AT_NAME",
+      "name": "FEMM 37-AT",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "mtb_8106",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MTB_8106_NAME",
+      "name": "MTB 8106 (Rock Grinder)",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "azov_670963n",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AZOV_67096_NAME",
+      "name": "Azov 67096 \u201cAtom\u201d",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "aac_58dw",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AAC_58DW_NAME",
+      "name": "AAC-58DW",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "plad_450",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_PLAD_450_NAME",
+      "name": "PLAD 450",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "rezvani_tank",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_REZVANI_TANK_NAME",
+      "name": "Rezvani Tank",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "ankatra_1160",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ANKATRA_1160_NAME",
+      "name": "Ankatra 1160",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "earthroamer_lti",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_EARTHROMER_LTI_NAME",
+      "name": "EarthRoamer LTi",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "earthroamer_sx",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_EARTHROAMER_SX_NAME",
+      "name": "EarthRoamer SX",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "futom_7290ra",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FUTOM_7290RA_NAME",
+      "name": "Futom 7290RA",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "kenworth_c500",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KENWORTH_C500_NAME",
+      "name": "Kenworth C500",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "kenworth_t880",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KENWORTH_T880_NAME",
+      "name": "Kenworth T880",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "mack_pinnacle",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MACK_PINNACLE_NAME",
+      "name": "Mack Pinnacle",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "mack_terra_pro",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MACK_TERRA_PRO_NAME",
+      "name": "Mack TerraPro",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "mercer_k520",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MERCER_K520_NAME",
+      "name": "Mercer K520",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "sleiter_mfk816",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_SLEITER_MFK816_NAME",
+      "name": "Sleiter ST 816 \\\"Elephant\\\"",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "freightliner_fld120",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FREIGHTLINER_FLD120_NAME",
+      "name": "Freightliner FLD 120",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "western_star_6900xd",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WS_6900XD_NAME",
+      "name": "Western Star 6900XD",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "hib_billert_1980",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_HIB_BILLERT_1980_NAME",
+      "name": "HIB Billert 1980",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "plad_440",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_PLAD_440_NAME",
+      "name": "PLAD 440 \u201cBUDDY\u201d",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "sleiter_st833_chimera",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_SLEITER_ST833_CHIMERA_NAME",
+      "name": "Sleiter ST 833 \u201cChimera\u201d",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "avenhorn_a15",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AVENHORN_A15_NAME",
+      "name": "AVENHORN A15",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "padera_std4",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_PADERA_STD4_NAME",
+      "name": "Padera STD-4",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "jangsu_rx600",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_JANGSU_RX600_NAME",
+      "name": "Jangsu RX600",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "voron_g5352",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_VORON_G5352_NAME",
+      "name": "Voron G-5352",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "mercedes_benz_actros_6x6",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MERCEDES_ACTROS_NAME",
+      "name": "Mercedes-Benz Actros 3332",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "mercedes_benz_zetros_6x6",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MERCEDES_BENZ_ZETROS_NAME",
+      "name": "Mercedes-Benz Zetros",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "hib_billert_m816",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_HIB_BILLERT_M816_NAME",
+      "name": "HIB Billert M816",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "mercer_6x6r_230",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MERCER_6X6_R230_NAME",
+      "name": "Mercer R230",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "mercedes_3850",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MERCEDES_3850_NAME",
+      "name": "Mercedes 3850",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "mercedes_mamute_1519",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_MERCEDES_MAMUTE_1519_NAME",
+      "name": "Mercedes Mamute",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "derry_savior",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_DERRY_SAVIOR_NAME",
+      "name": "DERRY \u201cSAVIOR\u201d",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "wortek_250t",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WORTEK_250T_NAME",
+      "name": "Wortek 250T",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "ford_f750",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_FORD_F750_NAME",
+      "name": "Ford F 750",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tuz_16_actaeon",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TUZ_16_ACTAEON_NAME",
+      "name": "TUZ 16 \\\"Actaeon\\\"",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "chevy_apache",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CHEVY_APACHE_NAME",
+      "name": "Chevrolet Apache",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tuz_108_warthog",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TUZ_108_WARTHOG_NAME",
+      "name": "TUZ 108 \\\"Warthog\\\"",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "cat_770g",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CAT_770G_NAME",
+      "name": "Caterpillar 770G",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "cat_th357",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CAT_TH357_NAME",
+      "name": "Caterpillar TH357",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "western_star_49x",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WESTERN_STAR_49X_NAME",
+      "name": "Western Star 49X",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "krs_58_bandit",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KRS_58_BANDIT_NAME",
+      "name": "KRS 58 \\\"Bandit\\\"",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "khan_317_sentinel",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KHAN_317_SENTINEL_H2_NAME",
+      "name": "KHAN 317 Sentinel",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tatra_805",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TATRA_805_NAME",
+      "name": "Tatra 805",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tatra_t813",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TATRA_T813_NAME",
+      "name": "Tatra \u0422813",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "zikz_605r",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ZIKZ_605R_NAME",
+      "name": "ZiKZ 605R",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "cat_ct681",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_CAT_CT681_NAME",
+      "name": "Caterpillar CT681",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "international_hx_520",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_INTERNATIONAL_HX_520_NAME",
+      "name": "International HX 520",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "jeep_cj7_renegade",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_JEEP_CJ7_RENEGADE_NAME",
+      "name": "Jeep CJ7 Renegade",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "jeep_wrangler",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_JEEP_WRANGLER_NAME",
+      "name": "Jeep Wrangler",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "tatra_force_t815_7",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TATRA_FORCE_T815_7_NAME",
+      "name": "Tatra FORCE T815-7",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "tatra_phoenix",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TATRA_PHOENIX_NAME",
+      "name": "Tatra PHOENIX",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "ank_mk38_ht",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ANK_MK38_CIVILIAN_NAME",
+      "name": "ANK MK38 CIVILIAN",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "aramatsu_forester",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ARAMATSU_FORESTER__NAME",
+      "name": "Aramatsu Forester",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "land_rover_defender_110",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_LAND_ROVER_DEFENDER_110_NAME",
+      "name": "Land Rover Defender 110",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "land_rover_defender_90",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_LAND_ROVER_DEFENDER_90_NAME",
+      "name": "Land Rover Defender 90",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "step_3364_crocodile",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_STEP_3364_CROCODILE_NAME",
+      "name": "Step 33-64 \\\"Crocodile\\\"",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "tayga_6455b",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_TAYGA_6455b_NAME",
+      "name": "Tayga 6455B",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "azov_43_191_sprinter",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_AZOV_42_191_SPRINTER__NAME",
+      "name": "Azov 43-191 \\\"Sprinter\\\"",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "gor_by4",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_GOR_BY4_NAME",
+      "name": "Gor BY-4",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "western_star_57x",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WESTERN_STAR_57X_NAME",
+      "name": "Western Star 57X",
+      "truck_type": "HIGHWAY"
+    },
+    {
+      "id": "kirovets_k700",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KIROVETS_K700_NAME",
+      "name": "Kirovets K-700",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "kirovets_k7m",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_KIROVETS_K7M_NAME",
+      "name": "Kirovets K-7\u041c",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "rezvani_hercules_6x6",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_REZVANI_NAME",
+      "name": "Rezvani Hercules 6x6",
+      "truck_type": "SCOUT"
+    },
+    {
+      "id": "step_39331_pike",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_STEP_39331_PIKE_NAME",
+      "name": "Step 39331 \\\"Pike\\\"",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "western_star_nf1424",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WESTERN_STAR_NF1424_NAME",
+      "name": "Western Star 47X NF 1424",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "western_star_nf1430",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_WESTERN_STAR_NF1430_NAME",
+      "name": "Western Star 47X NF 1430",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "derry_special_15c177",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_DERRY_SPECIAL_15C177_NAME",
+      "name": "Derry Special 15C-177",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "zikz_566a",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ZiKZ_566A_NAME",
+      "name": "ZiKZ 566A",
+      "truck_type": "OFFROAD"
+    },
+    {
+      "id": "zikz_612h_mastodont",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_ZIKZ_612H_MASTODONT_NAME",
+      "name": "ZiKZ 612H",
+      "truck_type": "HEAVY"
+    },
+    {
+      "id": "gmc_8000",
+      "kind": "truck",
+      "ui_key": "UI_VEHICLE_GMC_8000_NAME",
+      "name": "GMC Brigadier 8000",
+      "truck_type": "HEAVY_DUTY"
+    },
+    {
+      "id": "scout_trailer_flatbed_1",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_FLATBED_1_NAME",
+      "name": "Small Scout Flatbed",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_flatbed_2",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_FLATBED_2_NAME",
+      "name": "Scout Flatbed",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_oiltank",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_OILTANK_NAME",
+      "name": "Scout Fuel Carrier",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_coiled_tubing",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_COILED_TUBING_NAME",
+      "name": "Coiled Tubing Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_flatbed_5",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_FLATBED_5_NAME",
+      "name": "Flatbed Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_gooseneck_4",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_GOOSENECK_3_NAME",
+      "name": "Gooseneck Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_heavy_construction_equipment",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_HEAVY_CONSTRUCTION_EQUIPMENT_NAME",
+      "name": "Construction Rig Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_heavy_oiltank",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_HEAVY_OILTANK_NAME",
+      "name": "Heavy Fuel Tanker Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_m747",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_M747_NAME",
+      "name": "Heavy Duty Lowboy Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_oiltank",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_OILTANK_NAME",
+      "name": "Fuel Carrier Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_oil_rig",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_OIL_RIG_NAME",
+      "name": "Oil Rig Salvage Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_sideboard_5",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_SIDEBOARD_4_NAME",
+      "name": "Sideboard Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_stepdeck_5",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_STEPDECK_4_NAME",
+      "name": "Stepdeck Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_addon_maintainer",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_MAINTAINER_NAME",
+      "name": "Maintenance Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_flatbed_2",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_FLATBED_2_NAME",
+      "name": "Flatbed Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_flatbed_ramps_4",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_FLATBED_RAMPS_3_NAME",
+      "name": "Ramped Flatbed Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_flatbed_special_2",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_FLATBED_SPECIAL_2_NAME",
+      "name": "Curtainside Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_oiltank",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_OILTANK_NAME",
+      "name": "Fuel Carrier Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_service_2",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SERVICE_2_NAME",
+      "name": "Service Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_sideboard_2",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SIDEBOARD_2_NAME",
+      "name": "Sideboard Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_generator",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_GENERATOR_NAME",
+      "name": "Generator",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_log",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_LOGTRAILER_NAME",
+      "name": "Log Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_log_pole",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_LOGPOLE_NAME",
+      "name": "Log Carrier Rear",
+      "truck_type": ""
+    },
+    {
+      "id": "train",
+      "kind": "trailer",
+      "ui_key": "UI_TRAIN_NAME",
+      "name": "Diesel Locomotive",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_fishing_boat",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_FISHING_BOAT_NAME",
+      "name": "Semi-Trailer with a fishing boat",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_heavy_repair",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_HEAVY_REPAIR_NAME",
+      "name": "Large Service Scout Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_light_repair",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_LIGHT_REPAIR_NAME",
+      "name": "Service Scout Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_star",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_STAR_NAME",
+      "name": "Movie Star's Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_reactor_starter",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_REACTOR_STARTER_NAME",
+      "name": "Turbo Generator Stator",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_stepdeck_plane_02",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_STEPDECK_PLANE_02_NAME",
+      "name": "Wide Flatbed 3-Axle Semi",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_log_medium",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_LOGTRAILER_MEDIUM_NAME",
+      "name": "Futom-M Logging Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_log_short",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_LOGTRAILER_SHORT_NAME",
+      "name": "Futom-S Logging Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_fishing_1",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_FISHING_NAME",
+      "name": "Fishing Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_fishing_2",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_FISHING_NAME",
+      "name": "Fishing Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_anchor",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_ANCHOR_NAME",
+      "name": "Oil Platform Anchor",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_flatbed_3",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_FLATBED_3_NAME",
+      "name": "Short Flatbed Semi-Trailer with Parts",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_flatbed_6",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_FLATBED_6_NAME",
+      "name": "Flatbed Semi-Trailer Loaded with Parts",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_log_double_hinge",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_DOUBLE_LOG_NAME",
+      "name": "Double Logging Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "pacific_p16_trailer_log_pole",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_PACIFIC_P16_LOGPOLE_NAME",
+      "name": "Pacific P16 Logging Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_big_crane",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_BIG_CRANE_NAME",
+      "name": "Special Crane Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_foldable_log",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_FOLDABLE_LOGS_NAME",
+      "name": "Foldable Logging Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_log_double_ls",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_LONG_DOUBLE_LOG_NAME",
+      "name": "Forwood-LS Logging Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_drilling_machine",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_DRILL_NAME",
+      "name": "Driller Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "train_dlc_17",
+      "kind": "trailer",
+      "ui_key": "UI_TRAIN_NAME",
+      "name": "Diesel Locomotive",
+      "truck_type": ""
+    },
+    {
+      "id": "train_wagons_dlc_17",
+      "kind": "trailer",
+      "ui_key": "UI_TRAIN_CARRIAGE_NAME",
+      "name": "Set of Train Cars",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_gooseneck_3",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_GOOSENECK_4_NAME",
+      "name": "Gooseneck Semi-Trailer with Parts",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_star_dlc_18",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_STAR_DLC_18_NAME",
+      "name": "Trailer Home",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_steam_turbine",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_STEAM_TURBINE_NAME",
+      "name": "Steam Turbine",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_telescope_5_dlc19",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_TELESCOPE_LENS_NAME",
+      "name": "Telescope Lens",
+      "truck_type": ""
+    },
+    {
+      "id": "cargo_cabin_01",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_CARGO_CABIN_01_NAME",
+      "name": "Portable Cabin",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_radar",
+      "kind": "trailer",
+      "ui_key": "UI_SCOUT_TRAILER_RADAR_NAME",
+      "name": "Prototype Exploration Unit",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_stepdeck_plane_01",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_STEPDECK_PLANE_NAME",
+      "name": "Wide Flatbed Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_cat770g",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_CAT770G_NAME",
+      "name": "Heavy Rock Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_gooseneck_8",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_GOOSENECK_8_NAME",
+      "name": "Superheavy Semi-Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_oil_refinery",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_OIL_REFINERY_NAME",
+      "name": "Turbo Generator Stator",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_special_w_cat_770",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_SPECIAL_W_CAT_770_NAME",
+      "name": "Disassembled Caterpillar 770G",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_for_rocket",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_FOR_ROCKET_NAME",
+      "name": "Rocket Carrier Semi-trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_rocket",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_ROCKET_NAME",
+      "name": "Assembled rocket",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_train_rocket",
+      "kind": "trailer",
+      "ui_key": "UI_ROCKET_TRAIN_NAME",
+      "name": "Rocket Carrier Platform",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_offroad",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_OFFROAD_NAME",
+      "name": "Offroad Scout Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_offroad_cargo",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_OFFROAD_NAME",
+      "name": "Offroad Scout Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "scout_trailer_offroad_tent",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_SCOUT_OFFROAD_TENT_NAME",
+      "name": "Curtainside Scout Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_cultivator",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_CULTIVATOR_NAME",
+      "name": "Cultivator",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_harvester",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_HARVESTER_NAME",
+      "name": "Potato Harvester",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_planter",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_PLANTER_NAME",
+      "name": "Multi-row Planter",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_watertank",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_WATERTANK_NAME",
+      "name": "Heavy Water Carrier Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_log_pole_zikz_612h",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_LOGPOLE_NAME",
+      "name": "Log Carrier Rear",
+      "truck_type": ""
+    },
+    {
+      "id": "trailer_watertank",
+      "kind": "trailer",
+      "ui_key": "UI_TRAILER_WATERTANK_NAME",
+      "name": "Water Carrier Trailer",
+      "truck_type": ""
+    },
+    {
+      "id": "semitrailer_wind_blade",
+      "kind": "trailer",
+      "ui_key": "UI_SEMITRAILER_WIND_BLADE_NAME",
+      "name": "Wind Turbine Blade",
+      "truck_type": ""
+    }
+  ],
   "objective": [
     {
       "area_id": "RU_02_01",

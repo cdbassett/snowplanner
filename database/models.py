@@ -16,6 +16,31 @@ class PositionMixin(AreaMixin):
     y = fields.SmallIntField(null=True)
 
 
+class RegionArea(Model):
+    """Every map area of the game with its region (reference data the app needs at startup; imported from the game files)."""
+    area_id = area_id_field(pk=True)
+    seq = fields.SmallIntField() # display order
+    region_id = fields.CharField(max_length=5)
+    region = fields.CharField(max_length=100)
+    area = fields.CharField(max_length=100)
+    abbrev = fields.CharField(max_length=20)
+
+    class Meta:
+        table = "region_area"
+
+
+class TruckInfo(Model):
+    """A truck or trailer of the game: file id, display name and (trucks only) type."""
+    id = string_id(pk=True)
+    kind = fields.CharField(max_length=10) # truck | trailer
+    ui_key = fields.CharField(max_length=100)
+    name = fields.CharField(max_length=255, null=True) # English display name
+    truck_type = fields.CharField(max_length=20, default="")
+
+    class Meta:
+        table = "truck_info"
+
+
 class MapItem(Model, PositionMixin):
     id = string_id(pk=True)
     name = fields.CharField(max_length=255)
