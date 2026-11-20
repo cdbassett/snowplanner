@@ -419,9 +419,11 @@ async def populate(area_ids=None):
                         for nstage, stage in enumerate(stages):
                             deliveries = []
                             cargo_deliveries = dict()
+                            shared_names = {} # zone id -> uiDesc (for naming) of deliveries that share a uiDesc with another zone
 
                             if (actions := stage.get("actions")):
                                 cur_zone = None
+                                zones_by_ui = {}
 #                                if (zoneToFill := actions.get("zoneToFill")) and (cur_zone := zoneToFill[0].get('uiDesc')):
                                 if (zoneToFill := actions.get("zoneToFill")):
                                     for nzone, zone in enumerate(zoneToFill):
@@ -436,6 +438,13 @@ async def populate(area_ids=None):
                                             to_area_id = fname_to_area_id(to_area_id)
 #                                        if to_area_id.endswith("_new"): to_area_id = to_area_id[:-4]
                                             cur_zone = zone.get('uiDesc') or cur_zone or other_zone_id
+                                            zone_key = (to_area_id, other_zone_id)
+                                            first_zone = zones_by_ui.setdefault(cur_zone, zone_key)
+
+                                            if first_zone != zone_key and zone.get('uiDesc'):
+                                                # several different zones share one uiDesc (e.g. 3 arches built at 3 places): the first keeps the uiDesc as its id, the others are told apart by their own zone id
+                                                shared_names[other_zone_id] = cur_zone
+                                                cur_zone = other_zone_id
 
                                             if (cargo := zone.get("cargo")):
                                                 cnt, cname = cargo_cnt_name(cargo)
@@ -505,7 +514,7 @@ async def populate(area_ids=None):
                                 deliver_loc_id, item_type, cnt, item_name, pickup_id, to_area_id, idx, loc_name = delivery
 
                                 if not loc_name:
-                                    if (dl := ed.get(deliver_loc_id)):
+                                    if (dl := ed.get(shared_names.get(deliver_loc_id, deliver_loc_id))):
                                         loc_name = delivery_location(dl)
                                     else:
                                         loc_name = deliver_loc_id

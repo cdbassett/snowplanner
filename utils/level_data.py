@@ -141,7 +141,7 @@ _ZONE_REF = re.compile(r'globalZone(?:Delivery)?Id\s*=\s*(?:\{\s*globalZoneId\s*
 
 
 def delivery_zones():
-    """{delivery location id: (area id, zone id)} from the objective scripts: a delivery's id is the uiDesc of its zoneToFill / truckDelivery entry
+    """{delivery location id: {(area id, zone id): None, ...} in file order} from the objective scripts: a delivery's id is the uiDesc of its zoneToFill / truckDelivery entry
     and the zone it sits in is the zone reference next to it (after it for cargo, before it for truck deliveries). Zones that only block or give tasks are ignored."""
     from utils.snowrunner_utils import fname_to_area_id
 
@@ -158,7 +158,7 @@ def delivery_zones():
 
             if ref and "GIVER" not in ref.group(2):
                 try:
-                    out.setdefault(ui, set()).add((fname_to_area_id(ref.group(1)), ref.group(2)))
+                    out.setdefault(ui, {})[(fname_to_area_id(ref.group(1)), ref.group(2))] = None # insertion order: the first zone is the one that keeps the uiDesc as its id
                 except Exception:
                     pass # test levels and the like
 
