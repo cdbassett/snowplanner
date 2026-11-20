@@ -240,8 +240,8 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
             multi_stages, blocked_stages = determine_stage_blocking(objective.obj_items, objective.obj_prereqs)
             spawned = {(oi.stage, oi.name) for oi in objective.obj_items if oi.item_type == "spawn"}
 
-            for loc_name, loc_items in items_by_location:
-                loc_id = "L_" + loc_name
+            for loc_no, (loc_name, loc_items) in enumerate(items_by_location):
+                loc_id = f"L_{o_id}_{loc_no}_{loc_name}" # unique: the tree's filter and expansion go by node id, and a location can recur (per stage, per objective)
                 loc_node = {"id": loc_id, "label": get_area_desc(loc_items[0].deliver_loc_id if show_ids else loc_name, loc_items[0].deliver_loc.area_id), "header": "location", "noTick": True}
                 ids.append(loc_id)
                 obj_children.append(loc_node)
