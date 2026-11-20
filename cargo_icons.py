@@ -34,7 +34,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shor
     @property
     def art_uris(self):
         """Data URIs of the colored SVG icons, one per icon slot; None (draw emoji instead) unless every slot has a downloaded SVG."""
-        if (raster := icon_art.raster_uri(self.kind, normalize_cargo_name(self.name) if self.kind == "cargo" else self.name)):
+        if (raster := icon_art.raster_uri(self.kind, icon_key(self.name) if self.kind == "cargo" else self.name)):
             return [raster] # a dedicated raster icon is the only icon, even for trailers
 
         if self.kind == "truck" and (type_icon := icon_art.truck_type_uri(truck_type(self.name))):
@@ -45,7 +45,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shor
         elif self.is_vehicle:
             arts = [icon_art.vehicle_art(self.name, self.kind)]
         else:
-            arts = [icon_art.cargo_art(normalize_cargo_name(self.name))]
+            arts = [icon_art.cargo_art(icon_key(self.name))]
 
         uris = [art and icon_art.icon_data_uri(*art) for art in arts]
         return uris if all(uris) else None
@@ -61,7 +61,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shor
             return VEHICLE_FILLS[self.kind]
 
         # sizes with a dedicated icon (pipes, planks) don't need the size-tier background; shared-icon families (logs) do
-        key = normalize_cargo_name(self.name)
+        key = icon_key(self.name)
         if key not in icon_art.CARGO_RASTER_BASE and icon_art.raster_uri("cargo", key):
             return DEFAULT_FILL
 
@@ -246,13 +246,27 @@ def normalize_cargo_name(name):
     return re.sub(r"\s*\[\d+\]\s*$", "", name).strip().lower()
 
 
+# cargo that is still named by its game id (no entry in cargo_names_dict) but should look like another cargo type
+ICON_ALIASES = {
+    "cargosolarpanel": "solar panels",
+    "cargopotatogmo": "potatoes",
+    "forkliftcaravancontainer": "cabin",
+}
+
+
+def icon_key(name):
+    """Normalized cargo name whose icon (emoji, art, tier) this cargo uses."""
+    key = normalize_cargo_name(name)
+    return ICON_ALIASES.get(key, key)
+
+
 def _style(emoji, tier):
     return emoji, TIER_FILLS.get(tier, DEFAULT_FILL)
 
 
 def cargo_style(name):
     """(emoji, fill color) for a cargo name."""
-    key = normalize_cargo_name(name)
+    key = icon_key(name)
 
     if (style := CARGO_STYLES.get(key) or GENERIC_STYLES.get(key)):
         return _style(*style)
@@ -267,7 +281,7 @@ def cargo_art_uris(name):
 
 def has_cargo_style(name):
     """True if the name has a specific icon (not just the fallback)."""
-    key = normalize_cargo_name(name)
+    key = icon_key(name)
     return key in CARGO_STYLES or key in GENERIC_STYLES
 
 
