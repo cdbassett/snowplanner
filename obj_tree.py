@@ -22,6 +22,8 @@ from utils.snowrunner_utils import get_compass_repr_of_pos_int
 
 class __TREE_FUNCTIONS__: pass
 
+location_node_ids = {} # tree node id of an objective's delivery location -> ids of the map locations it stands for (what selecting the node highlights)
+
 top_level_nodes = ["contracts", "tasks", "trucks", "sources", "gates", "buildings"]
 
 def select_single_top_tree_node(obj_tree, id):
@@ -249,6 +251,7 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
             for loc_no, (loc_name, loc_items) in enumerate(items_by_location):
                 loc_id = f"L_{o_id}_{loc_no}_{loc_name}" # unique: the tree's filter and expansion go by node id, and a location can recur (per stage, per objective)
                 loc_node = {"id": loc_id, "label": get_area_desc(loc_items[0].deliver_loc_id if show_ids else loc_name, loc_items[0].deliver_loc.area_id), "header": "location", "noTick": True}
+                location_node_ids[loc_id] = sorted({oi.deliver_loc_id for oi in loc_items})
                 ids.append(loc_id)
                 obj_children.append(loc_node)
 #                    oi_children = add_obj_items(loc_items)

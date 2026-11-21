@@ -400,7 +400,7 @@ async def area(area_slug: str):
                 await select_tree_node(node_id, id, objective_id=None)
                 return
             elif prefix == "L": # an objective's delivery location node: highlight that location on the map
-                set_highlighted_ids(await ObjectiveItem.filter(deliver_loc__name=id, deliver_loc__area_id__in=region_area_ids).values_list("deliver_loc_id", flat=True) or id)
+                set_highlighted_ids(location_node_ids.get(tree_id) or id)
             elif prefix == "C":
                 ic(id)
 

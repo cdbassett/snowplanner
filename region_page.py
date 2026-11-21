@@ -118,7 +118,7 @@ async def region(region_slug: str):
                 obj_tree.expand([node_id])
                 set_highlighted_ids(id)
             elif prefix == "L": # an objective's delivery location node: highlight that location on the map
-                set_highlighted_ids(await ObjectiveItem.filter(deliver_loc__name=id, deliver_loc__area_id__in=region_area_ids).values_list("deliver_loc_id", flat=True) or id)
+                set_highlighted_ids(location_node_ids.get(tree_id) or id)
             elif prefix == "C":
                 if (cargo_item := (await SourceCargoItem.filter(id=id).first())):
                     await highlight_cargo_highlight_ids(cargo_item.name)
