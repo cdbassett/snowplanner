@@ -115,7 +115,7 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
                 w.checkbox_ids = checkbox("Ids", value=False, on_change=update_ids).bind_value(app.storage.tab, 'MapIds')
 
         with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
-            w.checkboxes = dict((title, checkbox(title, value=True, on_change=update_svg).bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
+            w.checkboxes = dict((title, checkbox(title, value=title not in svg_vis_default_off, on_change=update_svg).bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
 
         if not is_region: # editing the positions of locations is only available per area
             w.save_button = ui.button('Edit', on_click=lambda: edit_save_locations())

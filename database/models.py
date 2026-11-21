@@ -76,6 +76,16 @@ class Objective(Model, AreaMixin):
     def __str__(self):
         return self.name
 
+class TaskGiver(Model, PositionMixin):
+    """A place on the map where a task is activated (taken from the task's taskGiverZone / additionalTaskGivers in the game files)."""
+    id = fields.IntField(pk=True)
+    objective = fields.ForeignKeyField(Objective, related_name="task_givers")
+    zone_id = string_id()
+    primary = fields.BooleanField(default=True) # False for the additional activation spots
+
+    class Meta:
+        table = "task_giver"
+
 class ObjectivePrereq(Model):
     id = fields.IntField(pk=True)
     objective = fields.ForeignKeyField(Objective, related_name='obj_prereqs')

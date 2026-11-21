@@ -79,10 +79,15 @@ class InitialPak:
         try:
             return self.cache[name]
         except KeyError:
-            raise FileNotFoundError(name) from None
+            pass
+
+        if (lower := name.lower()) != name: # the game's script names are lower case, ids from the data are upper case
+            return self.read(lower)
+
+        raise FileNotFoundError(name)
 
     def exists(self, name):
-        return name in self.names or name in self.cache
+        return name in self.names or name in self.cache or name.lower() in self.names or name.lower() in self.cache
 
     def glob(self, folder_prefix, pattern):
         """Names directly under folder_prefix (e.g. '[ps]/') whose file part matches the regex pattern."""

@@ -34,6 +34,7 @@ TABLE_ORDER = {
     "truck_info": models.TruckInfo,
     "objective": models.Objective,
     "map_item": models.MapItem,
+    "task_giver": models.TaskGiver,
     "obj_prereq": models.ObjectivePrereq,
     "obj_item": models.ObjectiveItem,
     "src_cargo_item": models.SourceCargoItem,

@@ -58,6 +58,7 @@ ENTRY_CORNER_RADIUS = 3
 LINK_CASING_LAYERS = [(7, "black", 0.4), (5, "white", 1)] # (width, color, opacity) under the pickup -> delivery lines, widest first
 LINK_ARROW_SPACING = 80
 LINK_ARROW_LENGTH = 15
+GIVER_BOX_SCALE = 1.2 # task start markers are this much bigger than the plain "T" box would be
 LINK_ARROW_WIDTH = 16
 LINK_ARROW_NOTCH = 6 # how far the chevron's inner notch sits in from its wing tips
 LINK_COLOR = "RebeccaPurple"
@@ -635,6 +636,20 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
 
 
+        # where tasks are activated (contracts are always available in the menu, tasks have to be found on the map)
+    if not loc_mode and ("Task Starts" not in hide_types or selected_ids): # when hidden, still shown for a task that is selected
+        klass = element_classes.get("Tasks", "location-task")
+
+        for giver in await TaskGiver.filter(area_id=area_id, objective__obj_type="task").prefetch_related("objective__obj_prereqs__prereq_obj"):
+            objective = giver.objective
+
+            if giver.x is None or (objective.completed and not show_all) or ("Task Starts" in hide_types and objective.id not in selected_ids):
+                continue
+
+            blocked = any(not prereq.prereq_obj.completed for prereq in objective.obj_prereqs)
+            selected, back_color = get_selected_color("#66e0f0", objective.id, blocked, "#3cb4c8")
+            cargo_by_pos[db_pos(giver)].append((make_draw_item(TaskGiver.filter(id=giver.id), giver.zone_id, f"giver_{giver.id}", "giver", "T", ["T"], selected, blocked, back_color, "black", classes=klass, tip=("❗", objective.name, "Task start" if giver.primary else "Task start (alternate spot)")))._replace(width=GIVER_BOX_SCALE * (text_height + 2 * text_h_margin)))
+
         # delivery plan: the visible plan's remaining stops drawn as numbered squares, linked in order
     if plan and not loc_mode:
         klass = element_classes.get("Plan", "location-plan")
@@ -858,6 +873,9 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
 
     def entry_height(entry):
+        if entry.typ == "giver":
+            return GIVER_BOX_SCALE * (text_height + 2 * text_v_margin + quarter_height)
+
         no_cargo = int(not entry.cargo_items)
         return text_height * len(entry_title_lines(entry)) + layout_cargo(entry.cargo_items, text_height)[2] + text_v_margin + no_cargo * quarter_height
 
@@ -970,6 +988,11 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 g.append(draw.Text(title_line, text_height, tx, ty + no_cargo * eight_height + text_height * n, fill='black', font_weight='bold', dominant_baseline="hanging"))
 
             placements = layout_cargo(entry.cargo_items, text_height)[0]
+
+            if entry.typ == "giver": # just a bold T centered in the box
+                g.append(draw.Text("T", text_height * GIVER_BOX_SCALE, x + entry.width / 2, y + h / 2, text_anchor="middle", dominant_baseline="central", fill=entry.fore, font_weight="bold"))
+                placements = []
+
             cargo_y = ty + text_height * len(title_lines)
             sq = cargo_icon_size(text_height)
             overlay_elements = []
@@ -1328,6 +1351,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         "Trucks",
         "Framing",
         "Spawns",
+        "Task Starts",
         ]
 
 #    hide_types = set(svg_vis_togglers)

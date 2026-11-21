@@ -501,6 +501,9 @@ async def area(area_slug: str):
                     id = obj_item.objective_id
                     select_single_top_tree_node(obj_tree, obj_item.objective.obj_type + "s")
                     await select_tree_node("OI_" + obj_item.id, obj_item.id, id)
+            elif typ == "giver":
+                if (giver := await TaskGiver.filter(id=int(id.removeprefix("giver_"))).prefetch_related("objective").first()):
+                    await select_objective(giver.objective)
             elif typ == "dst":
                 if (obj_item := (await ObjectiveItem.filter(deliver_loc_id=id, **({'objective_id': rec.row_key} if rec.row_key else {})).prefetch_related("objective").first())):
                     ic("found objective", obj_item.objective_id)

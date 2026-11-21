@@ -4,7 +4,7 @@
 + `python3 import_new_regions.py`
     + reads `client_dir` from config.yaml directly: initial.pak (strings, scripts, trucks) and the level_*.pak files
       (placed trucks, zone names); no website and no extracted files needed
-    + adds new areas / regions, trucks, cargo sources, crafts, gates and objectives for anything not completely in the database
+    + adds new areas / regions, trucks, cargo sources, crafts, gates, objectives and the places where tasks are activated (task_giver table) for anything not completely in the database
       yet (existing rows are never renamed, so it can be run again at any time)
     + creates placeholder map images (map_images/) and a placeholder home page image (assets/) for new areas / regions;
       replace them with real ones

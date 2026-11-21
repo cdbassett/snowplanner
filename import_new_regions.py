@@ -326,6 +326,62 @@ async def fill_positions(area_ids):
     return total, unmatched
 
 
+def _zone_ref(value):
+    """'level_x || ZONE' from the plain string or the {globalZoneId: ...} wrapper(s) a script may use."""
+    while isinstance(value, dict):
+        value = value.get("globalZoneId")
+
+    return value
+
+
+@functools.cache
+def task_giver_refs():
+    """{task id: [(area id, zone id), ...]}: where each task is activated, main spot first (taskGiverZone, then additionalTaskGivers, which are zones of the same level)."""
+    refs = {}
+
+    for _, data in iterate_objective_files_basic():
+        for task_id, task in data.get("tasksSettings", {}).items():
+            main = _zone_ref(task.get("taskGiverZone"))
+
+            if main and " || " in main:
+                level, zone_id = (x.strip() for x in main.split("||"))
+                area_id = fname_to_area_id(level)
+                refs[task_id] = [(area_id, zone_id)] + [(area_id, z) for z in task.get("additionalTaskGivers") or ()]
+
+    return refs
+
+
+async def fill_task_givers(area_ids):
+    """Record where the tasks of these areas are activated (task_giver table), with positions from the level files. Tasks that already have their spots are left alone."""
+    objectives = {o.id: o for o in await Objective.filter(area_id__in=list(area_ids), obj_type="task")}
+    done = set(await TaskGiver.filter(objective_id__in=list(objectives)).values_list("objective_id", flat=True))
+    levels = {}
+    added = Counter()
+    missing = []
+
+    for task_id, refs in task_giver_refs().items():
+        if task_id not in objectives or task_id in done:
+            continue
+
+        for n, (area_id, zone_id) in enumerate(refs):
+            if area_id not in levels:
+                data = gamefiles.read_data_for_ssl(area_id)
+                zones = level_data.parse_level_zones(data)
+                levels[area_id] = (data, zones, level_data.area_half_span(data, zones))
+
+            data, zones, half = levels[area_id]
+            placement = level_data.zone_placement(data, zones[zone_id]) if zone_id in zones else level_data.placement_by_id(data, zone_id)
+
+            if placement and abs(placement.x) < 3000 and abs(placement.z) < 3000:
+                x, y = level_data.world_to_db(placement.x, placement.z, half)
+                await TaskGiver.create(objective_id=task_id, area_id=objectives[task_id].area_id, zone_id=zone_id, x=x, y=y, primary=n == 0)
+                added[objectives[task_id].area_id] += 1
+            else:
+                missing.append(f"{task_id}: {zone_id}")
+
+    return added, missing
+
+
 # ---------------------------------------------------------------- placeholder images
 
 def make_placeholder(path, size, lines, color, fmt):
@@ -427,7 +483,9 @@ async def main():
     for area_id, missing in todo.items():
         print(f"  {area_id}: missing " + ", ".join(f"{len(v)} {k}" for k, v in missing.items()))
 
-    if not todo and not new_areas and not new_trucks and not args.positions:
+    givers_needed = bool((set(task_giver_refs()) & set(await Objective.filter(obj_type="task").values_list("id", flat=True))) - set(await TaskGiver.all().values_list("objective_id", flat=True)))
+
+    if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed:
         print("Nothing to import.")
         return
 
@@ -458,6 +516,12 @@ async def main():
 
     if unmatched:
         print("Map items without a position in the game files (place them in edit mode): " + ", ".join(f"{n} {t}" for t, n in sorted(unmatched.items())))
+
+    givers, no_giver_pos = await fill_task_givers(set(game_areas) if (args.positions or givers_needed) else set(todo))
+    print(f"Task activation spots added for {sum(givers.values())} places " + ", ".join(f"{a}: {n}" for a, n in sorted(givers.items())))
+
+    if no_giver_pos:
+        print("Task activation zones not found in the level files: " + ", ".join(no_giver_pos))
 
     if not args.no_images:
         for path in create_placeholder_images(new_areas, all_rows):
