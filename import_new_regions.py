@@ -460,6 +460,97 @@ async def fill_repairs():
     return added, missing
 
 
+PLACE_PROPS = {"ZonePropertyGarageEntrance": ("garage", "Garage"), "ZonePropertyTrailerAttach": ("trlstore", "Trailer Store")} # zone property -> (map item type, name when the game gives the zone none)
+
+
+def _walk_dicts(value):
+    if isinstance(value, dict):
+        yield value
+
+        for v in value.values():
+            yield from _walk_dicts(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from _walk_dicts(v)
+
+
+@functools.cache
+def garage_zones():
+    """{zone id: (map item type, area id, id of the objective whose reward opens it or None)} of the garages and trailer stores: zones of the level scripts, and zones an objective's reward opens."""
+    zones = {}
+
+    for fname, data in iterate_level_files_basic():
+        try:
+            area_id = fname_to_area_id(fname)
+        except Exception: # test levels
+            continue
+
+        for zone_id, dct in data["zoneDesc"].items():
+            props = (dct or {}).get("props") or {}
+
+            for prop, (typ, _) in PLACE_PROPS.items():
+                if prop in props:
+                    zones[zone_id] = (typ, area_id, None)
+
+    for _, data in iterate_objective_files_basic():
+        for kind in ("tasksSettings", "contractsSettings"):
+            for obj_id, objective in data.get(kind, {}).items():
+                for d in _walk_dicts(objective.get("rewards")):
+                    zone_id, props = d.get("zoneId"), d.get("props")
+
+                    if isinstance(zone_id, str) and isinstance(props, dict):
+                        for prop, (typ, _) in PLACE_PROPS.items():
+                            if prop in props:
+                                try:
+                                    zones[zone_id] = (typ, fname_to_area_id(zone_id), obj_id)
+                                except Exception:
+                                    pass
+
+    return zones
+
+
+async def fill_places(area_ids=None):
+    """Add the garages and trailer stores (map items of type garage / trlstore) with their positions; those a task's reward opens are locked by that objective. Existing rows keep their names and positions."""
+    objective_ids = set(await Objective.all().values_list("id", flat=True))
+    existing = {m.id: m for m in await MapItem.filter(item_type__in=[t for t, _ in PLACE_PROPS.values()])}
+    known_areas = set(await RegionArea.all().values_list("area_id", flat=True))
+    levels = {}
+    added = 0
+
+    for zone_id, (typ, area_id, locker) in sorted(garage_zones().items()):
+        if (area_ids is not None and area_id not in area_ids) or area_id not in known_areas:
+            continue
+
+        if area_id not in levels:
+            data = gamefiles.read_data_for_ssl(area_id)
+            zones = level_data.parse_level_zones(data)
+            levels[area_id] = (data, zones, level_data.area_half_span(data, zones))
+
+        data, zones, half = levels[area_id]
+        zone = zones.get(zone_id)
+        placement = level_data.zone_placement(data, zone) if zone else level_data.placement_by_id(data, zone_id)
+        pos = level_data.world_to_db(placement.x, placement.z, half) if placement and abs(placement.x) < 3000 and abs(placement.z) < 3000 else (None, None)
+        name = (zone and level_data.zone_display_name(zone)) or next(n for t, n in PLACE_PROPS.values() if t == typ)
+        locker = locker if locker in objective_ids else None
+
+        if (item := existing.get(zone_id)):
+            changed = False
+
+            if item.x is None and pos[0] is not None:
+                item.x, item.y, changed = pos[0], pos[1], True
+
+            if locker and item.obj_locker_id != locker:
+                item.obj_locker_id, changed = locker, True
+
+            if changed:
+                await item.save()
+        else:
+            await MapItem.create(id=zone_id, area_id=area_id, name=name, item_type=typ, x=pos[0], y=pos[1], obj_locker_id=locker, completed=False)
+            added += 1
+
+    return added
+
+
 # ---------------------------------------------------------------- placeholder images
 
 def make_placeholder(path, size, lines, color, fmt):
@@ -566,7 +657,9 @@ async def main():
     db_repairs = {r.id: (r.damage_state, r.after_stage) for r in await ObjectiveRepair.all()}
     repairs_needed = any(None in db_repairs.get(f"{o}|{n}|{i}", (None,)) for o, n, i, *_ in repair_steps() if o in db_objective_ids)
 
-    if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed and not repairs_needed:
+    places_needed = bool(set(garage_zones()) - db_map_ids)
+
+    if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed and not repairs_needed and not places_needed:
         print("Nothing to import.")
         return
 
@@ -603,6 +696,9 @@ async def main():
 
     if no_giver_pos:
         print("Task activation zones not found in the level files: " + ", ".join(no_giver_pos))
+
+    added_places = await fill_places()
+    print(f"Garages / trailer stores added: {added_places}")
 
     added_repairs, missing_repairs = await fill_repairs()
     print(f"Repair steps added: {added_repairs}")

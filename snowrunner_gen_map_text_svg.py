@@ -58,6 +58,7 @@ ENTRY_CORNER_RADIUS = 3
 LINK_CASING_LAYERS = [(7, "black", 0.4), (5, "white", 1)] # (width, color, opacity) under the pickup -> delivery lines, widest first
 LINK_ARROW_SPACING = 80
 LINK_ARROW_LENGTH = 15
+MARKER_TYPES = ("giver", "place") # entries drawn as one bold letter in a small box, with the details in a tooltip
 GIVER_BOX_SCALE = 1.2 # task start markers are this much bigger than the plain "T" box would be
 LINK_ARROW_WIDTH = 16
 LINK_ARROW_NOTCH = 6 # how far the chevron's inner notch sits in from its wing tips
@@ -684,6 +685,21 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
             selected, back_color = get_selected_color("#66e0f0", objective.id, blocked, "#3cb4c8")
             cargo_by_pos[db_pos(giver)].append((make_draw_item(TaskGiver.filter(id=giver.id), giver.zone_id, f"giver_{giver.id}", "giver", "T", ["T"], selected, blocked, back_color, "black", classes=klass, tip=("❗", objective.name, "Task start" if giver.primary else "Task start (alternate spot)")))._replace(width=GIVER_BOX_SCALE * (text_height + 2 * text_h_margin)))
 
+        # garages and trailer stores (where vehicles / trailers are changed and bought)
+    if not loc_mode and ("Garages" not in hide_types or "Trailer Stores" not in hide_types or selected_ids): # when hidden, a building selected in the tree is still shown
+        klass = element_classes.get("Tasks", "location-task")
+
+        for place in await MapItem.filter(area_id=area_id, item_type__in=["garage", "trlstore"]).prefetch_related("obj_locker"):
+            is_garage = place.item_type == "garage"
+
+            if not have_db_pos(place) or (("Garages" if is_garage else "Trailer Stores") in hide_types and place.id not in selected_ids):
+                continue
+
+            locked = bool(place.obj_locker and not place.obj_locker.completed)
+            selected, back_color = get_selected_color("#ffcc80" if is_garage else "#b39ddb", place.id, locked, "#d9a066" if is_garage else "#8e7cc3")
+            sub = ("Garage" if is_garage else "Trailer store") + (f" — opens when {place.obj_locker.name} is completed" if locked else "")
+            cargo_by_pos[db_pos(place)].append(make_draw_item(MapItem.filter(id=place.id), place.id, place.id, "place", "G" if is_garage else "S", ["G" if is_garage else "S"], selected, locked, back_color, "black", classes=klass, tip=("\N{HOUSE BUILDING}" if is_garage else "\N{ARTICULATED LORRY}", place.name, sub)))
+
         # delivery plan: the visible plan's remaining stops drawn as numbered squares, linked in order
     if plan and not loc_mode:
         klass = element_classes.get("Plan", "location-plan")
@@ -907,7 +923,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
 
     def entry_height(entry):
-        if entry.typ == "giver":
+        if entry.typ in MARKER_TYPES:
             return GIVER_BOX_SCALE * (text_height + 2 * text_v_margin + quarter_height)
 
         no_cargo = int(not entry.cargo_items)
@@ -1023,8 +1039,8 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
             placements = layout_cargo(entry.cargo_items, text_height)[0]
 
-            if entry.typ == "giver": # just a bold T centered in the box
-                g.append(draw.Text("T", text_height * GIVER_BOX_SCALE, x + entry.width / 2, y + h / 2, text_anchor="middle", dominant_baseline="central", fill=entry.fore, font_weight="bold"))
+            if entry.typ in MARKER_TYPES: # just a bold letter centered in the box
+                g.append(draw.Text(entry.disp_name, text_height * GIVER_BOX_SCALE, x + entry.width / 2, y + h / 2, text_anchor="middle", dominant_baseline="central", fill=entry.fore, font_weight="bold"))
                 placements = []
 
             cargo_y = ty + text_height * len(title_lines)
@@ -1391,6 +1407,8 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         "Framing",
         "Spawns",
         "Task Starts",
+        "Garages",
+        "Trailer Stores",
         ]
 
 #    hide_types = set(svg_vis_togglers)

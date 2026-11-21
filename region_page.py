@@ -106,7 +106,7 @@ async def region(region_slug: str):
 
             prefix, id = tree_id.split("_", 1)
 
-            if prefix in ("PR", "SPR", "TPR", "TO"):
+            if prefix in ("PR", "SPR", "TPR", "TO", "BPR"):
                 id = id.split("|")[1]
 
                 if (pre_req_obj := (await Objective.filter(id=id).first())):
@@ -375,6 +375,9 @@ async def region(region_slug: str):
                 else:
                     select_single_top_tree_node(obj_tree, "gates")
                     await select_clicked_node("G_" + id, id)
+        elif typ == "place": # garage / trailer store
+            select_single_top_tree_node(obj_tree, "buildings")
+            await select_clicked_node("B_" + id, id)
         elif typ == "truck":
             select_single_top_tree_node(obj_tree, "trucks")
             await select_clicked_node("T_" + id, id)

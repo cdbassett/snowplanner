@@ -386,7 +386,7 @@ async def area(area_slug: str):
             prefix, id = tree_id.split("_", 1)
             ic("selected", prefix, id)
 
-            if prefix in("PR", "SPR", "TPR", "TO"):
+            if prefix in("PR", "SPR", "TPR", "TO", "BPR"):
                 id = id.split("|")[1]
 
                 if (pre_req_obj := (await Objective.filter(id=id).first())):
@@ -485,6 +485,9 @@ async def area(area_slug: str):
                     else:
                         select_single_top_tree_node(obj_tree, "gates")
                         await select_tree_node("G_" + id, id)
+            elif typ == "place": # garage / trailer store
+                select_single_top_tree_node(obj_tree, "buildings")
+                await select_tree_node("B_" + id, id)
             elif typ == "truck":
                 node_id = "T_" + id
                 ic(node_id)

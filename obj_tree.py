@@ -18,10 +18,11 @@ from database.models import *
 from cargo_icons import TRUCK_TYPE_LABELS, truck_type, cargo_art_uris, normalize_cargo_name, cargo_style, has_cargo_style, TIER_FILLS, TIER_LEGEND, CARGO_STYLES, GENERIC_STYLES, CargoStack, vehicle_stack, vehicle_kind, parse_recipe
 from snowrunner_read_game_save import sync_cargo_from_spawns, find_newest_game_save, apply_game_save, apply_game_save_summary
 from app_state import *
+from utils.snowrunner_utils import get_compass_repr_of_pos_int
 
 class __TREE_FUNCTIONS__: pass
 
-top_level_nodes = ["contracts", "tasks", "trucks", "sources", "gates"]
+top_level_nodes = ["contracts", "tasks", "trucks", "sources", "gates", "buildings"]
 
 def select_single_top_tree_node(obj_tree, id):
     for node in top_level_nodes:
@@ -173,7 +174,7 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
 #        all_objs = False
 
     tree_nodes = [{ "id": id, "label": id.title(), "children": list(), "noTick": True } for id in top_level_nodes]
-    contract_children, task_children,  truck_children, source_children, gate_children = map(itemgetter("children"), tree_nodes)
+    contract_children, task_children,  truck_children, source_children, gate_children, building_children = map(itemgetter("children"), tree_nodes)
     ticked, expanded = [], []
     ids = [] # no point in keeping a dict, the list of nodes in actual widget is different (unless we wanted to replace entire content again)
         # we need to also show objectives that start here or are delivering here, so just grag the ids
@@ -326,6 +327,23 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
 
         ids.append(g_id)
         gate_children.append(gate_node)
+
+        # buildings: garages and trailer stores
+    for map_item in await MapItem.filter(base_map_filter & Q(item_type__in=["garage", "trlstore"])).prefetch_related("obj_locker").order_by("name", "id"):
+        b_id = "B_" + map_item.id
+        label = get_area_desc(map_item.name, map_item.area_id)
+
+        if map_item.x is not None:
+            label += f" ({get_compass_repr_of_pos_int((map_item.x, map_item.y))})" # several stores in an area have the same name
+
+        building_node = {"id": b_id, "label": label, "noTick": True, "children": []}
+
+        if (prereq_obj := map_item.obj_locker) and not prereq_obj.completed:
+            building_node["header"] = "blocked"
+            building_node["children"].append({"id": "BPR_" + "|".join((map_item.id, prereq_obj.id)), "label": get_area_desc(prereq_obj.name, prereq_obj.area_id), "header": "prereq", "noTick": True})
+
+        ids.append(b_id)
+        building_children.append(building_node)
 
     return tree_nodes, ticked, ids, expanded
 
