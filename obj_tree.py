@@ -186,6 +186,11 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
             .filter(Q(area_id=cur_area_id) | Q(obj_items__deliver_loc__area_id=cur_area_id) | Q(obj_items__map_item__area_id=cur_area_id) | Q(map_items_locked_by__area_id=cur_area_id)) \
             .distinct().values_list("id", flat=True)
 
+    repairs_by_objective = defaultdict(list)
+
+    for repair in await ObjectiveRepair.filter(objective_id__in=list(obj_ids)).prefetch_related("map_item").order_by("stage", "id"):
+        repairs_by_objective[repair.objective_id].append(repair)
+
     for objective in await Objective.filter(id__in=obj_ids).prefetch_related("obj_items__deliver_loc", "obj_items__map_item", "obj_prereqs__prereq_obj", "map_items_locked_by").order_by("name"):
         o_id = "O_" + objective.id
 
@@ -277,6 +282,14 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
                     loc_node["children"] = oi_children
                 else:
                     obj_children.extend(oi_children)
+
+        for repair in repairs_by_objective.get(objective.id, ()): # repair steps of vehicles (tickable; the vehicle is drawn with a wrench until it is done)
+            rp_id = "RP_" + repair.id
+            ids.append(rp_id)
+            obj_children.append({"id": rp_id, "label": "Repair: " + get_area_desc(repair.map_item.name, repair.map_item.area_id)})
+
+            if repair.completed:
+                ticked.append(rp_id)
 
         if obj_children:
             obj_node["children"] = obj_children
@@ -383,6 +396,9 @@ async def apply_tree_ticks(ticked_ids, unticked_ids, old_ticked_ids=None):
 
     if (spawn_ids := [i for i in ticked_oi_ids + unticked_oi_ids if i.endswith("|s")]): # a spawned cargo's delivery follows its pickups
         await sync_cargo_from_spawns(await ObjectiveItem.filter(id__in=spawn_ids).values_list("objective_id", flat=True))
+
+    ticked_rp_ids, unticked_rp_ids = get_actual_ids(ticked_ids, unticked_ids, "RP_")
+    await update_completed(ticked_rp_ids, unticked_rp_ids, ObjectiveRepair)
 
     ticked_t_ids, unticked_t_ids = get_actual_ids(ticked_ids, unticked_ids, "T_")
     ticked_s_ids, unticked_s_ids = get_actual_ids(ticked_ids, unticked_ids, "S_")

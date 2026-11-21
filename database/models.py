@@ -86,6 +86,22 @@ class TaskGiver(Model, PositionMixin):
     class Meta:
         table = "task_giver"
 
+class ObjectiveRepair(Model):
+    """A repair step of an objective: the vehicle (a placed truck / trailer) has to be repaired as part of it, from the stages' repairTruck entries of the game files."""
+    id = string_id(pk=True) # objective id | stage | index
+    objective = fields.ForeignKeyField(Objective, related_name="repairs")
+    map_item = fields.ForeignKeyField(MapItem, related_name="repairs") # the vehicle
+    stage = fields.SmallIntField()
+    phase = fields.CharField(max_length=6) # before: repaired before it is delivered (shown on its pickup), after: repaired after delivery (shown on the delivery), alone: the vehicle isn't delivered at all
+    completed = fields.BooleanField(default=False)
+    damage_state = fields.SmallIntField(null=True) # damage / fuel level (%) the vehicle starts with in the level file
+    fuel_state = fields.SmallIntField(null=True)
+    repair_points = fields.SmallIntField(null=True) # what the vehicle needs, worked out from its condition in the level file and its parts' capacities (trucks only)
+    fuel_liters = fields.SmallIntField(null=True)
+
+    class Meta:
+        table = "objective_repair"
+
 class ObjectivePrereq(Model):
     id = fields.IntField(pk=True)
     objective = fields.ForeignKeyField(Objective, related_name='obj_prereqs')

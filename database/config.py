@@ -35,6 +35,7 @@ TABLE_ORDER = {
     "objective": models.Objective,
     "map_item": models.MapItem,
     "task_giver": models.TaskGiver,
+    "objective_repair": models.ObjectiveRepair,
     "obj_prereq": models.ObjectivePrereq,
     "obj_item": models.ObjectiveItem,
     "src_cargo_item": models.SourceCargoItem,

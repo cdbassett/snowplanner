@@ -407,6 +407,21 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
     cargo_by_pos = defaultdict(list)
     area_id = area_ids_by_area[area]
+    pending_repairs = {} # (objective id, vehicle id) -> (phase, condition text) of the repair steps not done yet (of objectives that aren't finished either)
+
+    if not loc_mode:
+        for repair in await ObjectiveRepair.filter(completed=False, objective__completed=False):
+            if repair.repair_points is not None or repair.fuel_liters is not None:
+                condition = ", ".join(part for part in (f"{repair.repair_points} repair points" if repair.repair_points else "", f"{repair.fuel_liters} l fuel" if repair.fuel_liters else "") if part)
+            else: # no part data (e.g. a trailer): only what the level says
+                condition = ", ".join(part for part in (f"damage {repair.damage_state}%" if repair.damage_state else "", f"fuel {repair.fuel_state}%" if repair.fuel_state is not None else "") if part)
+            pending_repairs[(repair.objective_id, repair.map_item_id)] = (repair.phase, condition or True)
+
+    def needs_repair(objective_id, vehicle_id, phase):
+        """False, or what the vehicle needs: True / text with its condition from the game files."""
+        found = pending_repairs.get((objective_id, vehicle_id))
+        return found[1] if found and found[0] == phase else False
+
     gates_to_area = defaultdict(list) # to_area_id -> positions of this area's gates leading there (single area view only, for lines to/from neighboring areas)
     incoming_by_gate = defaultdict(list) # gate position -> positions of deliveries here whose cargo comes through that gate
 
@@ -484,13 +499,13 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         if not (hide_tasks if is_task else hide_contracts):
                             arrow = link_targets(obj_item.deliver_loc, map_item)
 
-                        cargo_list = [CargoStack(map_item.name, 1, desc) if is_spawn else vehicle_stack(map_item.name, desc)] + cargo_items
+                        cargo_list = [CargoStack(map_item.name, 1, desc) if is_spawn else vehicle_stack(map_item.name, desc)._replace(repair=needs_repair(obj_item.objective_id, map_item.id, "before"))] + cargo_items
 
                         rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=pickup_tip(cargo_list[0], obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
                 elif not is_spawn:
                     blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                     selected, back_color = get_selected_color("mediumpurple", map_item.id, blocked, "darkslateblue")
-                    vehicle = vehicle_stack(map_item.name, desc)
+                    vehicle = vehicle_stack(map_item.name, desc)._replace(repair=next((found[1] for key, found in pending_repairs.items() if key[1] == map_item.id and found[0] == "alone"), False))
                     cargo_items = [vehicle] + cargo_items
                     tip = (vehicle.icon, map_item.name, vehicle.tip_sub, " ".join(vehicle.art_uris or []))
 
@@ -590,10 +605,11 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                             dst_pos = db_pos(obj_item.deliver_loc)
                             incoming_by_gate[gate_pos_toward(obj_item.map_item.area_id, dst_pos)].append(dst_pos)
 
-                        if (not obj_item.map_item or obj_item.map_item.item_type != "spawn") and (show_all or not obj_item.completed):
+                        repair_pending = obj_item.map_item_id and needs_repair(objective.id, obj_item.map_item_id, "after") # delivered but not repaired yet: keep showing it
+                        if (not obj_item.map_item or obj_item.map_item.item_type != "spawn") and (show_all or not obj_item.completed or repair_pending):
                             cargo_text = counted_cargo(obj_item.count, abbreviate_line(obj_item.name))
                             is_vehicle = obj_item.item_type in ("truck", "trailer")
-                            cargo_label = vehicle_stack(obj_item.name, cargo_text) if is_vehicle else CargoStack(obj_item.name, obj_item.count, cargo_text, shortage=None if obj_item.map_item else shortages.get(obj_item.name))
+                            cargo_label = vehicle_stack(obj_item.name, cargo_text)._replace(repair=repair_pending or False) if is_vehicle else CargoStack(obj_item.name, obj_item.count, cargo_text, shortage=None if obj_item.map_item else shortages.get(obj_item.name))
                             cargo_labels = [cargo_label]
 
                                 # extra info if between 2 areas
@@ -1037,6 +1053,11 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                             ix += isz
                     else:
                         sg.append(draw.Text(stack.icon, sq * 0.6, sx + sw / 2, sy + sq * 0.42, text_anchor="middle", dominant_baseline="central")) # one text so a trailer's two emoji touch
+
+                    if stack.repair: # wrench badge in the corner of a vehicle that has to be repaired
+                        br = sq * 0.27
+                        sg.append(draw.Circle(sx + sw - br * 0.6, sy + br * 0.6, br, fill="white", stroke="black", stroke_width=1))
+                        sg.append(draw.Text("🔧", br * 1.5, sx + sw - br * 0.6, sy + br * 0.6, text_anchor="middle", dominant_baseline="central"))
 
                     stack.count_text and sg.append(draw.Text(stack.count_text, text_height * 0.9, sx + sw - 1, sy + sq - 1, text_anchor="end", font_weight="bold", fill="black", stroke="white", stroke_width=2, paint_order="stroke"))
                     overlay_elements.append(sg)

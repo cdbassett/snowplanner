@@ -43,7 +43,7 @@ dfs_struct = Struct(
     )
 
 
-LevelItem = namedtuple("LevelItem", "item_id,task_id,index,cargo_strings,x,z") # a placed truck / trailer; task_id is empty when it is not part of an objective; x, z are its world position
+LevelItem = namedtuple("LevelItem", "item_id,task_id,index,cargo_strings,x,z,damage,fuel") # a placed truck / trailer; task_id is empty when it is not part of an objective; x, z are its world position; damage and fuel are the % it starts with
 Zone = namedtuple("Zone", "zone_id,model,model_kind,name_key,offset") # zone_id is the location's id; name_key is the key of its display name in the game's strings; offset is where the record starts in the file
 
 
@@ -58,7 +58,8 @@ def parse_level_items(data):
 
     for n, item in enumerate(parsed.item_list):
         x, height, z = struct.unpack("<fff", bytes(item.unknown[:12])) # the position follows the 3x4 orientation matrix (checked against hand-placed trucks)
-        items.append(LevelItem(clear(item.item_id), clear(item.task_id), n, [clear(s) for s in item.cargo_strings], x, z))
+        damage, _, fuel = struct.unpack("<3f", bytes(item.dummy[:12])) # the floats at the start of the trailing bytes: damage %, an unknown value, fuel % (checked against ZiKZ 5368: 80 / 28 %)
+        items.append(LevelItem(clear(item.item_id), clear(item.task_id), n, [clear(s) for s in item.cargo_strings], x, z, damage, fuel))
 
     return items
 

@@ -47,6 +47,7 @@ ic.disable() # the game script readers are chatty
 from database.config import TORTOISE_CONFIG, snowplanner_db_filename
 from database.models import *
 from utils import gamefiles, level_data
+from utils.truck_stats import truck_stats
 from utils.snowrunner_utils import (area_acronym, area_string, cargo_names_dict, counted_cargo, encapsulate, parse_xml, slugify_region_area,
                                     fname_to_area_id, iterate_level_files_basic, iterate_objective_files_basic)
 import populate_game_data as pgd
@@ -382,6 +383,83 @@ async def fill_task_givers(area_ids):
     return added, missing
 
 
+@functools.cache
+def repair_steps():
+    """[(objective id, stage, index, vehicle id, phase, damage %, fuel %)] of every repairTruck entry of the tasks and contracts. The phase says where it is shown:
+    before = the vehicle is delivered later (repaired first, or while being delivered), after = it was delivered in an earlier stage, alone = it isn't delivered."""
+    steps = []
+
+    for _, data in iterate_objective_files_basic():
+        for typ in ("tasksSettings", "contractsSettings"):
+            for obj_id, objective in data.get(typ, {}).items():
+                stages = objective.get("stages") or []
+                delivered = defaultdict(list) # vehicle id -> stages it is delivered in
+
+                for n, stage in enumerate(stages):
+                    for delivery in (stage or {}).get("truckDelivery") or ():
+                        delivered[delivery["truckId"]].append(n)
+
+                for n, stage in enumerate(stages):
+                    for idx, repair in enumerate((stage or {}).get("repairTruck") or ()):
+                        truck_id = repair["truckId"]
+                        stages_delivered = delivered.get(truck_id)
+                        phase = "alone" if not stages_delivered else "before" if n <= min(stages_delivered) else "after"
+                        steps.append((obj_id, n, idx, truck_id, phase, repair.get("truckDamageState"), repair.get("truckFuelState")))
+
+    return steps
+
+
+def repair_needs(level_item, damage, fuel):
+    """(damage %, fuel %, repair points, liters of fuel) a vehicle needs, from its condition in the level file (the objective's own states when the vehicle isn't in the level) and the capacities of its parts. Points are
+    rounded to tens, as the game shows them (Kenworth 963 at 33 % damage: 237.6 -> 240); the fuel is what is missing from the tank (ZiKZ 5368 at 28 %: 137 l)."""
+    if level_item:
+        damage, fuel = round(level_item.damage), round(level_item.fuel)
+
+    stats = truck_stats(level_item.item_id) if level_item else None
+    points = round(damage / 100 * stats[0], -1) if stats and damage else None
+    liters = round((100 - fuel) / 100 * stats[1]) if stats and fuel is not None and fuel < 100 else None
+    return damage, fuel, points, liters
+
+
+async def fill_repairs():
+    """Add the repair steps of the objectives that are in the database, and what each vehicle needs (existing steps keep their done state)."""
+    objective_ids = set(await Objective.all().values_list("id", flat=True))
+    vehicles = {m.id: m for m in await MapItem.filter(item_type__in=["truck", "trailer"])}
+    existing = {r.id: r for r in await ObjectiveRepair.all()}
+    level_items = {}
+    added, missing = 0, []
+
+    for obj_id, stage, idx, truck_id, phase, objective_damage, objective_fuel in repair_steps():
+        step_id = f"{obj_id}|{stage}|{idx}"
+
+        if obj_id not in objective_ids:
+            continue
+
+        if truck_id not in vehicles:
+            missing.append(f"{obj_id}: {truck_id}")
+            continue
+
+        area_id = vehicles[truck_id].area_id
+
+        if area_id not in level_items:
+            level_items[area_id] = {item.task_id or f"{area_id}|{item.item_id}|{item.index}": item for item in level_data.parse_level_items(gamefiles.read_data_for_ssl(area_id))}
+
+        damage, fuel, points, liters = repair_needs(level_items[area_id].get(truck_id), objective_damage, objective_fuel)
+        values = dict(damage_state=damage, fuel_state=fuel, repair_points=points, fuel_liters=liters)
+
+        if (row := existing.get(step_id)):
+            if any(getattr(row, k) != v for k, v in values.items()):
+                for k, v in values.items():
+                    setattr(row, k, v)
+
+                await row.save(update_fields=list(values))
+        else:
+            await ObjectiveRepair.create(id=step_id, objective_id=obj_id, map_item_id=truck_id, stage=stage, phase=phase, **values)
+            added += 1
+
+    return added, missing
+
+
 # ---------------------------------------------------------------- placeholder images
 
 def make_placeholder(path, size, lines, color, fmt):
@@ -485,7 +563,10 @@ async def main():
 
     givers_needed = bool((set(task_giver_refs()) & set(await Objective.filter(obj_type="task").values_list("id", flat=True))) - set(await TaskGiver.all().values_list("objective_id", flat=True)))
 
-    if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed:
+    db_repairs = {r.id: r.damage_state for r in await ObjectiveRepair.all()}
+    repairs_needed = any(db_repairs.get(f"{o}|{n}|{i}") is None for o, n, i, *_ in repair_steps() if o in db_objective_ids)
+
+    if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed and not repairs_needed:
         print("Nothing to import.")
         return
 
@@ -522,6 +603,12 @@ async def main():
 
     if no_giver_pos:
         print("Task activation zones not found in the level files: " + ", ".join(no_giver_pos))
+
+    added_repairs, missing_repairs = await fill_repairs()
+    print(f"Repair steps added: {added_repairs}")
+
+    if missing_repairs:
+        print("Repair steps whose vehicle isn't in the database: " + ", ".join(missing_repairs))
 
     if not args.no_images:
         for path in create_placeholder_images(new_areas, all_rows):

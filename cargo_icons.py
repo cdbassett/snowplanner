@@ -7,8 +7,9 @@ import icon_art
 from utils.snowrunner_utils import read_truck_types
 
 
-class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shortage", defaults=(False, None, "cargo", None))):
+class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shortage,repair", defaults=(False, None, "cargo", None, False))):
     """A quantity of one cargo type. count None means unlimited. text is the plain-text form used where icons aren't drawn.
+    repair marks a vehicle that has to be repaired (drawn with a wrench in its corner): True, or a text with what the game says about its condition.
     shortage, when set, says why an objective's cargo can't be fully supplied from its area; the icon gets a red outline."""
     __slots__ = ()
 
@@ -91,7 +92,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shor
             return self.note
 
         if self.is_vehicle:
-            return self.kind.capitalize() + (f" ({label})" if self.kind == "truck" and (label := truck_type_label(self.name)) else "")
+            return self.kind.capitalize() + (f" ({label})" if self.kind == "truck" and (label := truck_type_label(self.name)) else "") + (" — needs repair" + (f" ({self.repair})" if isinstance(self.repair, str) else "") if self.repair else "")
 
         return ("Unlimited ∞" if self.count is None else f"Count: {self.count}") + (" (loaded on trailer)" if self.loaded else "") + (f" — {self.shortage}" if self.shortage else "")
 
