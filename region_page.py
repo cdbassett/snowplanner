@@ -385,6 +385,9 @@ async def region(region_slug: str):
             if (obj_item := await ObjectiveItem.filter(id=id).prefetch_related("objective").first()):
                 select_single_top_tree_node(obj_tree, obj_item.objective.obj_type + "s")
                 await select_clicked_node("OI_" + obj_item.id, obj_item.id, obj_item.objective_id)
+            elif (repair := await ObjectiveRepair.filter(id=id).prefetch_related("objective").first()): # a vehicle that is unlocked by repairing it
+                select_single_top_tree_node(obj_tree, repair.objective.obj_type + "s")
+                await select_clicked_node("RP_" + repair.id, repair.id, repair.objective_id)
         elif typ == "dst":
             if (obj_item := await ObjectiveItem.filter(deliver_loc_id=id, **({'objective_id': rec.row_key} if rec.row_key else {})).prefetch_related("objective").first()):
                 await select_objective(obj_item.objective)

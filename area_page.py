@@ -501,6 +501,9 @@ async def area(area_slug: str):
                     id = obj_item.objective_id
                     select_single_top_tree_node(obj_tree, obj_item.objective.obj_type + "s")
                     await select_tree_node("OI_" + obj_item.id, obj_item.id, id)
+                elif (repair := await ObjectiveRepair.filter(id=id).prefetch_related("objective").first()): # a vehicle that is unlocked by repairing it
+                    select_single_top_tree_node(obj_tree, repair.objective.obj_type + "s")
+                    await select_tree_node("RP_" + repair.id, repair.id, repair.objective_id)
             elif typ == "giver":
                 if (giver := await TaskGiver.filter(id=int(id.removeprefix("giver_"))).prefetch_related("objective").first()):
                     await select_objective(giver.objective)

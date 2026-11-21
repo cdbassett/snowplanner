@@ -407,15 +407,25 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
     cargo_by_pos = defaultdict(list)
     area_id = area_ids_by_area[area]
-    pending_repairs = {} # (objective id, vehicle id) -> (phase, condition text) of the repair steps not done yet (of objectives that aren't finished either)
+    pending_repairs = {} # (objective id, vehicle id) -> (phase, condition text, repair step) of the repair steps not done yet (of objectives that aren't finished either)
 
     if not loc_mode:
-        for repair in await ObjectiveRepair.filter(completed=False, objective__completed=False):
+        for repair in await ObjectiveRepair.filter(completed=False, objective__completed=False).prefetch_related("objective__obj_prereqs__prereq_obj"):
             if repair.repair_points is not None or repair.fuel_liters is not None:
                 condition = ", ".join(part for part in (f"{repair.repair_points} repair points" if repair.repair_points else "", f"{repair.fuel_liters} l fuel" if repair.fuel_liters else "") if part)
             else: # no part data (e.g. a trailer): only what the level says
                 condition = ", ".join(part for part in (f"damage {repair.damage_state}%" if repair.damage_state else "", f"fuel {repair.fuel_state}%" if repair.fuel_state is not None else "") if part)
-            pending_repairs[(repair.objective_id, repair.map_item_id)] = (repair.phase, condition or True)
+            pending_repairs[(repair.objective_id, repair.map_item_id)] = (repair.phase, condition or True, repair)
+
+    repaired_alone = set() # vehicles that are only on the map to be repaired (no delivery), whose task is done and that became the player's (reward) or were removed: left out of the normal view
+    alone_steps = {} # vehicle id -> its repair step without delivery, for showing the vehicle with its task even when the task is done ("All")
+
+    if not loc_mode:
+        for repair in await ObjectiveRepair.filter(phase="alone").prefetch_related("map_item", "objective__obj_prereqs__prereq_obj"):
+            if not show_all and repair.objective.completed and (repair.after_stage in ("REWARD", "DESTROY") or repair.map_item.obj_locker_id == repair.objective_id):
+                repaired_alone.add(repair.map_item_id)
+
+            alone_steps.setdefault(repair.map_item_id, repair)
 
     def needs_repair(objective_id, vehicle_id, phase):
         """False, or what the vehicle needs: True / text with its condition from the game files."""
@@ -502,7 +512,15 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                         cargo_list = [CargoStack(map_item.name, 1, desc) if is_spawn else vehicle_stack(map_item.name, desc)._replace(repair=needs_repair(obj_item.objective_id, map_item.id, "before"))] + cargo_items
 
                         rec = make_draw_item(flt, map_item.id, obj_item.id, "pickup", cur_task, cargo_list, selected, blocked, back_color, "blue", None, classes=klass, arrow=arrow, tip=pickup_tip(cargo_list[0], obj_item.objective.name, pickup_tip_sub(map_item, obj_item)))
-                elif not is_spawn:
+                elif not is_spawn and map_item.id not in repaired_alone and (repair := next((found[2] for key, found in pending_repairs.items() if key[1] == map_item.id and found[0] == "alone"), None) or (alone_steps.get(map_item.id) if show_all else None)):
+                    # a vehicle on the map that is part of an objective's repair step (e.g. only unlocked by repairing it): shown like a pickup of that objective, also when it is done and completed items are shown
+                    objective = repair.objective
+                    alone = pending_repairs.get((objective.id, map_item.id), (None, False))
+                    blocked = any(not prereq.prereq_obj.completed for prereq in objective.obj_prereqs)
+                    selected, back_color = get_selected_color("greenyellow", (objective.id, repair.id, map_item.id), blocked, "limegreen")
+                    vehicle = vehicle_stack(map_item.name, desc)._replace(repair=alone[1])
+                    rec = make_draw_item(flt, map_item.id, repair.id, "pickup", abbreviate_line(objective.name), [vehicle] + cargo_items, selected, blocked, back_color, "blue", None, classes=truck_klass, tip=pickup_tip(vehicle, objective.name, "Pickup — repair it to use it"))
+                elif not is_spawn and map_item.id not in repaired_alone:
                     blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                     selected, back_color = get_selected_color("mediumpurple", map_item.id, blocked, "darkslateblue")
                     vehicle = vehicle_stack(map_item.name, desc)._replace(repair=next((found[1] for key, found in pending_repairs.items() if key[1] == map_item.id and found[0] == "alone"), False))

@@ -385,7 +385,7 @@ async def fill_task_givers(area_ids):
 
 @functools.cache
 def repair_steps():
-    """[(objective id, stage, index, vehicle id, phase, damage %, fuel %)] of every repairTruck entry of the tasks and contracts. The phase says where it is shown:
+    """[(objective id, stage, index, vehicle id, phase, damage %, fuel %, what happens to it after the stage)] of every repairTruck entry of the tasks and contracts. The phase says where it is shown:
     before = the vehicle is delivered later (repaired first, or while being delivered), after = it was delivered in an earlier stage, alone = it isn't delivered."""
     steps = []
 
@@ -404,7 +404,7 @@ def repair_steps():
                         truck_id = repair["truckId"]
                         stages_delivered = delivered.get(truck_id)
                         phase = "alone" if not stages_delivered else "before" if n <= min(stages_delivered) else "after"
-                        steps.append((obj_id, n, idx, truck_id, phase, repair.get("truckDamageState"), repair.get("truckFuelState")))
+                        steps.append((obj_id, n, idx, truck_id, phase, repair.get("truckDamageState"), repair.get("truckFuelState"), repair.get("afterStageFinished") or ""))
 
     return steps
 
@@ -429,7 +429,7 @@ async def fill_repairs():
     level_items = {}
     added, missing = 0, []
 
-    for obj_id, stage, idx, truck_id, phase, objective_damage, objective_fuel in repair_steps():
+    for obj_id, stage, idx, truck_id, phase, objective_damage, objective_fuel, after_stage in repair_steps():
         step_id = f"{obj_id}|{stage}|{idx}"
 
         if obj_id not in objective_ids:
@@ -445,7 +445,7 @@ async def fill_repairs():
             level_items[area_id] = {item.task_id or f"{area_id}|{item.item_id}|{item.index}": item for item in level_data.parse_level_items(gamefiles.read_data_for_ssl(area_id))}
 
         damage, fuel, points, liters = repair_needs(level_items[area_id].get(truck_id), objective_damage, objective_fuel)
-        values = dict(damage_state=damage, fuel_state=fuel, repair_points=points, fuel_liters=liters)
+        values = dict(damage_state=damage, fuel_state=fuel, repair_points=points, fuel_liters=liters, after_stage=after_stage)
 
         if (row := existing.get(step_id)):
             if any(getattr(row, k) != v for k, v in values.items()):
@@ -563,8 +563,8 @@ async def main():
 
     givers_needed = bool((set(task_giver_refs()) & set(await Objective.filter(obj_type="task").values_list("id", flat=True))) - set(await TaskGiver.all().values_list("objective_id", flat=True)))
 
-    db_repairs = {r.id: r.damage_state for r in await ObjectiveRepair.all()}
-    repairs_needed = any(db_repairs.get(f"{o}|{n}|{i}") is None for o, n, i, *_ in repair_steps() if o in db_objective_ids)
+    db_repairs = {r.id: (r.damage_state, r.after_stage) for r in await ObjectiveRepair.all()}
+    repairs_needed = any(None in db_repairs.get(f"{o}|{n}|{i}", (None,)) for o, n, i, *_ in repair_steps() if o in db_objective_ids)
 
     if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed and not repairs_needed:
         print("Nothing to import.")

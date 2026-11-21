@@ -61,8 +61,8 @@ def load_save_data(filename):
     return data[next(k for k in data if k.startswith("CompleteSave"))]["SslValue"]
 
 
-class SaveResult(namedtuple("SaveResult", "finished_objs,source_items,source_unmatched,obj_items")):
-    """Counts of what a save load did: finished objectives, source cargo rows set from the save, save entries that matched no source row, objective items marked delivered."""
+class SaveResult(namedtuple("SaveResult", "finished_objs,source_items,source_unmatched,obj_items,repairs", defaults=(0,))):
+    """Counts of what a save load did: finished objectives, source cargo rows set from the save, save entries that matched no source row, objective items marked delivered, repair steps done."""
     __slots__ = ()
 
 
@@ -226,6 +226,36 @@ async def apply_objective_item_progress(save):
     return delivered
 
 
+async def apply_repair_progress(save):
+    """Set ObjectiveRepair.completed: done for a finished objective, otherwise by the save's truckRepairStates of the objective's stage (the vehicle is repaired, and refueled when it needed fuel); not started means not done."""
+    states = save.get("objectiveStates", {})
+    finished = set(save.get("finishedObjs", ()))
+    changed = []
+    done_count = 0
+
+    for repair in await ObjectiveRepair.all():
+        done = repair.objective_id in finished
+
+        if not done and (state := states.get(repair.objective_id)):
+            try:
+                truck = next((t for t in state["stagesState"][repair.stage]["truckRepairStates"] if t["truckId"] == repair.map_item_id), None)
+            except (KeyError, IndexError):
+                truck = None
+
+            done = bool(truck and truck["isRepaired"] and (truck["isRefueled"] or not repair.fuel_liters))
+
+        done_count += done
+
+        if repair.completed != done:
+            repair.completed = done
+            changed.append(repair)
+
+    if changed:
+        await ObjectiveRepair.bulk_update(changed, fields=["completed"])
+
+    return done_count
+
+
 async def apply_game_save(filename):
     """Update the DB from the game save: finished objectives, objective item deliveries and source cargo counts.
 
@@ -236,12 +266,13 @@ async def apply_game_save(filename):
     await Objective.exclude(id__in=finishedObjs).filter(completed=True).update(completed=False)
     source_items, source_unmatched = await apply_source_counts(save)
     obj_items = await apply_objective_item_progress(save)
-    return SaveResult(len(finishedObjs), source_items, source_unmatched, obj_items)
+    repairs = await apply_repair_progress(save)
+    return SaveResult(len(finishedObjs), source_items, source_unmatched, obj_items, repairs)
 
 
 def apply_game_save_summary(result):
     return (f"{result.finished_objs} finished objectives, {result.source_items} source cargo counts set "
-            f"({result.source_unmatched} save entries matched no source), {result.obj_items} objective items delivered")
+            f"({result.source_unmatched} save entries matched no source), {result.obj_items} objective items delivered, {result.repairs} repair steps done")
 
 
 async def run(filename=None) -> None:
