@@ -96,6 +96,7 @@ class ObjectiveRepair(Model):
     completed = fields.BooleanField(default=False)
     damage_state = fields.SmallIntField(null=True) # damage / fuel level (%) the vehicle starts with in the level file
     fuel_state = fields.SmallIntField(null=True)
+    after_stage = fields.CharField(max_length=20, null=True) # what happens to the vehicle when the stage is finished (REWARD: it's yours, DESTROY: it is removed, DO_NOTHING / DETACH ...); "" when the game doesn't say
     repair_points = fields.SmallIntField(null=True) # what the vehicle needs, worked out from its condition in the level file and its parts' capacities (trucks only)
     fuel_liters = fields.SmallIntField(null=True)
 
