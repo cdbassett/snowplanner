@@ -4,6 +4,7 @@ import re
 from collections import namedtuple
 
 import icon_art
+from utils import refdata
 from utils.snowrunner_utils import read_truck_types
 
 
@@ -38,8 +39,11 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shor
         if (raster := icon_art.raster_uri(self.kind, icon_key(self.name) if self.kind == "cargo" else self.name)):
             return [raster] # a dedicated raster icon is the only icon, even for trailers
 
+        if self.kind == "truck" and (own := icon_art.truck_icon_uri(truck_id(self.name))):
+            return [own] # the truck's own picture
+
         if self.kind == "truck" and (type_icon := icon_art.truck_type_uri(truck_type(self.name))):
-            return [type_icon] # trucks without an icon of their own use the one for their type
+            return [type_icon] # trucks without a picture use the one for their type
 
         if self.kind == "trailer":
             arts = [icon_art.TRAILER_LEAD_ART, icon_art.vehicle_art(self.name, "trailer")]
@@ -364,6 +368,16 @@ def _truck_type_key(name):
 @functools.cache
 def _truck_types():
     return {_truck_type_key(name): truck_type for name, truck_type in read_truck_types().items()}
+
+
+@functools.cache
+def _truck_ids():
+    return {_truck_type_key(name): id for kind, id, ui_key, name, truck_type in refdata.truck_info_rows() if kind == "truck" and name}
+
+
+def truck_id(name):
+    """The game's file id (e.g. "ank_mk38") for a truck's display name; None for trailers and anything unknown."""
+    return _truck_ids().get(_truck_type_key(name))
 
 
 def truck_type(name):

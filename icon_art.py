@@ -158,6 +158,14 @@ def plan_marker_uri(action):
     return _png_uri(RASTER_DIR / "plan" / f"{action}.png")
 
 
+TRUCK_ICON_DIR = Path(__file__).parent / "assets" / "truck_icons" # <truck id>_64.png, the game's own vehicle pictures (cropped square), for the trucks used in objectives
+
+
+def truck_icon_uri(truck_id):
+    """Data URI of the vehicle's own picture, or None when there is none for that truck id."""
+    return truck_id and _png_uri(TRUCK_ICON_DIR / f"{truck_id}_64.png")
+
+
 TRUCK_TYPE_ICON_FILES = {"HEAVY": "heavy.png", "HEAVY_DUTY": "heavy_duty.png", "HIGHWAY": "highway.png", "OFFROAD": "offroad.png", "SCOUT": "scout.png"}
 
 
