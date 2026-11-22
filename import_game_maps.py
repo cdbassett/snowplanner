@@ -10,7 +10,10 @@
 
 Positions of the map items are not touched here: run `python3 import_new_regions.py --reset-positions` to take them from the game files too.
 
-    python3 import_game_maps.py [--area AREA_ID ...] [--no-maps] [--no-icons]
+* The main page's region pictures (assets/region_<region id>.jpg, 500 px wide) are the game's area background pictures (gfx.pak, levelus_0201_i1 ...) of each
+  region's first area (the lowest area number). The pictures they replace are moved to potential_map_images/previous_region_images/.
+
+    python3 import_game_maps.py [--area AREA_ID ...] [--no-maps] [--no-icons] [--no-regions]
 """
 import argparse
 import shutil
@@ -25,6 +28,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "dev"))
 
 import extract_gfx_icons
+import extract_gfx_textures
 import extract_map_textures
 from database.config import snowplanner_db_filename
 from utils import gamefiles, level_data, terrain_maps
@@ -36,6 +40,9 @@ MAP_IMAGE_DIR = ROOT / "map_images"
 TEXTURE_DIR = ROOT / "extracted_map_textures"
 PREVIOUS_DIR = ROOT / "potential_map_images" / "previous_area_maps"
 ICON_DIR = ROOT / "assets" / "map_icons"
+ASSET_DIR = ROOT / "assets"
+PREVIOUS_REGION_DIR = ROOT / "potential_map_images" / "previous_region_images"
+REGION_IMAGE_WIDTH = 500
 ICON_TABLE = ROOT / "data" / "map_zone_icons.tsv"
 SCALE_TABLE = ROOT / "data" / "map_height_scales.tsv"
 ICON_WORK_DIR = ROOT / "extracted_gfx" / "map_zone_icons"
@@ -107,6 +114,36 @@ def import_maps(slugs):
         f.writelines("\t".join([a, f"{t:.0f}", n, v]) + "\n" for a, (t, n, v) in sorted(scales.items()))
 
 
+def import_region_images():
+    con = sqlite3.connect(f"file:{snowplanner_db_filename}?mode=ro", uri=True)
+    first = {}
+
+    for region_id, area_id in con.execute("select region_id, area_id from region_area order by area_id"):
+        first.setdefault(region_id, area_id)
+
+    PREVIOUS_REGION_DIR.mkdir(parents=True, exist_ok=True)
+    work = ROOT / "extracted_gfx" / "areas"
+
+    for region_id, area_id in sorted(first.items()):
+        prefix, region_no, area_no = area_id.lower().split("_") # US_02_01 -> levelus_0201_i1
+        name = f"level{prefix}_{region_no}{area_no}_i1"
+
+        try:
+            extract_gfx_textures.main(work, [name])
+        except KeyError:
+            print(f"{region_id}: no background picture {name} in gfx.pak, kept the existing one")
+            continue
+
+        image = Image.open(work / f"{name}.png").convert("RGB")
+        target = ASSET_DIR / f"region_{region_id.lower()}.jpg"
+
+        if target.exists() and not (PREVIOUS_REGION_DIR / target.name).exists():
+            shutil.move(target, PREVIOUS_REGION_DIR / target.name)
+
+        image.resize((REGION_IMAGE_WIDTH, round(image.height * REGION_IMAGE_WIDTH / image.width)), Image.LANCZOS).save(target, quality=88, optimize=True)
+        print(f"{region_id}: {name} -> {target.relative_to(ROOT)}")
+
+
 def import_icons(area_ids):
     rows = []
 
@@ -151,11 +188,20 @@ if __name__ == "__main__":
     parser.add_argument("--area", action="append", metavar="AREA_ID")
     parser.add_argument("--no-maps", action="store_true")
     parser.add_argument("--no-icons", action="store_true")
+    parser.add_argument("--no-regions", action="store_true")
+    parser.add_argument("--regions-only", action="store_true")
     args = parser.parse_args()
     slugs = {a: s for a, s in region_areas().items() if not args.area or a in args.area}
+
+    if args.regions_only:
+        import_region_images()
+        sys.exit()
 
     if not args.no_maps:
         import_maps(slugs)
 
     if not args.no_icons:
         import_icons(list(slugs))
+
+    if not args.no_regions and not args.area:
+        import_region_images()
