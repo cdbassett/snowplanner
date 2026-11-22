@@ -1,3 +1,4 @@
+import os
 """Shared registries (regions, areas), cross-page events and small constants used by the pages."""
 from collections import defaultdict, namedtuple
 from pathlib import Path
@@ -101,4 +102,12 @@ svg_classes["Hide"] = "hide-me"
 
 def get_image_name_ex(area_info, typ="normal", actual=False):
     base = snowplanner_map_image_dir + "\\" if actual else "/map_images/"
-    return f"{base}{slugify_region_area(area_info.region, area_info.abbrev)}_{typ}.png"
+    name = f"{slugify_region_area(area_info.region, area_info.abbrev)}_{typ}.png"
+
+    if actual:
+        return base + name
+
+    try: # the file's change time in the url, so a browser that cached the old picture fetches a replaced one
+        return f"{base}{name}?v={int(os.path.getmtime(os.path.join(snowplanner_map_image_dir, name)))}"
+    except OSError:
+        return base + name

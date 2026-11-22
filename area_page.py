@@ -537,7 +537,7 @@ async def area(area_slug: str):
     async def get_area_svg():
         nonlocal location_items
 #        ic("get_area_svg()", img_type, cur_area_info.area, highlight_ids)
-        img_src = get_image_name(img_type)
+        img_src = get_image_name("normal") # the game's own map; the icons are painted over it when "Icons" is checked
         location_items = dict()
 
         use_svg_classes = dict(svg_classes.items())
@@ -548,7 +548,7 @@ async def area(area_slug: str):
 #                    ic("hide", title)
                 hide_types.add(title)
 
-        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value)
+        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value, show_game_icons=img_type == "icon")
 
     def initialize_d3():
         print(f"initialize_d3 {cur_area_info.area_id}")
@@ -669,11 +669,8 @@ async def area(area_slug: str):
         img_type = "icon" if icons else "normal"
         ic("switch_map()", img_type, cur_area_info.area)
 
-        if 0:
-            await update_svg()
-        else:
-            # change background dynamically
-            ui.query('#map_svg_image').props(f'href="{get_image_name(img_type)}"')
+        # show / hide the game's map icons (a layer of the map picture) without redrawing
+        ui.run_javascript(f"document.querySelectorAll('.game-icons').forEach(e => e.style.display = '{'' if icons else 'none'}')")
 
         # Function to toggle the panel
     def show_panel():

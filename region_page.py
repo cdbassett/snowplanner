@@ -187,7 +187,7 @@ async def region(region_slug: str):
 
         img_type = "icon"
 
-        img_paths = [get_image_name_ex(area_info, typ="icon") for area_info in region_areas]
+        img_paths = [get_image_name_ex(area_info, typ="normal") for area_info in region_areas]
         hlinks = [f'/area/{area_info.area_slug}' for area_info in region_areas]
 #        highlight_ids = []
         return await generate_region_svg(region_areas[0].region, areas, best_offsets, x_tiles, img_paths, hlinks, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=checkbox_overlap.value, selected_ids=highlight_ids, plan=await dp.get_plan_view(plan_region), show_ids=checkbox_ids.value)
@@ -332,7 +332,7 @@ async def region(region_slug: str):
                         for area_info in areas_for_region[region_slug]:
                             with ui.link(target=f'/area/{area_info.area_slug}').classes('flex flex-col items-center gap-2 no-underline text-black'):
                                 ui.label(area_info.area).classes('font-bold text-lg')
-                                ui.image(get_image_name_ex(area_info, "icon")).classes('w-100 rounded shadow-md')
+                                ui.image(get_image_name_ex(area_info, "normal")).classes('w-100 rounded shadow-md')
 
             # Right Panel: Cargo Filter List
             filter_cargo_items = await build_cargo_filter_list(region_area_ids, filter_list_item_clicked=filter_list_item_clicked, show_all=checkbox_all.value, plan_panel=plan_panel, region=plan_region)

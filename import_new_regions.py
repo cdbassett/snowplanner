@@ -30,6 +30,7 @@ def parse_args(argv=None):
     parser.add_argument("--region", action="append", metavar="REGION_ID", help="import only this region's areas (e.g. US_19); may be repeated")
     parser.add_argument("--db", metavar="FILE", help="use this SQLite file instead of database/snowplanner.sqlite (for trying it out on a copy)")
     parser.add_argument("--positions", action="store_true", help="also fill in missing map positions (x, y) of every area, not just the areas imported in this run; positions that are already set are never changed")
+    parser.add_argument("--reset-positions", action="store_true", help="replace the position of every map item the game files know with the game's (the maps are the game's own maps)")
     parser.add_argument("--no-images", action="store_true", help="do not create placeholder images")
     return parser.parse_args(argv)
 
@@ -287,9 +288,13 @@ def delivery_zone_refs():
     return level_data.delivery_zones()
 
 
-async def fill_positions(area_ids):
+POSITION_ALIASES = {"US_12_03_TRAILER_SHOP": "US_12_03_TRAILER_GARAGE"} # map items the game has no zone of that id for (a trailer store a contract switches on): the zone it uses
+
+
+async def fill_positions(area_ids, overwrite=False):
     """Give the map items of these areas that have no position yet the one the game files hold for them (zones from data_for_ssl.bin, placed trucks from the item list),
-    converted to the app's 0-1000 coordinates. Positions that are already set (e.g. by hand in edit mode) are never touched."""
+    converted to the app's 0-1000 coordinates. Positions that are already set (e.g. by hand in edit mode) are never touched, unless overwrite is set: then every
+    item the game files know gets the game's position (items they don't know keep theirs, and are counted as unmatched)."""
     total = Counter()
     unmatched = Counter()
 
@@ -304,14 +309,14 @@ async def fill_positions(area_ids):
 
         changed = []
 
-        for map_item in await MapItem.filter(area_id=area_id, x=None, y=None):
-            pos = coords.get(map_item.id)
+        for map_item in await (MapItem.filter(area_id=area_id) if overwrite else MapItem.filter(area_id=area_id, x=None, y=None)):
+            pos = coords.get(map_item.id) or coords.get(POSITION_ALIASES.get(map_item.id))
 
             if not pos and map_item.item_type == "delivery": # the id is the objective's uiDesc, not a zone: follow it to the zone it is delivered in
                 zone_refs = [z for a, z in delivery_zone_refs().get(map_item.id, ()) if a == area_id and z in coords]
                 pos = coords[zone_refs[0]] if zone_refs else None
 
-            if not pos and map_item.item_type == "spawn" and (found := level_data.placement_by_id(data, map_item.id)):
+            if not pos and map_item.item_type not in ("truck", "trailer") and (found := level_data.placement_by_id(data, map_item.id)) and found.width > 0: # e.g. spawns, locations a reward switches on
                 pos = (found.x, found.z)
 
             if pos and all(abs(c) < 3000 for c in pos):
@@ -582,7 +587,7 @@ def create_placeholder_images(new_rows, all_rows):
     made = []
 
     for area_id, region_id, region, area, abbrev in new_rows:
-        for typ, color in (("normal", (74, 92, 84)), ("icon", (92, 84, 74))):
+        for typ, color in (("normal", (74, 92, 84)),):
             path = MAP_IMAGE_DIR / f"{slugify_region_area(region, abbrev)}_{typ}.png"
 
             if not path.exists():
@@ -659,7 +664,7 @@ async def main():
 
     places_needed = bool(set(garage_zones()) - db_map_ids)
 
-    if not todo and not new_areas and not new_trucks and not args.positions and not givers_needed and not repairs_needed and not places_needed:
+    if not todo and not new_areas and not new_trucks and not args.positions and not args.reset_positions and not givers_needed and not repairs_needed and not places_needed:
         print("Nothing to import.")
         return
 
@@ -685,7 +690,7 @@ async def main():
     if todo:
         await pgd.populate(todo)
 
-    filled, unmatched = await fill_positions(set(todo) | (set(game_areas) if args.positions else set()))
+    filled, unmatched = await fill_positions(set(todo) | (set(game_areas) if args.positions or args.reset_positions else set()), overwrite=args.reset_positions)
     print(f"Positions filled for {sum(filled.values())} map items " + ", ".join(f"{a}: {n}" for a, n in sorted(filled.items())))
 
     if unmatched:
