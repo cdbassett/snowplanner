@@ -115,7 +115,13 @@ def depth_map(g, water, out_size):
     return np.where(reach, np.clip(level - g, 0, None), 0)
 
 
-WATER_SHALLOW, WATER_DEEP = np.array([120, 220, 255], np.float32), np.array([0, 20, 150], np.float32)
+# Water colour by depth, the same on every level so a colour always means the same depth: bright cyan where a vehicle can still cross, through blues to navy where it is submerged.
+WATER_RAMP = [(0.5, (150, 240, 255)), (1.0, (70, 200, 255)), (1.5, (20, 150, 245)), (2.0, (10, 100, 215)), (3.0, (0, 50, 165)), (5.0, (0, 15, 95))]
+
+
+def water_color(depth):
+    metres, colors = zip(*WATER_RAMP)
+    return np.dstack([np.interp(depth, metres, [c[i] for c in colors]) for i in range(3)]).astype(np.float32)
 
 
 def render(texture, terrain, out_size, metres_per_pixel):
@@ -133,9 +139,8 @@ def render(texture, terrain, out_size, metres_per_pixel):
     if not wet.any():
         return shaded, None, 0.0
 
-    vmax = max(1.5, float(np.percentile(depth[wet], 98)))
-    t = np.clip((depth - DEPTH_MIN) / (vmax - DEPTH_MIN), 0, 1)[..., None]
-    color = (WATER_SHALLOW * (1 - t) + WATER_DEEP * t) * (1 + 0.5 * s[..., None]) # a little relief shows through
+    vmax = float(np.percentile(depth[wet], 98)) # for the notes only: the colours don't depend on it
+    color = water_color(depth) * (1 + 0.5 * s[..., None]) # a little relief shows through
     alpha = np.clip((depth - DEPTH_MIN) / (DEPTH_FULL - DEPTH_MIN), 0, 1)
     overlay = np.dstack([np.clip(color, 0, 255), alpha * 255]).astype(np.uint8)
     return shaded, Image.fromarray(overlay, "RGBA"), vmax
