@@ -124,24 +124,44 @@ async def icon_reference():
             section(f"Trucks: {label}", [vehicle_stack(n, kind="truck") for n in sorted(vehicles["truck"]) if truck_type(n) == type_key])
         section("Trailers", [vehicle_stack(n, kind="trailer") for n in sorted(vehicles["trailer"])])
 
+REGION_SORTS = {"alpha": "A-Z", "season": "Season"}
+
+
+def season_key(region_id):
+    """Release order: the region numbers grow with each season's content (US_01 .. US_19); the US region comes before the Russian one of the same number."""
+    prefix, number = region_id.split("_")
+    return int(number), prefix != "US"
+
+
 def main():
     ui.link('Icon reference', '/icons').classes('m-4')
-    if 1:
-            # Create a responsive grid
+    regions_and_ids = list(zip(regions_slugs, region_and_ids))
+
+    @ui.refreshable
+    def region_grid():
+        sort = app.storage.general.get("region_sort", "alpha")
+        ordered = sorted(regions_and_ids, key=(lambda r: season_key(r[1][1])) if sort == "season" else (lambda r: r[0][1].lower()))
+
         with ui.grid(columns=4).classes('gap-4 p-4'):
-            for (region_slug, region), (_, region_id) in zip(regions_slugs, region_and_ids):
+            for (region_slug, region), (_, region_id) in ordered:
                 with ui.link(target=f'/region/{region_slug}').classes('flex flex-col items-center gap-2 no-underline text-black'):
-                        # Nest ui.image inside ui.link to make it clickable
-                        ui.label(region).classes('font-bold text-lg')
-                        ui.image(f"/assets/region_{region_id.lower()}.jpg").classes('w-100 rounded shadow-md')
-    else:
-        for region_slug, region in regions_slugs:
-            ui.link(region, f'/region/{region_slug}')
+                    ui.image(f"/assets/region_{region_id.lower()}.jpg").classes('w-100 rounded shadow-md') # the whole card is the link
+                    ui.label(region).classes('font-bold text-lg')
+
+    def sort_changed(e):
+        app.storage.general["region_sort"] = e.value # remembered for the next visit
+        region_grid.refresh()
+
+    with ui.row().classes('items-center gap-2 px-4'):
+        ui.label('Sort regions by').classes('text-sm text-gray-600')
+        ui.toggle(REGION_SORTS, value=app.storage.general.get("region_sort", "alpha"), on_change=sort_changed).props('dense no-caps')
+
+    region_grid()
 
 import argparse
 
 parser = argparse.ArgumentParser(description="SnowPlanner web app")
-parser.add_argument("--no-browser", action="store_true", help="don't open a browser tab on startup")
+parser.add_argument("--no-browser", "-nb", action="store_true", help="don't open a browser tab on startup")
 args, _ = parser.parse_known_args()
 
 ui.run(root, port=8081, title='SnowPlanner', show=not args.no_browser)
