@@ -1,7 +1,7 @@
 # Scripts to analyze, maintain or import data
 
 Importing new seasons / regions is done by `import_new_regions.py` in the project root (see `update steps.md`).
-`import_game_maps.py` (root) takes the area maps (1000 px) and the map icons (assets/map_icons, data/map_zone_icons.tsv) from the game files; `import_new_regions.py --reset-positions` sets every map item's position from the game files.
+`import_game_maps.py` (root) takes the area maps (1000 px, hillshaded from the level's height map; water depth overlays as *_water.png, utils/terrain_maps.py) and the map icons (assets/map_icons, data/map_zone_icons.tsv) from the game files; `import_new_regions.py --reset-positions` sets every map item's position from the game files.
 
 analyze_data_for_ssl_bin.py
     Uses Construct to try to determine structure of data_for_ssl.bin files

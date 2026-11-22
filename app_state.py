@@ -111,3 +111,7 @@ def get_image_name_ex(area_info, typ="normal", actual=False):
         return f"{base}{name}?v={int(os.path.getmtime(os.path.join(snowplanner_map_image_dir, name)))}"
     except OSError:
         return base + name
+
+
+def map_image_exists(area_info, typ="normal"):
+    return os.path.exists(os.path.join(snowplanner_map_image_dir, f"{slugify_region_area(area_info.region, area_info.abbrev)}_{typ}.png"))

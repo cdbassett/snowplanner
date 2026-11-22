@@ -863,7 +863,7 @@ def add_game_icons(parent, area_id, size, visible, group_id):
     parent.append(gg)
 
 
-def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True):
+def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False):
     ig = draw.Group(id=map_id + "_group")
 
     if img_path:
@@ -873,6 +873,9 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
         else:
 #            ig.append(draw.Image(0, 0, size, size, img_path, embed=False, id=map_id))
             ig.append(draw.Image(0, 0, size, size, img_path, embed=False, pointer_events="none", id=map_id))
+
+    if img_path and water_path: # the water depth overlay (transparent png): between the map and the icons
+        ig.append(draw.Image(0, 0, size, size, water_path, embed=False, pointer_events="none", class_="game-water", style="" if show_water else "display:none"))
 
     if img_path and icons_area_id:
         add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id)
@@ -1309,10 +1312,10 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
     return d
 
-async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True):
+async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True, water_path=None, show_water=False):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
     objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan, show_ids=show_ids)
-    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons)
+    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water)
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
     s = d.as_svg(header="")
 #    s = d.as_svg()

@@ -64,6 +64,11 @@ def parse_level_items(data):
     return items
 
 
+def parse_level_item_positions(data):
+    """[(x, height, z)] of the trucks / trailers placed in a level: world position with the height they stand at (their origin is a little above the ground)."""
+    return [struct.unpack("<fff", bytes(item.unknown[:12])) for item in dfs_struct.parse(data).item_list]
+
+
 ZONE_ID_RE = re.compile(rb"[A-Za-z0-9_]{4,}\x00")
 PLAIN_STRING_RE = re.compile(rb"[\x20-\x7e]+")
 
