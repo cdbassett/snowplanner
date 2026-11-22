@@ -20,6 +20,22 @@ parse_objectives_from_gamefiles.py
     Generates "all_deliveries_list.generated.tsv", f"{region} Deliveries By Location.generated.txt", f"{region} Deliveries By Cargo.generated.txt"
     Generate base text files for deliveries (need to add positions of locations for them to render in
     snowrunner_gen_map_text_svg.py, uses different filenames for deliveries so it doesn't overwrite current work on adding information
+extract_map_textures.py
+    Level map textures (shared_textures.pak, [textures]\pct\level_*_map.pct) -> PNG (BC3 data in a "PICT" container, flipped vertically)
+extract_gfx_textures.py
+    UI textures of gfx.pak (BC1 / BC7 in the same container) -> PNG, by texture name
+gfx_bundle.py / gfx_shapes.py
+    Read the UI movies (Flash-style "GFX" files) in gfx.pak's gfxbundle: exported symbols -> bitmaps / vector shapes (gfx_shapes renders vectors with matplotlib)
+extract_truck_images.py
+    Vehicle store images (UiIcon328x458 of each truck definition) and a table of which image / icons belong to which vehicle
+extract_gfx_icons.py
+    Every exported symbol of a movie (icons_lib, minimap, hud_lib ...) as a named PNG
+square_truck_images.py
+    Crops the portrait vehicle store images to squares positioned on the vehicle (OpenCV GrabCut finds it)
+marker_icons.py
+    Icons of tasks / contracts / contests / objective stage kinds / vehicle types, and where each objective's markers are (marker_icons_by_objective.tsv)
+map_icons.py
+    Which icon the game uses for each kind of map zone (garage, gateway, watch tower, ...) and where those zones are in every area (map_icons_by_area.tsv)
 sso_to_yaml.py
     reads in game sso files and writes the contents to more readable ymal files
 
