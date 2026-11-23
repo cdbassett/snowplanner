@@ -75,8 +75,8 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
 
             save_tip.set_text(f'Refresh from {current.name}' if current else 'Refresh from newest game save')
 
-        save_menu.on('before-show', fill_save_menu)
-        fill_save_menu()
+        save_menu.on('before-show', fill_save_menu) # the saves are only looked for when the menu is opened: the page must not wait for (or need) the save folder
+        save_tip.set_text('Refresh from the selected game save' if app.storage.general.get('save_file') else 'Refresh from newest game save')
 
         with ui.link(target='/'):
             ui.icon('home', color='primary').classes('text-4xl')
