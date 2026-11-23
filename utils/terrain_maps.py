@@ -23,6 +23,7 @@ PIXELS_PER_METRE = 4033 / 2000 # every level's height map (and map texture) has 
 LIGHT_AZIMUTH, LIGHT_ALTITUDE = np.deg2rad(315), np.deg2rad(40)
 SHADE_STRENGTH = 0.30 # standard deviation of the brightness change the relief gives (every level gets the same, whatever its heights)
 SHADE_LIMIT = 0.6
+TREE_SUPERSAMPLE = 3 # trees are painted at this many times the map's resolution, then reduced
 WATER_REACH = 1.5 # water cells' reach in cells past their edge: the waterline follows the ground height
 
 Terrain = namedtuple("Terrain", "ground,water,top_height,fit_note,half")
@@ -124,16 +125,36 @@ def water_color(depth):
     return np.dstack([np.interp(depth, metres, [c[i] for c in colors]) for i in range(3)]).astype(np.float32)
 
 
-def render(texture, terrain, out_size, metres_per_pixel):
+def render(texture, terrain, out_size, metres_per_pixel, objects=None):
     """out_size (w, h) is the map picture at the app's scale (metres_per_pixel on it); returns (shaded map image RGB, water depth overlay RGBA or None, deepest colour depth in metres)"""
     base = np.asarray(texture.convert("RGB").resize(out_size, Image.LANCZOS), dtype=np.float32)
     s, g = shade(terrain.ground, out_size, metres_per_pixel)
     shaded = Image.fromarray(np.clip(base * (1 + s[..., None]), 0, 255).astype(np.uint8))
 
+    depth = depth_map(g, terrain.water, out_size) if terrain.water is not None else None
+
+    if objects is not None: # trees and bushes seen from above
+        from utils import level_objects
+
+        col = np.clip((out_size[0] / 2 + objects.x / metres_per_pixel).astype(int), 0, out_size[0] - 1)
+        row = np.clip((out_size[1] / 2 - objects.z / metres_per_pixel).astype(int), 0, out_size[1] - 1)
+        keep = np.ones(len(objects.x), bool)
+
+        if depth is not None: # no trees standing in the water
+            keep &= depth[row, col] <= DEPTH_MIN
+
+        objects = level_objects.subset(objects, keep)
+
+        S = TREE_SUPERSAMPLE
+        big = shaded.convert("RGBA").resize((out_size[0] * S, out_size[1] * S), Image.LANCZOS)
+        big.alpha_composite(level_objects.shadows(objects, out_size, metres_per_pixel, S))
+        canvas = np.asarray(big.convert("RGB"), dtype=np.float32).copy()
+        level_objects.paint_trees(canvas, objects, metres_per_pixel, ndi.gaussian_filter(base, (1.5, 1.5, 0)), metres_per_pixel, S)
+        shaded = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8)).resize(out_size, Image.LANCZOS)
+
     if terrain.water is None:
         return shaded, None, 0.0
 
-    depth = depth_map(g, terrain.water, out_size)
     wet = depth > DEPTH_MIN
 
     if not wet.any():

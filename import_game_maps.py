@@ -3,7 +3,7 @@
 
 * Every area's map (level_xx_nn_map, shared_textures.pak) is resized to 1000 px on its longest side, given hillshading from the level's height map and saved as
   map_images/<region>_<area>_normal.png; the water depth (water surface - ground) is saved next to it as a transparent <region>_<area>_water.png overlay (see utils/terrain_maps.py).
-  data/map_height_scales.tsv records the height range found per level.
+  Trees and bushes (placed objects of the level's data.stg, see utils/level_objects.py) are drawn on the map from above; data/map_height_scales.tsv records the height range found per level.
   The pictures it replaces are moved to potential_map_images/previous_area_maps/ (the old "_icon" pictures, which had the icons painted in, are no longer used).
 * Every zone the game draws an icon for (its "model kind": task, delivery, garage, gateway, watch tower, ...) is written to data/map_zone_icons.tsv with its
   position on the 0-1000 map, and the icons used are extracted from gfx.pak to assets/map_icons/<name>.png. The app paints these on the map when "Icons" is checked.
@@ -13,9 +13,10 @@ Positions of the map items are not touched here: run `python3 import_new_regions
 * The main page's region pictures (assets/region_<region id>.jpg, 500 px wide) are the game's area background pictures (gfx.pak, levelus_0201_i1 ...) of each
   region's first area (the lowest area number). The pictures they replace are moved to potential_map_images/previous_region_images/.
 
-    python3 import_game_maps.py [--area AREA_ID ...] [--no-maps] [--no-icons] [--no-regions]
+    python3 import_game_maps.py [--area AREA_ID ...] [--no-maps] [--no-icons] [--no-regions] [--no-trees]
 """
 import argparse
+import concurrent.futures
 import shutil
 import sqlite3
 import sys
@@ -31,7 +32,7 @@ import extract_gfx_icons
 import extract_gfx_textures
 import extract_map_textures
 from database.config import snowplanner_db_filename
-from utils import gamefiles, level_data, terrain_maps
+from utils import gamefiles, level_data, level_objects, terrain_maps
 from utils.snowrunner_utils import slugify_region_area
 
 MAP_SIZE = 1000
@@ -64,7 +65,52 @@ def padded(image):
     return square
 
 
-def import_maps(slugs):
+def import_one_map(area_id, slug, level, trees):
+    """Build one area's map picture(s); returns (area id, (top height, fit note, water colour range) or None, log line)"""
+    for typ in ("normal", "icon"):
+        old = MAP_IMAGE_DIR / f"{slug}_{typ}.png"
+
+        if old.exists():
+            shutil.move(old, PREVIOUS_DIR / old.name) if not (PREVIOUS_DIR / old.name).exists() else old.unlink()
+
+    image = Image.open(TEXTURE_DIR / f"{level}_map.png")
+    half = level_data.area_half_span(gamefiles.read_data_for_ssl(area_id)) # the app's 0-1000 map spans 2 * half metres
+    metres_per_pixel = 2 * half / MAP_SIZE
+    size = (round(image.width / terrain_maps.PIXELS_PER_METRE / metres_per_pixel), round(image.height / terrain_maps.PIXELS_PER_METRE / metres_per_pixel)) # 1000 px on the longest side, unless the level is smaller than its map span
+    water_path = MAP_IMAGE_DIR / f"{slug}_water.png"
+    water_path.unlink(missing_ok=True)
+    scale = None
+
+    try:
+        terrain = terrain_maps.load_terrain(area_id)
+    except Exception as e: # no usable height map: the plain map
+        terrain, note = None, f"no relief ({e})"
+
+    if terrain:
+        objects = None
+
+        if trees:
+            try:
+                objects = level_objects.load_objects(area_id, terrain.ground)
+            except Exception as e: # unreadable scene data: no trees on this map
+                print(f"{area_id}: no trees ({e})", flush=True)
+
+        shaded, water, vmax = terrain_maps.render(image, terrain, size, metres_per_pixel, objects)
+        padded(shaded).save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
+        note = f"top height {terrain.top_height:.0f} m ({terrain.fit_note})" + (f", {len(objects.x)} objects" if objects is not None else "")
+
+        if water:
+            padded(water).save(water_path, optimize=True)
+            note += f", water depth to {vmax:.1f} m"
+
+        scale = (terrain.top_height, terrain.fit_note, f"{vmax:.1f}")
+    else:
+        padded(image.convert("RGB").resize(size, Image.LANCZOS)).save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
+
+    return area_id, scale, f"{area_id}: {image.size[0]}x{image.size[1]} -> {slug}_normal.png; {note}"
+
+
+def import_maps(slugs, trees=True, jobs=3):
     """slugs: {area id: file name stem}"""
     levels = {a: gamefiles.list_level_paks()[a].stem for a in slugs} # the level's file name: usually level_us_12_04, sometimes with a suffix (_new, _crop)
     missing = [lvl for lvl in levels.values() if not (TEXTURE_DIR / f"{lvl}_map.png").exists()]
@@ -75,43 +121,23 @@ def import_maps(slugs):
     PREVIOUS_DIR.mkdir(parents=True, exist_ok=True)
     scales = {}
 
-    for area_id, slug in slugs.items():
-        for typ in ("normal", "icon"):
-            old = MAP_IMAGE_DIR / f"{slug}_{typ}.png"
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max(1, jobs)) as pool:
+        for area_id, scale, line in pool.map(import_one_map, list(slugs), list(slugs.values()), [levels[a] for a in slugs], [trees] * len(slugs)):
+            print(line, flush=True)
 
-            if old.exists():
-                shutil.move(old, PREVIOUS_DIR / old.name) if not (PREVIOUS_DIR / old.name).exists() else old.unlink()
+            if scale:
+                scales[area_id] = scale
 
-        image = Image.open(TEXTURE_DIR / f"{levels[area_id]}_map.png")
-        half = level_data.area_half_span(gamefiles.read_data_for_ssl(area_id)) # the app's 0-1000 map spans 2 * half metres
-        metres_per_pixel = 2 * half / MAP_SIZE
-        size = (round(image.width / terrain_maps.PIXELS_PER_METRE / metres_per_pixel), round(image.height / terrain_maps.PIXELS_PER_METRE / metres_per_pixel)) # 1000 px on the longest side, unless the level is smaller than its map span
-        water_path = MAP_IMAGE_DIR / f"{slug}_water.png"
-        water_path.unlink(missing_ok=True)
+    rows = {}
 
-        try:
-            terrain = terrain_maps.load_terrain(area_id)
-        except Exception as e: # no usable height map: the plain map
-            terrain, note = None, f"no relief ({e})"
+    if SCALE_TABLE.exists(): # keep the rows of areas that were not imported this time
+        rows = {line.split("\t")[0]: line.rstrip("\n") for line in SCALE_TABLE.read_text(encoding="utf-8").splitlines()[1:]}
 
-        if terrain:
-            shaded, water, vmax = terrain_maps.render(image, terrain, size, metres_per_pixel)
-            padded(shaded).save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
-            note = f"top height {terrain.top_height:.0f} m ({terrain.fit_note})"
-
-            if water:
-                padded(water).save(water_path, optimize=True)
-                note += f", water depth to {vmax:.1f} m"
-
-            scales[area_id] = (terrain.top_height, terrain.fit_note, f"{vmax:.1f}")
-        else:
-            padded(image.convert("RGB").resize(size, Image.LANCZOS)).save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
-
-        print(f"{area_id}: {image.size[0]}x{image.size[1]} -> {slug}_normal.png; {note}", flush=True)
+    rows.update({a: "\t".join([a, f"{t:.0f}", n, v]) for a, (t, n, v) in scales.items()})
 
     with open(SCALE_TABLE, "w", encoding="utf-8") as f:
         f.write("area_id\ttop_height_m\tfit\twater_colour_range_m\n")
-        f.writelines("\t".join([a, f"{t:.0f}", n, v]) + "\n" for a, (t, n, v) in sorted(scales.items()))
+        f.writelines(rows[a] + "\n" for a in sorted(rows))
 
 
 def import_region_images():
@@ -189,6 +215,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-maps", action="store_true")
     parser.add_argument("--no-icons", action="store_true")
     parser.add_argument("--no-regions", action="store_true")
+    parser.add_argument("--no-trees", action="store_true", help="leave the trees and bushes out of the map pictures")
+    parser.add_argument("--jobs", type=int, default=3, help="areas built at the same time (each needs about 1 GB)")
     parser.add_argument("--regions-only", action="store_true")
     args = parser.parse_args()
     slugs = {a: s for a, s in region_areas().items() if not args.area or a in args.area}
@@ -198,7 +226,7 @@ if __name__ == "__main__":
         sys.exit()
 
     if not args.no_maps:
-        import_maps(slugs)
+        import_maps(slugs, trees=not args.no_trees, jobs=args.jobs)
 
     if not args.no_icons:
         import_icons(list(slugs))

@@ -40,3 +40,9 @@ map_icons.py
 sso_to_yaml.py
     reads in game sso files and writes the contents to more readable ymal files
 
+
+utils/level_objects.py (used by import_game_maps.py)
+    Reverse engineered placed objects of a level's data.stg (not documented anywhere): a table of object type names near the start (u32 count, then u16 length + name + NUL + 1 byte
+    each; trees, bushes, rocks, twigs, signs, fences, barrels, vehicles ...) and 32 byte instance records anywhere in the file: float32 x, height, z (world metres), the marker u32 0x40000000,
+    4 orientation bytes + 0xff, 4 bytes (last one looks like a scale), 3 tint bytes + flag, and a u32 whose third byte is the index in the name table. Records are found by the marker and
+    kept when their height is within 2 m of the level's height map. Crown sizes / colours per tree family are estimates (TREE_FAMILIES). Bridges and buildings are not found yet.
