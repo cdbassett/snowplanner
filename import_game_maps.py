@@ -40,6 +40,7 @@ from utils.snowrunner_utils import slugify_region_area
 
 MAP_SIZE = 1000
 ICON_SIZE = 64
+PERMANENT_ICONS = {"garageImg", "watchTowerImg", "gatewayImg", "serviceHubImg", "townStorage", "fuelStationImg", "trailerShopImg40", "trailerShopImg", "factoryImg", "sawmillImg", "lumberjackImg"} # places that stay, whatever objectives use them
 MAP_IMAGE_DIR = ROOT / "map_images"
 TEXTURE_DIR = ROOT / "extracted_map_textures"
 PREVIOUS_DIR = ROOT / "potential_map_images" / "previous_area_maps"
@@ -258,12 +259,15 @@ def import_icons(area_ids):
     rows = [(a, z, i[:-2] if i not in found and i.endswith("40") else i, x, y) for a, z, i, x, y in rows]
     unknown = sorted({r[2] for r in rows if r[2] not in found})
     rows = [r for r in rows if r[2] in found]
+    used, rewarded = objective_models.zone_objectives(objective_ids(), {r[1] for r in rows})
+    # objectives that use the zone (its icon is hidden once all are completed), and 1 when the icon stays regardless: a place that stays (garage, watch tower ...) or one that a reward opens
+    rows = [(a, z, i, x, y, ",".join(used.get(z, ())), int(z in rewarded or i in PERMANENT_ICONS)) for a, z, i, x, y in rows]
 
     if ICON_TABLE.exists(): # keep the other areas' rows when only some areas were imported
-        rows = [tuple(line.rstrip("\n").split("\t")) for line in ICON_TABLE.read_text(encoding="utf-8").splitlines()[1:] if line.split("\t")[0] not in area_ids] + rows
+        rows = [tuple(line.rstrip("\n").split("\t")) for line in ICON_TABLE.read_text(encoding="utf-8").splitlines()[1:] if line.split("\t")[0] not in area_ids and line.count("\t") == 6] + rows
 
     with open(ICON_TABLE, "w", encoding="utf-8") as f:
-        f.write("area_id\tzone_id\ticon\tx\ty\n")
+        f.write("area_id\tzone_id\ticon\tx\ty\tobjectives\tkeep\n")
         f.writelines("\t".join(map(str, r)) + "\n" for r in rows)
 
     print(f"{len(rows)} zone icons in {len({r[0] for r in rows})} areas, {len(found & set(names))} icon pictures in {ICON_DIR.relative_to(ROOT)}; zone kinds without an icon in the game's icon library (skipped): {unknown}")

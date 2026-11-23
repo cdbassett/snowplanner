@@ -558,7 +558,7 @@ async def area(area_slug: str):
         done = set(await Objective.filter(area_id=area_id, completed=True).values_list("id", flat=True))
         built_shapes = [shape for layer in built_structures(area_id).values() if checkbox_all.value or done.intersection(layer["objectives"]) for shape in layer["shapes"]]
 
-        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value, show_game_icons=img_type == "icon", water_path=get_image_name("water") if has_water else None, show_water=water_on, built_shapes=built_shapes)
+        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value, show_game_icons=img_type == "icon", water_path=get_image_name("water") if has_water else None, show_water=water_on, built_shapes=built_shapes, done_objectives=None if checkbox_all.value else done)
 
     def initialize_d3():
         print(f"initialize_d3 {cur_area_info.area_id}")

@@ -39,3 +39,60 @@ def objective_models(objective_ids):
                     out[(level, m.group(1))].add(owner)
 
     return {k: sorted(v) for k, v in out.items()}
+
+
+ZONE_TOKEN = re.compile(r"\b[A-Z]{2}_\d\d_\d\d_[A-Z0-9_]+\b")
+
+
+def zone_objectives(objective_ids, zone_ids):
+    """({zone id: sorted objective ids that use the zone}, {zone ids that an objective's reward opens up or changes}) for the zones in zone_ids: the zones an objective's script names,
+    apart from the ones in its rewards (an unlocked garage, a location that opens ...)"""
+    zone_ids = set(zone_ids)
+    used = collections.defaultdict(set)
+    rewarded = set()
+
+    def finish(key, lines):
+        if key not in objective_ids:
+            return
+
+        reward_indent = None
+
+        for line in lines:
+            indent = len(line) - len(line.lstrip())
+
+            if reward_indent is None and re.match(r"\s*rewards\s+=\s+\{", line):
+                reward_indent = indent
+                continue
+
+            if reward_indent is not None and indent <= reward_indent and line.lstrip().startswith("}"):
+                reward_indent = None
+                continue
+
+            for token in ZONE_TOKEN.findall(line):
+                if token in zone_ids and token != key:
+                    if reward_indent is None:
+                        used[token].add(key)
+                    else:
+                        rewarded.add(token)
+
+    for fn in gamefiles.list_ps_files(r".*\.sso"):
+        text = gamefiles.read_ps_text(fn)
+        stem = fn[:-4].upper()
+        key, lines = (stem if stem in objective_ids else None), []
+        indent = None # how far the objectives' own keys are indented in this script; any key at that depth ends the objective before it
+
+        for line in text.splitlines():
+            m = KEY_RE.match(line)
+
+            if m and indent is None and m.group(2).upper() in objective_ids:
+                indent = len(m.group(1))
+
+            if m and len(m.group(1)) == indent:
+                finish(key, lines)
+                key, lines = (m.group(2).upper() if m.group(2).upper() in objective_ids else None), []
+
+            lines.append(line)
+
+        finish(key, lines)
+
+    return {z: sorted(o) for z, o in used.items()}, rewarded
