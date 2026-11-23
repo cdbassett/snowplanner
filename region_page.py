@@ -350,6 +350,13 @@ async def region(region_slug: str):
         await update_svg()
 
     async def handle_js_click_event(e):
+        if str(e.args['id']).startswith("objective:"): # a game icon of a task start / objective location
+            if (objective := await Objective.filter(id=e.args['id'].removeprefix("objective:")).first()):
+                select_single_top_tree_node(obj_tree, objective.obj_type + "s")
+                await select_clicked_node("O_" + objective.id, objective.id, objective.id)
+
+            return
+
         if not (rec := (location_items or {}).get(e.args['id'])) or not rec.id:
             return
 

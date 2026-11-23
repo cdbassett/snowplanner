@@ -457,6 +457,13 @@ async def area(area_slug: str):
 
 
     async def handle_clicked_id(target_id):
+        if target_id.startswith("objective:"): # a game icon of a task start / objective location
+            if (objective := await Objective.filter(id=target_id.removeprefix("objective:")).first()):
+                select_single_top_tree_node(obj_tree, objective.obj_type + "s")
+                await select_tree_node("O_" + objective.id, objective.id, objective.id)
+
+            return
+
 #                ui.notify(f"clicked {target_id}")
 #                ic("clicked", target_id)
         if not (rec := location_items.get(target_id)):

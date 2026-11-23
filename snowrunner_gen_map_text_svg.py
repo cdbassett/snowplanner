@@ -879,12 +879,26 @@ def game_zone_icons():
 BUILDING_ICONS = ("garageImg", "trailerShopImg40") # icons that are highlighted when their building is selected in the tree
 
 
-async def icon_state(area_id, selected_ids):
-    """What the game icons need from the database: the task each task start belongs to, the places that are not unlocked yet, and what is selected in the tree"""
+async def icon_state(area_id, selected_ids, full=True):
+    """What the game icons need from the database: the task each task start belongs to, the objectives (for their hover text), the places that are not unlocked yet (full only), and what is selected in the tree"""
     givers = {g.zone_id: g.objective_id for g in await TaskGiver.filter(area_id=area_id, objective__obj_type="task")}
-    locked = {m.id for m in await MapItem.filter(area_id=area_id).prefetch_related("obj_locker") if m.obj_locker and not m.obj_locker.completed}
-    completed = {o.id for o in await Objective.filter(area_id=area_id, completed=True)}
-    return SimpleNamespace(givers=givers, locked=locked, selected=as_set(selected_ids) - {None}, completed=completed, collected=read_collected_upgrades())
+    objectives = {o.id: o for o in await Objective.filter(area_id=area_id)}
+    locked = {m.id for m in await MapItem.filter(area_id=area_id).prefetch_related("obj_locker") if m.obj_locker and not m.obj_locker.completed} if full else set()
+    completed = {o.id for o in objectives.values() if o.completed} if full else set()
+    return SimpleNamespace(givers=givers, locked=locked, selected=as_set(selected_ids) - {None}, completed=completed, collected=read_collected_upgrades(), objectives=objectives)
+
+
+def objective_tip(objectives, state):
+    """(title, subtitle, id to select) for an icon that marks these objectives, or None: the first one not completed is the one named (the others are counted)"""
+    known = [state.objectives[o] for o in objectives if o in state.objectives]
+
+    if not known:
+        return None
+
+    known.sort(key=lambda o: o.completed) # stable: the open ones first
+    first = known[0]
+    sub = first.obj_type.capitalize() + (" (completed)" if first.completed else "") + (f" - {first.reward_money:,} money" if first.reward_money and not first.completed else "")
+    return first.name, sub + (f" +{len(known) - 1} more" if len(known) > 1 else ""), first.id
 
 
 @functools.cache
@@ -906,7 +920,7 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
     box = GAME_ICON_BOX * size / main_scale
     gg = draw.Group(id=group_id, class_="game-icons", style="" if visible else "display:none")
 
-    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set(), collected=read_collected_upgrades())
+    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set(), collected=read_collected_upgrades(), objectives={})
     tips = zone_tips()
     hover = draw.Group(class_="game-icons game-icon-tips", style="" if visible else "display:none") # transparent hover areas: the icons themselves are in the map's <use> and can't take hover, so these go beside it (see add_svg_image)
 
@@ -930,8 +944,16 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
 
         gg.append(draw.Image(cx - box / 2, cy - box / 2, box, box, game_icon_url(icon), embed=False, pointer_events="none"))
 
+        click = {}
+
         if tip := tips.get(zone):
-            hover.append(draw.Rectangle(cx - box / 2, cy - box / 2, box, box, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon="", data_tip_img=game_icon_url(icon), data_tip_title=tip[0], data_tip_sub=tip[1]))
+            pass
+        elif (otip := objective_tip(objectives, state)): # a task start or delivery spot: hover names the objective, a click selects it in the tree
+            tip = otip[:2]
+            click = {"data_click_id": "objective:" + otip[2]}
+
+        if tip:
+            hover.append(draw.Rectangle(cx - box / 2, cy - box / 2, box, box, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon="", data_tip_img=game_icon_url(icon), data_tip_title=tip[0], data_tip_sub=tip[1], **click))
 
         if zone in state.locked or (opens_with and not any(o in state.completed for o in opens_with)): # a place that is not open yet: a prohibition sign over it
             r = box * 0.62
@@ -1550,7 +1572,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         all_plan_segments.extend(objects[2])
         d.append(hlink_group)
         hlink_groups.append(hlink_group)
-        add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True, icons_area_id=area_id, hide_contests="Contests" in hide_types and not show_all)
+        add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True, icons_area_id=area_id, icon_state=await icon_state(area_id, None, full=False), hide_contests="Contests" in hide_types and not show_all)
 
 #    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, map_id = "map_svg_image_"+area_id, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region)
     await render_area_svg_objects(d, (all_objects, all_gate_lines, all_plan_segments), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
