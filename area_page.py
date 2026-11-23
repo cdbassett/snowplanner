@@ -47,6 +47,10 @@ async def area(area_slug: str):
         else:
             prev_area = other_areas[0]
 
+    all_slugs = [ai.area_slug for ai in area_infos]
+    at = all_slugs.index(area_slug)
+    all_areas = (all_slugs[at - 1], all_slugs[(at + 1) % len(all_slugs)]) # previous / next area over all regions, wrapping around
+
     await ui.context.client.connected()
 
     ui.page_title(f"{cur_area_info.partial_abbrev}: SnowPlanner")
@@ -719,7 +723,7 @@ async def area(area_slug: str):
             # Header row
         prev_area_item = (prev_area.area_slug, prev_area.partial_abbrev) if prev_area else None
         next_area_item = (next_area.area_slug, next_area.partial_abbrev) if next_area else None
-        header = create_map_header(cur_area_info.region, cur_area_info.partial_abbrev, prev_area_item, next_area_item, False, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler, toggle_panel=lambda: toggle_panel(), switch_map=lambda icons: switch_map(icons), switch_water=lambda show: switch_water(show), has_water=has_water, switch_built=lambda show: switch_built(show), has_built=has_built, edit_save_locations=lambda: edit_save_locations(), group_locations=lambda: group_locations(), cancel_save_locations=lambda: cancel_save_locations(), ids_changed=lambda: update_obj_tree_all())
+        header = create_map_header(cur_area_info.region, cur_area_info.partial_abbrev, prev_area_item, next_area_item, False, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler, toggle_panel=lambda: toggle_panel(), switch_map=lambda icons: switch_map(icons), switch_water=lambda show: switch_water(show), has_water=has_water, switch_built=lambda show: switch_built(show), has_built=has_built, all_areas=all_areas, edit_save_locations=lambda: edit_save_locations(), group_locations=lambda: group_locations(), cancel_save_locations=lambda: cancel_save_locations(), ids_changed=lambda: update_obj_tree_all())
         checkboxes, checkbox_all, checkbox_overlap, checkbox_ids = header.checkboxes, header.checkbox_all, header.checkbox_overlap, header.checkbox_ids
         water_on = bool(header.checkbox_water and header.checkbox_water.value) # the checkbox keeps its state per browser tab
         built_on = bool(header.checkbox_built and header.checkbox_built.value)

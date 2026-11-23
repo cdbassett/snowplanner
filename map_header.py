@@ -20,7 +20,7 @@ from snowrunner_read_game_save import find_newest_game_save, apply_game_save, ap
 from app_state import *
 
 
-def create_map_header(region_name, partial_title, prev_item, next_item, is_region, update_svg, all_changed, make_visibility_toggler, toggle_panel=None, switch_map=None, switch_water=None, has_water=False, switch_built=None, has_built=False, edit_save_locations=None, group_locations=None, cancel_save_locations=None, ids_changed=None):
+def create_map_header(region_name, partial_title, prev_item, next_item, is_region, update_svg, all_changed, make_visibility_toggler, toggle_panel=None, switch_map=None, switch_water=None, has_water=False, switch_built=None, has_built=False, all_areas=None, edit_save_locations=None, group_locations=None, cancel_save_locations=None, ids_changed=None):
     """The header row shared by the region and area pages: buttons, title with prev / next links and the view checkboxes.
 
     The callbacks come from the page (they are only called when the user acts, so late-bound lambdas are fine). Returns a namespace with the widgets the page needs afterwards.
@@ -80,6 +80,10 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
 
         with ui.link(target='/'):
             ui.icon('home', color='primary').classes('text-4xl')
+
+        if all_areas: # (previous, next) area slugs in the game's order across all regions, to step through every map
+            go_prev, go_next = f'/area/{all_areas[0]}', f'/area/{all_areas[1]}'
+            ui.keyboard(on_key=lambda e: ui.navigate.to(go_prev if e.key.name == "PageUp" else go_next) if e.action.keydown and e.key.name in ("PageUp", "PageDown") else None, ignore=['input', 'select', 'button', 'textarea'])
 
         with ui.column().classes('gap-0'):
             ui.label(f'{region_name}: {partial_title}').classes(f'font-bold text-xl text-blue').classes('m-0').props("dense")
