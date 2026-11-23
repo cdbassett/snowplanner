@@ -46,3 +46,8 @@ utils/level_objects.py (used by import_game_maps.py)
     each; trees, bushes, rocks, twigs, signs, fences, barrels, vehicles ...) and 32 byte instance records anywhere in the file: float32 x, height, z (world metres), the marker u32 0x40000000,
     4 orientation bytes + 0xff, 4 bytes (last one looks like a scale), 3 tint bytes + flag, and a u32 whose third byte is the index in the name table. Records are found by the marker and
     kept when their height is within 2 m of the level's height map. Crown sizes / colours per tree family are estimates (TREE_FAMILIES). Bridges and buildings are not found yet.
+
+### utils/level_scene.py, utils/level_structures.py
+`level_scene.load_scene(area_id)` reads every placed 3D object of a level (model library + per-object matrix and contract tag) from data_for_ssl.bin. `level_structures` picks the bridges, rails and
+pipelines out of it and draws them from above; `python3 import_game_maps.py --structures-only` rewrites just those layers (`<slug>_structures.png`, and `<slug>_built.png` for what contracts build).
+`utils/level_splines.py` reads the rails (`iron_road*`, `rails_*`) and pipelines (`pipe_oil_us_01`, `overlay_water_pipe`) that are splines in the start of data.stg, not placed objects.

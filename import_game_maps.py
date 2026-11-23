@@ -32,7 +32,7 @@ import extract_gfx_icons
 import extract_gfx_textures
 import extract_map_textures
 from database.config import snowplanner_db_filename
-from utils import gamefiles, level_data, level_objects, terrain_maps
+from utils import gamefiles, level_data, level_objects, level_scene, level_splines, level_structures, terrain_maps
 from utils.snowrunner_utils import slugify_region_area
 
 MAP_SIZE = 1000
@@ -65,7 +65,33 @@ def padded(image):
     return square
 
 
-def import_one_map(area_id, slug, level, trees):
+def import_structures(area_id, slug, size, metres_per_pixel):
+    """Write the bridge / rail / pipeline layers of an area's map (<slug>_structures.png, and <slug>_built.png for what its contracts build); returns a note for the log."""
+    for layer in ("structures", "built"):
+        (MAP_IMAGE_DIR / f"{slug}_{layer}.png").unlink(missing_ok=True)
+
+    try:
+        always, built = level_structures.render_layers(level_scene.load_scene(area_id), size, metres_per_pixel, level_splines.load_splines(area_id))
+        padded(always).save(MAP_IMAGE_DIR / f"{slug}_structures.png", optimize=True)
+
+        if built:
+            padded(built).save(MAP_IMAGE_DIR / f"{slug}_built.png", optimize=True)
+
+        return ", bridges / rails / pipes" + (" + built" if built else "")
+    except Exception as e:
+        print(f"{area_id}: no bridges / pipes ({e})", flush=True)
+        return ""
+
+
+def map_size(area_id, level):
+    """(picture size in pixels, metres per pixel) of an area's map picture: 1000 px on the longest side, unless the level is smaller than its map span."""
+    image = Image.open(TEXTURE_DIR / f"{level}_map.png")
+    half = level_data.area_half_span(gamefiles.read_data_for_ssl(area_id)) # the app's 0-1000 map spans 2 * half metres
+    metres_per_pixel = 2 * half / MAP_SIZE
+    return (round(image.width / terrain_maps.PIXELS_PER_METRE / metres_per_pixel), round(image.height / terrain_maps.PIXELS_PER_METRE / metres_per_pixel)), metres_per_pixel
+
+
+def import_one_map(area_id, slug, level, trees, structures=True):
     """Build one area's map picture(s); returns (area id, (top height, fit note, water colour range) or None, log line)"""
     for typ in ("normal", "icon"):
         old = MAP_IMAGE_DIR / f"{slug}_{typ}.png"
@@ -74,9 +100,7 @@ def import_one_map(area_id, slug, level, trees):
             shutil.move(old, PREVIOUS_DIR / old.name) if not (PREVIOUS_DIR / old.name).exists() else old.unlink()
 
     image = Image.open(TEXTURE_DIR / f"{level}_map.png")
-    half = level_data.area_half_span(gamefiles.read_data_for_ssl(area_id)) # the app's 0-1000 map spans 2 * half metres
-    metres_per_pixel = 2 * half / MAP_SIZE
-    size = (round(image.width / terrain_maps.PIXELS_PER_METRE / metres_per_pixel), round(image.height / terrain_maps.PIXELS_PER_METRE / metres_per_pixel)) # 1000 px on the longest side, unless the level is smaller than its map span
+    size, metres_per_pixel = map_size(area_id, level)
     water_path = MAP_IMAGE_DIR / f"{slug}_water.png"
     water_path.unlink(missing_ok=True)
     scale = None
@@ -107,10 +131,13 @@ def import_one_map(area_id, slug, level, trees):
     else:
         padded(image.convert("RGB").resize(size, Image.LANCZOS)).save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
 
+    if structures:
+        note += import_structures(area_id, slug, size, metres_per_pixel)
+
     return area_id, scale, f"{area_id}: {image.size[0]}x{image.size[1]} -> {slug}_normal.png; {note}"
 
 
-def import_maps(slugs, trees=True, jobs=3):
+def import_maps(slugs, trees=True, jobs=3, structures=True):
     """slugs: {area id: file name stem}"""
     levels = {a: gamefiles.list_level_paks()[a].stem for a in slugs} # the level's file name: usually level_us_12_04, sometimes with a suffix (_new, _crop)
     missing = [lvl for lvl in levels.values() if not (TEXTURE_DIR / f"{lvl}_map.png").exists()]
@@ -122,7 +149,7 @@ def import_maps(slugs, trees=True, jobs=3):
     scales = {}
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=max(1, jobs)) as pool:
-        for area_id, scale, line in pool.map(import_one_map, list(slugs), list(slugs.values()), [levels[a] for a in slugs], [trees] * len(slugs)):
+        for area_id, scale, line in pool.map(import_one_map, list(slugs), list(slugs.values()), [levels[a] for a in slugs], [trees] * len(slugs), [structures] * len(slugs)):
             print(line, flush=True)
 
             if scale:
@@ -216,17 +243,28 @@ if __name__ == "__main__":
     parser.add_argument("--no-icons", action="store_true")
     parser.add_argument("--no-regions", action="store_true")
     parser.add_argument("--no-trees", action="store_true", help="leave the trees and bushes out of the map pictures")
+    parser.add_argument("--no-structures", action="store_true", help="leave out the bridge / rail / pipeline layers")
+    parser.add_argument("--structures-only", action="store_true", help="only (re)build the bridge / rail / pipeline layers")
     parser.add_argument("--jobs", type=int, default=3, help="areas built at the same time (each needs about 1 GB)")
     parser.add_argument("--regions-only", action="store_true")
     args = parser.parse_args()
     slugs = {a: s for a, s in region_areas().items() if not args.area or a in args.area}
+
+    if args.structures_only:
+        levels = {a: gamefiles.list_level_paks()[a].stem for a in slugs}
+
+        for a, slug in slugs.items():
+            size, mpp = map_size(a, levels[a])
+            print(a + import_structures(a, slug, size, mpp), flush=True)
+
+        sys.exit()
 
     if args.regions_only:
         import_region_images()
         sys.exit()
 
     if not args.no_maps:
-        import_maps(slugs, trees=not args.no_trees, jobs=args.jobs)
+        import_maps(slugs, trees=not args.no_trees, jobs=args.jobs, structures=not args.no_structures)
 
     if not args.no_icons:
         import_icons(list(slugs))
