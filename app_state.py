@@ -89,9 +89,10 @@ svg_vis_togglers = [
     "Trucks",
     "Framing",
     "Spawns",
+    "Contests",
     ]
 
-svg_vis_default_off = set() # toggles that start unchecked
+svg_vis_default_off = {"Contests"} # toggles that start unchecked
 
 svg_classes = dict(class_togglers.items())
 svg_classes["Hide"] = "hide-me"

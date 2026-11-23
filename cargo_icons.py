@@ -287,7 +287,7 @@ def cargo_art_uris(name):
 def has_cargo_style(name):
     """True if the name has a specific icon (not just the fallback)."""
     key = icon_key(name)
-    return key in CARGO_STYLES or key in GENERIC_STYLES
+    return key in CARGO_STYLES or key in GENERIC_STYLES or icon_art.cargo_art(key) is not None # some cargo has art only (cable drum, rescue shelter)
 
 
 TRAILER_WIDTH_FACTOR = 1.6

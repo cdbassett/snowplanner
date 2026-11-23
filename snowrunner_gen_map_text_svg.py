@@ -885,7 +885,11 @@ def game_icon_url(icon):
         return f"{GAME_ICON_URL}{icon}.png"
 
 
-def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=None):
+CONTEST_ICONS = {"contestImg", "curciutRaceImg40", "climbRaceImg40", "heroRaceImg40"}
+CONTEST_ZONE = re.compile(r"_CNT\d*$|CONTEST|RACE")
+
+
+def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=None, hide_contests=False):
     """The game's own map icons, painted at their fixed spots on the map picture: they are part of the picture's group (so below every other element), take no part in overlap correction and never move"""
     scale = size / 1000
     box = GAME_ICON_BOX * size / main_scale
@@ -894,6 +898,9 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
     state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set())
 
     for zone, icon, x, y, objectives, keep, opens_with in game_zone_icons().get(area_id, ()):
+        if hide_contests and (icon in CONTEST_ICONS or CONTEST_ZONE.search(zone)):
+            continue
+
         giver = state.givers.get(zone) # the task whose start this is: gone once the task is completed
         objectives = (giver,) if giver else objectives
 
@@ -915,7 +922,7 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
     parent.append(gg)
 
 
-def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None, icon_state=None):
+def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None, icon_state=None, hide_contests=False):
     ig = draw.Group(id=map_id + "_group")
 
     if img_path:
@@ -933,7 +940,7 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
         add_built_shapes(ig, built_shapes, size)
 
     if img_path and icons_area_id:
-        add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state)
+        add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state, hide_contests)
 
     parent.append(draw.Use(ig, x_ofs, y_ofs))
 
@@ -1370,7 +1377,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
     objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan, show_ids=show_ids)
-    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes, done_objectives=done_objectives, icon_state=await icon_state(area_ids_by_area[area], selected_ids))
+    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes, done_objectives=done_objectives, icon_state=await icon_state(area_ids_by_area[area], selected_ids), hide_contests="Contests" in hide_types and not show_all)
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
     s = d.as_svg(header="")
 #    s = d.as_svg()
@@ -1519,7 +1526,7 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         all_plan_segments.extend(objects[2])
         d.append(hlink_group)
         hlink_groups.append(hlink_group)
-        add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True, icons_area_id=area_id)
+        add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True, icons_area_id=area_id, hide_contests="Contests" in hide_types and not show_all)
 
 #    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, map_id = "map_svg_image_"+area_id, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region)
     await render_area_svg_objects(d, (all_objects, all_gate_lines, all_plan_segments), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
