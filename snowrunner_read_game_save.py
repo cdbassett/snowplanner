@@ -52,6 +52,24 @@ def find_newest_game_save(save_dir=None):
     return max(saves, key=lambda p: p.stat().st_mtime)
 
 
+COLLECTED_UPGRADES_FILE = Path(__file__).resolve().parent / "database" / "collected_upgrades.json" # user-specific state, rewritten from every loaded save
+
+
+def read_collected_upgrades():
+    """Zone ids of the upgrade stations whose upgrade the save has collected (as of the last loaded save)"""
+    try:
+        return set(json.loads(COLLECTED_UPGRADES_FILE.read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return set()
+
+
+def write_collected_upgrades(save):
+    """upgradesGiverData is {level: {zone id: 0 unknown / 1 found / 2 collected}}"""
+    collected = sorted(zone for zones in save.get("upgradesGiverData", {}).values() for zone, state in zones.items() if state == 2)
+    COLLECTED_UPGRADES_FILE.write_text(json.dumps(collected), encoding="utf-8")
+    return len(collected)
+
+
 def load_save_data(filename):
     """The SslValue dict of a CompleteSave*.cfg file."""
     with open(filename, 'r', encoding = "utf-8") as infile:
@@ -267,6 +285,7 @@ async def apply_game_save(filename):
     source_items, source_unmatched = await apply_source_counts(save)
     obj_items = await apply_objective_item_progress(save)
     repairs = await apply_repair_progress(save)
+    write_collected_upgrades(save)
     return SaveResult(len(finishedObjs), source_items, source_unmatched, obj_items, repairs)
 
 

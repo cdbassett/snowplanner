@@ -1,0 +1,167 @@
+zone_id	title	subtitle
+RU_02_01_UPGRADE_01	Azov AM-8 15,3	Engine upgrade (ru truck modern engine 1)
+RU_02_01_UPGRADE_02	IMZ-6 210	Engine upgrade (ru truck old engine 2)
+RU_02_01_UPGRADE_03	Kr 120-АТ	Engine upgrade (ru scout old engine 2)
+RU_02_01_UPGRADE_04	Raised	Suspension upgrade (zikz 5368 suspension high)
+RU_02_01_UPGRADE_06	LAZ 8 T290	Engine upgrade (ru truck old heavy engine 1)
+RU_02_01_UPGRADE_07	Tuned Custom	Suspension upgrade (tuz 166 suspension ultimate)
+RU_02_01_UPGRADE_08	Tuned Custom	Suspension upgrade (don 71 suspension ultimate)
+RU_02_02_UPGRADE_01	Raised	Suspension upgrade (don 71 suspension high)
+RU_02_02_UPGRADE_02	Raised	Suspension upgrade (voron d53233 suspension high)
+RU_02_02_UPGRADE_03	IMZ-8 520 AT	Engine upgrade (ru special engine 1)
+RU_02_02_UPGRADE_04	Raised	Suspension upgrade (khan lo4f suspension high)
+RU_02_02_UPGRADE_05	Kr 115	Engine upgrade (ru scout old engine 1)
+RU_02_02_UPGRADE_06	Raised	Suspension upgrade (voron grad suspension high)
+RU_02_02_UPGRADE_08	zikz 5368 diff lock	Upgrade
+RU_02_02_UPGRADE_09	Raised	Suspension upgrade (tuz 166 suspension high)
+RU_02_03_UPGRADE1	Raised	Suspension upgrade (tayga 6436 suspension high)
+RU_02_03_UPGRADE4	KZGT-8 530 T	Engine upgrade (ru special engine 2)
+RU_02_03_UPGRADE5	Azov AM-4v 160	Engine upgrade (ru scout modern engine 2)
+RU_02_03_UPGRADE6	Azov AM-8 16,1	Engine upgrade (ru truck modern engine 2)
+RU_02_03_UPGRADE7	IMZ-8 330-T	Engine upgrade (ru truck old heavy engine 2)
+RU_02_03_UPGRADE8	Raised	Suspension upgrade (step 310e suspension high)
+RU_02_04_UPGRADE_01	LAZ 6 T195	Engine upgrade (ru truck old engine 1)
+RU_02_04_UPGRADE_02	Raised	Suspension upgrade (voron ae4380 suspension high)
+RU_02_04_UPGRADE_03	Azov AM-4v 146	Engine upgrade (ru scout modern engine 1)
+RU_03_01_UPGRADE_01	ford f750 suspension high	Upgrade
+RU_03_01_UPGRADE_02	tuz 16 actaeon suspension high	Upgrade
+RU_03_01_UPGRADE_03	ford f750 transferbox allwheels	Upgrade
+RU_03_01_UPGRADE_04	gmc 9500 transferbox allwheels	Upgrade
+RU_03_01_UPGRADE_05	ford f750 suspension ultimate	Upgrade
+RU_03_02_UPG_2	us scout old engine f750	Upgrade
+RU_03_02_UPG_3	ws 6900xd twin transferbox allwheels	Upgrade
+RU_03_02_UPG_4	tuz 108 warthog suspension high	Upgrade
+RU_03_02_UPG_5	tuz 108 warthog suspension active	Upgrade
+RU_03_02_UPG_DETECTOR	frame addon metal detector	Upgrade
+RU_04_01_KHAN_UPG	khan 317 sentinel suspension high	Upgrade
+RU_04_02_UPGRADE_01	ru truck modern engine grad	Upgrade
+RU_04_03_UPGRADE_01	Kr 'Kastom' 160	Engine upgrade (ru scout old engine 3)
+RU_04_04_UPG_01	khan 317 sentinel suspension ultimate	Upgrade
+RU_04_04_UPG_02	Active	Suspension upgrade (azov 73210 suspension active)
+RU_05_02_UPGRADE_01	tatra phoenix diff lock	Upgrade
+RU_05_02_UPGRADE_03	tatra force t815 7 diff lock	Upgrade
+RU_08_01_UPG	ru kirovets k700 engine 1	Upgrade
+RU_08_02_UPGRADE_GIVER	ru kirovets k700 engine 2	Upgrade
+RU_08_03_UPGRADE_GIVER_01	wheels extend kirovets k7m tire 1	Upgrade
+RU_08_03_UPGRADE_GIVER_02	ru kirovets k7m engine 1	Upgrade
+RU_08_04_UPGRADE_02	ru kirovets k7m engine 2	Upgrade
+RU_13_01_UPGRADE_01	us special aac 58dw alto 4110	Upgrade
+RU_13_01_UPGRADE_02	us special aac 58dw alto 6190	Upgrade
+RU_13_01_UPGRADE_03	us special plad 450 fanis19	Upgrade
+RU_13_01_UPGRADE_04	us special plad 450 datz12l	Upgrade
+RU_13_01_UPGRADE_05	g aac 58dw special	Upgrade
+RU_13_01_UPGRADE_06	aac 58dw suspension high	Upgrade
+RU_13_01_UPGRADE_07	g special plad 450	Upgrade
+RU_17_01_UPG_01	jangsu rx600 suspension crawler	Upgrade
+RU_17_01_UPG_02	g truck jangsu rx 600 highrange	Upgrade
+RU_17_02_UPGRADE_01	ru truck old engine voron g5352 2	Upgrade
+RU_17_02_UPGRADE_02	g truck voron g5352 offroad	Upgrade
+US_01_01_UPGRADE_CK_SUSPENSION	Raised	Suspension upgrade (chevrolet ck1500 suspension high)
+US_01_01_UPGRADE_FLEESTAR_ALLWHEELS	international fleetstar f2070a transferbox allwheels	Upgrade
+US_01_01_UPGRADE_FLEESTAR_SUSP_HIGHT	Raised	Suspension upgrade (fleetstar f2070a suspension high)
+US_01_01_UPGRADE_GMC_SUSP_HIGHT	Raised	Suspension upgrade (gmc9500 suspension high)
+US_01_01_UPGRADE_G_SCOUT_OFFROAD	SnowRunner	Gearbox upgrade (g scout offroad)
+US_01_01_UPGRADE_SCOUT_OLD_ENGINE	AAT-8V 5,2 Custom	Engine upgrade (us scout old engine ck1500)
+US_01_01_UPGRADE_TRUCK_OLD_ENGINE	Si-6V/2100T	Engine upgrade (us truck old engine 1)
+US_01_02_UPGRADE_CHEVY_DIFF_LOCK	chevrolet ck1500 diff lock	Upgrade
+US_01_02_UPGRADE_GMC_DIFF_LOCK	gmc 9500 diff lock	Upgrade
+US_01_02_UPGRADE_G_SCOUT_HIGHWAY	Freeway	Gearbox upgrade (g scout highway)
+US_01_02_UPGRADE_INTERN_SCOUT_SUSP_HIGH	Raised	Suspension upgrade (international scout 800 suspension high)
+US_01_02_UPGRADE_TRUCK_ENG	AAT-6V 4,4	Engine upgrade (us scout old engine 1)
+US_01_02_UPGRADE_TRUCK_ENG_4070	Si-6V/2380	Engine upgrade (us truck old engine 4070)
+US_01_02_UPGRADE_WHITE_ALLWHEELS	ws 4964 white transferbox allwheels	Upgrade
+US_01_02_UPGRADE_WHITE_SUSP_HIGH	Raised	Suspension upgrade (white ws4964 suspension high)
+US_01_03_UPG_2	Het/6V 5,0	Engine upgrade (us scout old engine 2)
+US_01_03_UPG_3	Gb-6V 2400A	Engine upgrade (us truck old engine clt)
+US_01_03_UPG_4	ws 4964 white diff lock	Upgrade
+US_01_03_UPG_6	Raised	Suspension upgrade (chevrolet kodiakC70 suspension high)
+US_01_04_UPG_1	Offroad	Gearbox upgrade (g truck offroad)
+US_01_04_UPG_3	A12V-850TTA	Engine upgrade (us truck old heavy engine 1)
+US_02_01_UPG_01	cat ct680 transferbox allwheels	Upgrade
+US_02_01_UPG_02	Raised	Suspension upgrade (hummer h2 suspension high)
+US_02_01_UPG_04	Raised	Suspension upgrade (freightliner m916a1 suspension high)
+US_02_01_UPG_05	Het/8V 6,2	Engine upgrade (us scout modern engine 1)
+US_02_01_UPG_06	hummer h2 diff lock	Upgrade
+US_02_01_UPG_07	Raised	Suspension upgrade (ford clt suspension high)
+US_02_01_UPG_08	Gb-8V 2600TTA	Engine upgrade (us truck modern engine 1)
+US_02_01_UPG_09	Westline V16 M2300	Engine upgrade (us special engine 1)
+US_02_02_UPG_01	chevrolet kodiak c70 transferbox allwheels	Upgrade
+US_02_02_UPG_02	Westline V6 2350T	Engine upgrade (us truck old engine 2)
+US_02_02_UPG_04	Raised	Suspension upgrade (international loadstar 1700 suspension high)
+US_02_02_UPG_05	Gb-8V 2700T	Engine upgrade (us truck modern engine 2)
+US_02_02_UPG_06	Highrange	Gearbox upgrade (g truck highrange)
+US_02_03_UPG_01	Het/8V 6,2T	Engine upgrade (us scout modern engine 2)
+US_02_03_UPG_02	Westline V12 M900	Engine upgrade (us truck old heavy engine 2)
+US_02_03_UPG_04	freightliner 114sd transferbox allwheels	Upgrade
+US_02_03_UPG_05	Raised	Suspension upgrade (international paystar 5070 suspension high)
+US_02_03_UPG_06	Raised	Suspension upgrade (ws 6900xd twin suspension high)
+US_02_03_UPG_07	Raised	Suspension upgrade (freightliner 114sd suspension high)
+US_02_04_UPG_1	Advanced Special	Gearbox upgrade (g special offroad)
+US_02_04_UPG_2	Westline V16 M2450	Engine upgrade (us special engine 2)
+US_02_04_UPG_3	Raised	Suspension upgrade (ank mk38 suspension high)
+US_02_04_UPG_5	Raised	Suspension upgrade (royal bm17 suspension high)
+US_03_01_UPG_01	Fine-tune	Gearbox upgrade (g truck finetune)
+US_03_01_UPG_02	paystar 5600ts suspension high	Upgrade
+US_03_01_UPG_03	boar 45318 diff lock	Upgrade
+US_03_01_UPG_04	paystar 5600ts transferbox allwheels	Upgrade
+US_03_02_BOAR_45318_SUS_HI	boar 45318 suspension high	Upgrade
+US_03_02_G_SCOUT_FINETUNE	Fine-tune	Gearbox upgrade (g scout finetune)
+US_03_02_G_SPECIAL_FINETUNE	Fine-tune	Gearbox upgrade (g special finetune)
+US_03_02_PAYSTAR_5600_TS	paystar 5600ts diff lock	Upgrade
+US_04_01_UPG_01	Active	Suspension upgrade (kolob 74941 suspension active)
+US_04_01_UPG_02	Tuned Custom	Suspension upgrade (ank mk38 suspension ultimate)
+US_04_01_UPG_03	LAZ 6 TA240	Engine upgrade (ru truck old engine 3)
+US_04_02_UPG_ANK	Active	Suspension upgrade (ank mk38 suspension active)
+US_04_02_UPG_G	g special kolob	Upgrade
+US_04_02_UPG_KOLOB	Active	Suspension upgrade (kolob 74760 suspension active)
+US_06_01_UPG_01	Raised	Suspension upgrade (transtar 4070a suspension high)
+US_06_02_UPG_01	Active	Suspension upgrade (dan 96320 suspension active)
+US_06_02_UPG_02	g truck unique m916a1 finetune	Upgrade
+US_06_02_UPG_03	us truck modern engine longhorn 4520	Upgrade
+US_06_02_UPG_04	tayga 6455b suspension high	Upgrade
+US_07_01_UPGRADE_01	gor by4 suspension high	Upgrade
+US_07_01_UPGRADE_02	gor by4 diff lock	Upgrade
+US_07_01_UPGRADE_03	g azov sprinter sport	Upgrade
+US_07_01_UPGRADE_04	ru azov sprinter custom engine	Upgrade
+US_09_01_UPG_01	derry special 15c177 suspension active	Upgrade
+US_09_01_UPG_02	ru truck old engine zikz 566a	Upgrade
+US_09_02_UPG_01	zikz 566a suspension high	Upgrade
+US_09_02_UPG_02	us truck modern engine derry special	Upgrade
+US_10_01_UPG_01	us special mack defense mcv8	Upgrade
+US_10_01_UPG_02	us truck old heavy engine kenworth 963	Upgrade
+US_10_02_UPG_01	us special mack defense mcv8fm	Upgrade
+US_11_01_UPG_01	neo falcon 2000 suspension high	Upgrade
+US_11_02_ADDON	g scout burlak highrange	Upgrade
+US_12_01_UPGRADE	mtb 8106 suspension crawler	Upgrade
+US_12_02_UPG_01	mtb 8106 suspension high	Upgrade
+US_12_02_UPG_02	ru special femm 37at sbr r1	Upgrade
+US_12_03_UPGRADE_01	us special mtb 8106 gf4v	Upgrade
+US_12_03_UPGRADE_02	femm 37at diff lock	Upgrade
+US_12_04_UPG_01	ru special femm 37at sbr r2	Upgrade
+US_12_04_UPG_02	mtb 8106 diff lock	Upgrade
+US_14_01_UPG_01	us ankatra 1160 engine 1	Upgrade
+US_14_01_UPG_02	earthroamer lti suspension high	Upgrade
+US_14_02_UPG_01	us futom 7290ra engine 1	Upgrade
+US_14_02_UPG_02	earthroamer sx suspension high	Upgrade
+US_15_01_UPG_01	sleiter mfk816 suspension active	Upgrade
+US_15_01_UPG_02	us truck old heavy sleiter mfk816 1	Upgrade
+US_15_02_UPG_01	mercer k520 suspension high	Upgrade
+US_15_02_UPG_02	us truck old mercer k520	Upgrade
+US_16_01_UPG_01	plad 440 suspension high	Upgrade
+US_16_01_UPG_02	plad 440 diff lock	Upgrade
+US_16_02_UPG_01	us truck old engine hib billert	Upgrade
+US_16_02_UPG_02	hib billert 1980 diff lock	Upgrade
+US_16_03_UPG_01	hib billert 1980 suspension high	Upgrade
+US_16_03_UPG_02	us truck old engine plad 440	Upgrade
+US_18_01_UPG_01	hib billert m816 230 diff lock	Upgrade
+US_18_01_UPG_02	engine truck hib billert m816 02	Upgrade
+US_18_01_UPG_03	g mercer 6x6r 230 offroad	Upgrade
+US_18_02_UPG_01	hib billert m816 transferbox allwheels	Upgrade
+US_18_02_UPG_02	engine truck mercer 6x6r 230 02	Upgrade
+US_18_02_UPG_03	mercer 6x6r 230 suspension crawler	Upgrade
+US_19_01_UPG_01	g special wortek 250t offroad	Upgrade
+US_19_01_UPG_02	engine truck wortek 250t 2	Upgrade
+US_19_02_UPG_01	g special wortek 250t highway	Upgrade
+US_19_02_UPG_02	engine truck derry savior 1	Upgrade
+US_19_03_UPG_01	engine truck derry savior 2	Upgrade
+US_19_03_UPG_02	g derry savior special offroad	Upgrade

@@ -17,12 +17,14 @@ from tortoise import Tortoise, run_async
 
 from snowplanner_utils import *
 from utils import level_structures
+from utils.zone_tips import read_zone_tips
 from utils.iter_utils import arithtuple, first_true, flatten
 from utils.correct_overlaps import Rectangle, correct_rect_overlaps, correct_rect_overlaps_cached
 from database.models import *
 import icon_art
 from cargo_icons import normalize_cargo_name, CargoStack, Recipe, PlanRow, parse_recipe, vehicle_stack
 from utils.timer_utils import Timer
+from snowrunner_read_game_save import read_collected_upgrades
 from database.config import snowplanner_db_url
 
 
@@ -853,6 +855,12 @@ def add_built_shapes(parent, shapes, size):
 
 
 @functools.cache
+def zone_tips():
+    """{zone id: (title, subtitle)}: hover text of the game icons (data/zone_tips.tsv, see utils/zone_tips.py)"""
+    return read_zone_tips()
+
+
+@functools.cache
 def game_zone_icons():
     """{area id: [(zone id, icon name, x, y, objective ids that use the zone, always shown), ...]}: the icons the game draws on its map (written by import_game_maps.py), positions on the 0-1000 map"""
     out = defaultdict(list)
@@ -876,7 +884,7 @@ async def icon_state(area_id, selected_ids):
     givers = {g.zone_id: g.objective_id for g in await TaskGiver.filter(area_id=area_id, objective__obj_type="task")}
     locked = {m.id for m in await MapItem.filter(area_id=area_id).prefetch_related("obj_locker") if m.obj_locker and not m.obj_locker.completed}
     completed = {o.id for o in await Objective.filter(area_id=area_id, completed=True)}
-    return SimpleNamespace(givers=givers, locked=locked, selected=as_set(selected_ids) - {None}, completed=completed)
+    return SimpleNamespace(givers=givers, locked=locked, selected=as_set(selected_ids) - {None}, completed=completed, collected=read_collected_upgrades())
 
 
 @functools.cache
@@ -898,10 +906,15 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
     box = GAME_ICON_BOX * size / main_scale
     gg = draw.Group(id=group_id, class_="game-icons", style="" if visible else "display:none")
 
-    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set())
+    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set(), collected=read_collected_upgrades())
+    tips = zone_tips()
+    hover = draw.Group(class_="game-icons game-icon-tips", style="" if visible else "display:none") # transparent hover areas: the icons themselves are in the map's <use> and can't take hover, so these go beside it (see add_svg_image)
 
     for zone, icon, x, y, objectives, keep, opens_with in game_zone_icons().get(area_id, ()):
         if hide_contests and (icon in CONTEST_ICONS or CONTEST_ZONE.search(zone)):
+            continue
+
+        if zone in state.collected: # an upgrade the save has collected
             continue
 
         giver = state.givers.get(zone) # the task whose start this is: gone once the task is completed
@@ -917,16 +930,21 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
 
         gg.append(draw.Image(cx - box / 2, cy - box / 2, box, box, game_icon_url(icon), embed=False, pointer_events="none"))
 
+        if tip := tips.get(zone):
+            hover.append(draw.Rectangle(cx - box / 2, cy - box / 2, box, box, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon="", data_tip_img=game_icon_url(icon), data_tip_title=tip[0], data_tip_sub=tip[1]))
+
         if zone in state.locked or (opens_with and not any(o in state.completed for o in opens_with)): # a place that is not open yet: a prohibition sign over it
             r = box * 0.62
             gg.append(draw.Circle(cx, cy, r, fill="none", stroke="#d32f2f", stroke_width=max(1.5, box / 7)))
             gg.append(draw.Line(cx - r * 0.7, cy - r * 0.7, cx + r * 0.7, cy + r * 0.7, stroke="#d32f2f", stroke_width=max(1.5, box / 7)))
 
     parent.append(gg)
+    return hover
 
 
 def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None, icon_state=None, hide_contests=False):
     ig = draw.Group(id=map_id + "_group")
+    hover = None
 
     if img_path:
         if link:
@@ -943,9 +961,12 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
         add_built_shapes(ig, built_shapes, size)
 
     if img_path and icons_area_id:
-        add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state, hide_contests)
+        hover = add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state, hide_contests)
 
     parent.append(draw.Use(ig, x_ofs, y_ofs))
+
+    if hover is not None: # tooltips of the icons (hidden with them)
+        parent.append(draw.Group(hover, transform=f"translate({x_ofs} {y_ofs})") if (x_ofs or y_ofs) else hover)
 
 
 async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps=False, size=main_scale, text_height = 8, loc_mode = False,
