@@ -10,8 +10,8 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 SUPERSAMPLE = 4
-RAIL_BED_WIDTH = 5.0 # metres: a track with its ballast
-MIN_WIDTH = 2.6 # metres: thinner pipes and rails would vanish at the map's scale
+RAIL_BED_WIDTH = 8.0 # metres: a track with its ballast (about 5 in the game; exaggerated so that it shows at the map's 1000 px)
+MIN_WIDTH = 2.6 # metres: thinner pipes would vanish at the map's scale
 LIGHT_SHIFT = 0.4 # metres of shadow per metre of height, thrown east (the light comes from the west, like the trees')
 MAX_SHIFT = 5.0
 
@@ -170,8 +170,8 @@ def structures(scene, has_pipeline_spline=False):
 
 # (width in metres, colour) of the layers a spline is drawn with, lowest first; shadow shift in metres
 LINE_STYLE = {
-    "rail": [(5.0, (168, 156, 138, 255)), (2.0, (58, 50, 46, 255))], # the ballast bed and the rails
-    "rail abandoned": [(5.0, (150, 140, 120, 170)), (2.0, (96, 78, 62, 220))],
+    "rail": [(8.0, (168, 156, 138, 255)), (3.6, (58, 50, 46, 255))], # the ballast bed and the rails, exaggerated (the game's are about 5 and 2 metres) so that they show at the map's 1000 px
+    "rail abandoned": [(8.0, (150, 140, 120, 170)), (3.6, (96, 78, 62, 220))],
     "pipe": [(3.6, (70, 52, 24, 255)), (2.4, (190, 154, 76, 255))],
     "water pipe": [(3.0, (40, 60, 82, 255)), (1.8, (118, 150, 178, 255))],
 }
