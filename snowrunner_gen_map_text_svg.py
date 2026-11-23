@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import functools
+from types import SimpleNamespace
 import json
 import itertools
 import os
@@ -675,35 +676,6 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
 
 
-        # where tasks are activated (contracts are always available in the menu, tasks have to be found on the map)
-    if not loc_mode and ("Task Starts" not in hide_types or selected_ids): # when hidden, still shown for a task that is selected
-        klass = element_classes.get("Tasks", "location-task")
-
-        for giver in await TaskGiver.filter(area_id=area_id, objective__obj_type="task").prefetch_related("objective__obj_prereqs__prereq_obj"):
-            objective = giver.objective
-
-            if giver.x is None or (objective.completed and not show_all) or ("Task Starts" in hide_types and objective.id not in selected_ids):
-                continue
-
-            blocked = any(not prereq.prereq_obj.completed for prereq in objective.obj_prereqs)
-            selected, back_color = get_selected_color("#66e0f0", objective.id, blocked, "#3cb4c8")
-            cargo_by_pos[db_pos(giver)].append((make_draw_item(TaskGiver.filter(id=giver.id), giver.zone_id, f"giver_{giver.id}", "giver", "T", ["T"], selected, blocked, back_color, "black", classes=klass, tip=("❗", objective.name, "Task start" if giver.primary else "Task start (alternate spot)")))._replace(width=GIVER_BOX_SCALE * (text_height + 2 * text_h_margin)))
-
-        # garages and trailer stores (where vehicles / trailers are changed and bought)
-    if not loc_mode and ("Garages" not in hide_types or "Trailer Stores" not in hide_types or selected_ids): # when hidden, a building selected in the tree is still shown
-        klass = element_classes.get("Tasks", "location-task")
-
-        for place in await MapItem.filter(area_id=area_id, item_type__in=["garage", "trlstore"]).prefetch_related("obj_locker"):
-            is_garage = place.item_type == "garage"
-
-            if not have_db_pos(place) or (("Garages" if is_garage else "Trailer Stores") in hide_types and place.id not in selected_ids):
-                continue
-
-            locked = bool(place.obj_locker and not place.obj_locker.completed)
-            selected, back_color = get_selected_color("#ffcc80" if is_garage else "#b39ddb", place.id, locked, "#d9a066" if is_garage else "#8e7cc3")
-            sub = ("Garage" if is_garage else "Trailer store") + (f" — opens when {place.obj_locker.name} is completed" if locked else "")
-            cargo_by_pos[db_pos(place)].append(make_draw_item(MapItem.filter(id=place.id), place.id, place.id, "place", "G" if is_garage else "S", ["G" if is_garage else "S"], selected, locked, back_color, "black", classes=klass, tip=("\N{HOUSE BUILDING}" if is_garage else "\N{ARTICULATED LORRY}", place.name, sub)))
-
         # delivery plan: the visible plan's remaining stops drawn as numbered squares, linked in order
     if plan and not loc_mode:
         klass = element_classes.get("Plan", "location-plan")
@@ -879,7 +851,7 @@ def add_built_shapes(parent, shapes, size):
 
 @functools.cache
 def game_zone_icons():
-    """{area id: [(icon name, x, y, objective ids that use the zone, always shown), ...]}: the icons the game draws on its map (written by import_game_maps.py), positions on the 0-1000 map"""
+    """{area id: [(zone id, icon name, x, y, objective ids that use the zone, always shown), ...]}: the icons the game draws on its map (written by import_game_maps.py), positions on the 0-1000 map"""
     out = defaultdict(list)
 
     if os.path.exists(GAME_ICON_TABLE):
@@ -887,28 +859,63 @@ def game_zone_icons():
             next(f)
 
             for line in f:
-                area_id, _, icon, x, y, objectives, keep = line.rstrip("\n").split("\t")
-                out[area_id].append((icon, int(x), int(y), tuple(o for o in objectives.split(",") if o), keep == "1"))
+                area_id, zone, icon, x, y, objectives, keep, opens_with = line.rstrip("\n").split("\t")
+                out[area_id].append((zone, icon, int(x), int(y), tuple(o for o in objectives.split(",") if o), keep == "1", tuple(o for o in opens_with.split(",") if o)))
 
     return out
 
 
-def add_game_icons(parent, area_id, size, visible, group_id, done=None):
+BUILDING_ICONS = ("garageImg", "trailerShopImg40") # icons that are highlighted when their building is selected in the tree
+
+
+async def icon_state(area_id, selected_ids):
+    """What the game icons need from the database: the task each task start belongs to, the places that are not unlocked yet, and what is selected in the tree"""
+    givers = {g.zone_id: g.objective_id for g in await TaskGiver.filter(area_id=area_id, objective__obj_type="task")}
+    locked = {m.id for m in await MapItem.filter(area_id=area_id).prefetch_related("obj_locker") if m.obj_locker and not m.obj_locker.completed}
+    completed = {o.id for o in await Objective.filter(area_id=area_id, completed=True)}
+    return SimpleNamespace(givers=givers, locked=locked, selected=as_set(selected_ids) - {None}, completed=completed)
+
+
+@functools.cache
+def game_icon_url(icon):
+    """Url of a game icon picture, with its change time so that a browser that cached an older (e.g. differently coloured) one fetches the new"""
+    try:
+        return f"{GAME_ICON_URL}{icon}.png?v={int(os.path.getmtime(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'map_icons', icon + '.png')))}"
+    except OSError:
+        return f"{GAME_ICON_URL}{icon}.png"
+
+
+def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=None):
     """The game's own map icons, painted at their fixed spots on the map picture: they are part of the picture's group (so below every other element), take no part in overlap correction and never move"""
     scale = size / 1000
     box = GAME_ICON_BOX * size / main_scale
     gg = draw.Group(id=group_id, class_="game-icons", style="" if visible else "display:none")
 
-    for icon, x, y, objectives, keep in game_zone_icons().get(area_id, ()):
+    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set())
+
+    for zone, icon, x, y, objectives, keep, opens_with in game_zone_icons().get(area_id, ()):
+        giver = state.givers.get(zone) # the task whose start this is: gone once the task is completed
+        objectives = (giver,) if giver else objectives
+
         if done is not None and objectives and not keep and all(o in done for o in objectives): # the objective(s) it marks are completed
             continue
 
-        gg.append(draw.Image(x * scale - box / 2, y * scale - box / 2, box, box, f"{GAME_ICON_URL}{icon}.png", embed=False, pointer_events="none"))
+        cx, cy = x * scale, y * scale
+
+        if (giver and giver in state.selected) or (icon in BUILDING_ICONS and zone in state.selected): # the task (or building) selected in the tree: a halo behind its icon
+            gg.append(draw.Circle(cx, cy, box * 0.75, fill="rgba(255,235,59,0.55)", stroke="#f9a825", stroke_width=max(1.5, box / 10)))
+
+        gg.append(draw.Image(cx - box / 2, cy - box / 2, box, box, game_icon_url(icon), embed=False, pointer_events="none"))
+
+        if zone in state.locked or (opens_with and not any(o in state.completed for o in opens_with)): # a place that is not open yet: a prohibition sign over it
+            r = box * 0.62
+            gg.append(draw.Circle(cx, cy, r, fill="none", stroke="#d32f2f", stroke_width=max(1.5, box / 7)))
+            gg.append(draw.Line(cx - r * 0.7, cy - r * 0.7, cx + r * 0.7, cy + r * 0.7, stroke="#d32f2f", stroke_width=max(1.5, box / 7)))
 
     parent.append(gg)
 
 
-def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None):
+def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None, icon_state=None):
     ig = draw.Group(id=map_id + "_group")
 
     if img_path:
@@ -926,7 +933,7 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
         add_built_shapes(ig, built_shapes, size)
 
     if img_path and icons_area_id:
-        add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives)
+        add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state)
 
     parent.append(draw.Use(ig, x_ofs, y_ofs))
 
@@ -1363,7 +1370,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
     objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan, show_ids=show_ids)
-    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes, done_objectives=done_objectives)
+    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes, done_objectives=done_objectives, icon_state=await icon_state(area_ids_by_area[area], selected_ids))
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
     s = d.as_svg(header="")
 #    s = d.as_svg()
@@ -1495,9 +1502,6 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         "Trucks",
         "Framing",
         "Spawns",
-        "Task Starts",
-        "Garages",
-        "Trailer Stores",
         ]
 
 #    hide_types = set(svg_vis_togglers)

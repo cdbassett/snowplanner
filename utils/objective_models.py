@@ -42,20 +42,26 @@ def objective_models(objective_ids):
 
 
 ZONE_TOKEN = re.compile(r"\b[A-Z]{2}_\d\d_\d\d_[A-Z0-9_]+\b")
+ZONE_ID_LINE = re.compile(r'zoneId\s+=\s+"(\w+)"')
+ZONE_PROPERTY = re.compile(r"(ZoneProperty\w+)\s+=\s+\{")
+OPENING_PROPERTIES = {"ZonePropertyFuelStation", "ZonePropertyWaterStation", "ZonePropertyAutoRepairAndRestore", "ZonePropertyGateway", "ZonePropertyGatewayOut", "ZonePropertyWatchpoint",
+                      "ZonePropertyTrailerAttach", "ZonePropertyGarageEntrance", "ZonePropertyGarageExit", "ZonePropertyStorehouseCraft", "ZonePropertyResupplyRepairParts"} # rewards that make a place work (not the ones that only add what can be loaded there)
 
 
 def zone_objectives(objective_ids, zone_ids):
-    """({zone id: sorted objective ids that use the zone}, {zone ids that an objective's reward opens up or changes}) for the zones in zone_ids: the zones an objective's script names,
-    apart from the ones in its rewards (an unlocked garage, a location that opens ...)"""
+    """({zone id: sorted objective ids that use the zone}, {zone ids that an objective's reward opens up or changes}, {zone id: sorted objective ids whose reward makes it a working place
+    (OPENING_PROPERTIES)}) for the zones in zone_ids: the zones an objective's script names, apart from the ones in its rewards (an unlocked garage, a location that opens ...)"""
     zone_ids = set(zone_ids)
     used = collections.defaultdict(set)
     rewarded = set()
+    opens = collections.defaultdict(set)
 
     def finish(key, lines):
         if key not in objective_ids:
             return
 
         reward_indent = None
+        reward_zone = None
 
         for line in lines:
             indent = len(line) - len(line.lstrip())
@@ -65,11 +71,17 @@ def zone_objectives(objective_ids, zone_ids):
                 continue
 
             if reward_indent is not None and indent <= reward_indent and line.lstrip().startswith("}"):
-                reward_indent = None
+                reward_indent, reward_zone = None, None
                 continue
 
+            if reward_indent is not None:
+                if m := ZONE_ID_LINE.search(line):
+                    reward_zone = m.group(1)
+                elif (m := ZONE_PROPERTY.search(line)) and reward_zone in zone_ids and m.group(1) in OPENING_PROPERTIES:
+                    opens[reward_zone].add(key)
+
             for token in ZONE_TOKEN.findall(line):
-                if token in zone_ids and token != key:
+                if token in zone_ids:
                     if reward_indent is None:
                         used[token].add(key)
                     else:
@@ -95,4 +107,4 @@ def zone_objectives(objective_ids, zone_ids):
 
         finish(key, lines)
 
-    return {z: sorted(o) for z, o in used.items()}, rewarded
+    return {z: sorted(o) for z, o in used.items()}, rewarded, {z: sorted(o) for z, o in opens.items()}

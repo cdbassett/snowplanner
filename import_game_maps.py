@@ -19,13 +19,14 @@ import argparse
 import concurrent.futures
 import functools
 import json
+import re
 import shutil
 import sqlite3
 import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
@@ -40,6 +41,9 @@ from utils.snowrunner_utils import slugify_region_area
 
 MAP_SIZE = 1000
 ICON_SIZE = 64
+ICON_SUBSTITUTES = {"trailerShopImg40": "trailerStoreImg40"} # the game's trailer shop symbol draws nothing here: its trailer store symbol is the same picture (without an outline, which is added)
+ICON_TINTS = {"garageImg": (165, 212, 245), "trailerShopImg40": (165, 212, 245), "fuelStationImg": (255, 205, 145)} # the white of these icons: garages and trailer stores light blue, fuel stations light orange
+COURSE_POINT = re.compile(r"(RACE|RING|DOWNHILL|CONTEST)\w*_(\d+|FINISH)$|_FINISH$|SCOUT_(\d+|END)$") # zone names of race / contest checkpoints
 PERMANENT_ICONS = {"garageImg", "watchTowerImg", "gatewayImg", "serviceHubImg", "townStorage", "fuelStationImg", "trailerShopImg40", "trailerShopImg", "factoryImg", "sawmillImg", "lumberjackImg"} # places that stay, whatever objectives use them
 MAP_IMAGE_DIR = ROOT / "map_images"
 TEXTURE_DIR = ROOT / "extracted_map_textures"
@@ -231,6 +235,16 @@ def import_region_images():
         print(f"{region_id}: {name} -> {target.relative_to(ROOT)}")
 
 
+def outlined(icon, width=2):
+    """The icon with a black outline around its shape"""
+    big = Image.new("RGBA", (icon.width + 2 * width, icon.height + 2 * width), (0, 0, 0, 0))
+    big.paste(icon, (width, width))
+    out = Image.new("RGBA", big.size, (0, 0, 0, 0))
+    out.paste(Image.new("RGBA", big.size, (0, 0, 0, 255)), (0, 0), big.getchannel("A").filter(ImageFilter.MaxFilter(2 * width + 1)))
+    out.alpha_composite(big)
+    return out
+
+
 def import_icons(area_ids):
     rows = []
 
@@ -245,29 +259,71 @@ def import_icons(area_ids):
             if abs(p.x) < 3000 and abs(p.z) < 3000 and zone.model_kind:
                 rows.append((area_id, zone_id, zone.model_kind, *level_data.world_to_db(p.x, p.z, half)))
 
-    names = sorted({r[2] for r in rows} | {r[2][:-2] for r in rows if r[2].endswith("40")}) # some zones name a 40 px icon that only exists without the size
+    names = sorted({r[2] for r in rows} | {r[2][:-2] for r in rows if r[2].endswith("40")} | set(ICON_SUBSTITUTES.values())) # some zones name a 40 px icon that only exists without the size
     ICON_WORK_DIR.mkdir(parents=True, exist_ok=True)
     extract_gfx_icons.main(ICON_WORK_DIR, ["icons_lib"], only=names)
     ICON_DIR.mkdir(parents=True, exist_ok=True)
     found = {p.stem for p in (ICON_WORK_DIR / "icons_lib").glob("*.png")}
 
     for name in sorted(found & set(names)):
-        icon = Image.open(ICON_WORK_DIR / "icons_lib" / f"{name}.png")
+        icon = Image.open(ICON_WORK_DIR / "icons_lib" / f"{ICON_SUBSTITUTES.get(name, name)}.png").convert("RGBA")
         icon.thumbnail((ICON_SIZE, ICON_SIZE), Image.LANCZOS) # extracted at 4x
+
+        if name in ICON_SUBSTITUTES:
+            icon = outlined(icon)
+
+        if name in ICON_TINTS: # white -> the colour, black stays black
+            r, g, b, a = icon.split()
+            tint = ICON_TINTS[name]
+            icon = Image.merge("RGBA", (r.point(lambda v: v * tint[0] // 255), g.point(lambda v: v * tint[1] // 255), b.point(lambda v: v * tint[2] // 255), a))
+
         icon.save(ICON_DIR / f"{name}.png", optimize=True)
 
     rows = [(a, z, i[:-2] if i not in found and i.endswith("40") else i, x, y) for a, z, i, x, y in rows]
     unknown = sorted({r[2] for r in rows if r[2] not in found})
     rows = [r for r in rows if r[2] in found]
-    used, rewarded = objective_models.zone_objectives(objective_ids(), {r[1] for r in rows})
+    used, rewarded, opens = objective_models.zone_objectives(objective_ids(), {r[1] for r in rows})
+    ids = objective_ids()
     # objectives that use the zone (its icon is hidden once all are completed), and 1 when the icon stays regardless: a place that stays (garage, watch tower ...) or one that a reward opens
-    rows = [(a, z, i, x, y, ",".join(used.get(z, ())), int(z in rewarded or i in PERMANENT_ICONS)) for a, z, i, x, y in rows]
+    def uses(a, z, i):
+        """the objectives that use a zone; a task's other start spots and sub markers that only the level script defines are the zones whose name begins with the task's id"""
+        found = used.get(z)
+
+        if not found and i in ("taskImg40", "taskSubImg40"):
+            found = [max((o for o in ids if o.startswith(a) and z.startswith(o) and len(o) > len(a) + 4), key=len, default=None)]
+
+            if not found[0]: # not named after the task's id: strip the spot suffix (_a, _02, _GIVER_01 ...) and take the tasks whose ids begin with what is left
+                stem = z
+
+                while not found[0]:
+                    shorter = re.sub(r"(_GIVER(_\d+)?|_TSK|_TASK|_DELIVERY|_\d+|\d*[a-z]|_[A-Z])$", "", stem)
+
+                    if shorter == stem or len(shorter) <= len(a) + 4:
+                        break
+
+                    stem = shorter
+                    found = sorted(o for o in ids if o.startswith(stem))[:3] or [None]
+
+        return [o for o in found or () if o]
+
+    rows = [(a, z, i, x, y, ",".join(uses(a, z, i)), int(z in rewarded or i in PERMANENT_ICONS), ",".join(opens.get(z, ()))) for a, z, i, x, y in rows]
+    before = len(rows)
+    rows = [r for r in rows if not (r[2] in ("taskImg40", "taskSubImg40") and not r[5] and COURSE_POINT.search(r[1]))] # the points of a race / contest course are not task starts: the contest's own start icon stays
+    print(f"{before - len(rows)} race / contest course points left out")
+
+    # a garage or trailer store whose zone the game gives no icon kind (it still has a spot in the database): its icon from the map items
+    known = {r[1] for r in rows}
+    con = sqlite3.connect(f"file:{snowplanner_db_filename}?mode=ro", uri=True)
+
+    for zone, area, kind, x, y in con.execute("select id, area_id, item_type, x, y from map_item where item_type in ('garage', 'trlstore') and x is not null"):
+        if zone not in known and area in area_ids:
+            rows.append((area, zone, "garageImg" if kind == "garage" else "trailerShopImg40", x, y, "", 1, ""))
 
     if ICON_TABLE.exists(): # keep the other areas' rows when only some areas were imported
-        rows = [tuple(line.rstrip("\n").split("\t")) for line in ICON_TABLE.read_text(encoding="utf-8").splitlines()[1:] if line.split("\t")[0] not in area_ids and line.count("\t") == 6] + rows
+        rows = [tuple(line.rstrip("\n").split("\t")) for line in ICON_TABLE.read_text(encoding="utf-8").splitlines()[1:] if line.split("\t")[0] not in area_ids and line.count("\t") == 7] + rows
 
     with open(ICON_TABLE, "w", encoding="utf-8") as f:
-        f.write("area_id\tzone_id\ticon\tx\ty\tobjectives\tkeep\n")
+        f.write("area_id\tzone_id\ticon\tx\ty\tobjectives\tkeep\topens_with\n")
         f.writelines("\t".join(map(str, r)) + "\n" for r in rows)
 
     print(f"{len(rows)} zone icons in {len({r[0] for r in rows})} areas, {len(found & set(names))} icon pictures in {ICON_DIR.relative_to(ROOT)}; zone kinds without an icon in the game's icon library (skipped): {unknown}")
