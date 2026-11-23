@@ -471,6 +471,9 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
             if not check_hide and (show_all or not map_item.completed):
                 flt = MapItem.filter(id=map_item.id)
                 cargo_items = sorted((make_source_cargo(cargo_item, ccnt) for cargo_item in map_item.cargo_items if (ccnt := current_cargo_count(cargo_item)) != 0 and (needed_cargo is None or map_item.item_type == "craft" or normalize_cargo_name(cargo_item.name) in needed_cargo)), key=lambda c: (c.product if isinstance(c, Recipe) else c).name)
+                if not cargo_items and not show_all and not loc_mode: # a source with nothing left to take is not shown in the normal view
+                    continue
+
                 blocked = (obj_locker := map_item.obj_locker) and not obj_locker.completed
                 selected, source_color = get_selected_color("yellow", map_item.id, blocked, "gold")
                 shown_name = map_item.id if show_ids else map_item.name # the map id instead of the location's name when asked for
