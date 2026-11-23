@@ -350,10 +350,30 @@ async def region(region_slug: str):
         await update_svg()
 
     async def handle_js_click_event(e):
+        if str(e.args['id']).startswith("visit:"): # the flag of a place to visit: its step in the tree
+            if (visit := await ObjectiveVisit.filter(id=e.args['id'].removeprefix("visit:")).prefetch_related("objective").first()):
+                select_single_top_tree_node(obj_tree, visit.objective.obj_type + "s")
+                await select_clicked_node("VS_" + visit.id, visit.id, visit.objective_id)
+
+            return
+
         if str(e.args['id']).startswith("objective:"): # a game icon of a task start / objective location
             if (objective := await Objective.filter(id=e.args['id'].removeprefix("objective:")).first()):
                 select_single_top_tree_node(obj_tree, objective.obj_type + "s")
                 await select_clicked_node("O_" + objective.id, objective.id, objective.id)
+
+            return
+
+        if str(e.args['id']).startswith(("gate:", "place:", "source:")): # the game icon of a gate / garage / trailer store
+            kind, _, map_id = e.args['id'].partition(":")
+
+            if (map_item := await MapItem.filter(id=map_id).prefetch_related("obj_locker").first()):
+                if kind == "gate" and map_item.obj_locker and not map_item.obj_locker.completed:
+                    select_single_top_tree_node(obj_tree, map_item.obj_locker.obj_type + "s")
+                    await select_clicked_node("O_" + map_item.obj_locker.id, map_item.obj_locker.id, map_item.obj_locker.id)
+                else:
+                    select_single_top_tree_node(obj_tree, {"gate": "gates", "source": "sources"}.get(kind, "buildings"))
+                    await select_clicked_node({"gate": "G_", "source": "S_"}.get(kind, "B_") + map_id, map_id)
 
             return
 

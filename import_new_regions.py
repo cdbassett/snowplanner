@@ -389,6 +389,68 @@ async def fill_task_givers(area_ids):
 
 
 @functools.cache
+def visit_steps():
+    """[(objective id, stage, index, area id of the zone, zone id, the game's text of the step)] of every visitAllZones entry of the tasks and contracts"""
+    steps = []
+    ed = gamefiles.english_strings()
+
+    for _, data in iterate_objective_files_basic():
+        for typ in ("tasksSettings", "contractsSettings"):
+            for obj_id, objective in data.get(typ, {}).items():
+                for n, stage in enumerate(objective.get("stages") or []):
+                    zones = ((stage or {}).get("visitAllZones") or {}).get("zones") or ()
+
+                    for idx, zone in enumerate(zones):
+                        ref = _zone_ref(zone.get("globalZoneId"))
+
+                        if ref and " || " in ref:
+                            level, zone_id = (x.strip() for x in ref.split("||"))
+                            steps.append((obj_id, n, idx, fname_to_area_id(level), zone_id, re.sub(r"</?\w*>", "", ed.get((zone.get("uiDesc") or "").upper(), zone_id))))
+
+    return steps
+
+
+async def fill_visits():
+    """Add the visit steps of the objectives that are in the database, with the zone positions from the level files (existing steps keep their done state)."""
+    objective_ids = set(await Objective.all().values_list("id", flat=True))
+    existing = {v.id for v in await ObjectiveVisit.all()}
+    levels = {}
+    added, missing = 0, []
+
+    for obj_id, stage, idx, area_id, zone_id, text in visit_steps():
+        step_id = f"{obj_id}|{stage}|{idx}|v"
+
+        if obj_id not in objective_ids or step_id in existing:
+            continue
+
+        if area_id not in levels:
+            try:
+                data = gamefiles.read_data_for_ssl(area_id)
+            except Exception:
+                levels[area_id] = None
+            else:
+                zones = level_data.parse_level_zones(data)
+                levels[area_id] = (data, zones, level_data.area_half_span(data, zones))
+
+        x = y = None
+
+        if levels[area_id]:
+            data, zones, half = levels[area_id]
+            placement = level_data.zone_placement(data, zones[zone_id]) if zone_id in zones else level_data.placement_by_id(data, zone_id)
+
+            if placement and abs(placement.x) < 3000 and abs(placement.z) < 3000:
+                x, y = level_data.world_to_db(placement.x, placement.z, half)
+
+        if x is None:
+            missing.append(f"{obj_id}: {zone_id}")
+
+        await ObjectiveVisit.create(id=step_id, objective_id=obj_id, stage=stage, zone_id=zone_id, area_id=area_id, name=text, x=x, y=y)
+        added += 1
+
+    return added, missing
+
+
+@functools.cache
 def repair_steps():
     """[(objective id, stage, index, vehicle id, phase, damage %, fuel %, what happens to it after the stage)] of every repairTruck entry of the tasks and contracts. The phase says where it is shown:
     before = the vehicle is delivered later (repaired first, or while being delivered), after = it was delivered in an earlier stage, alone = it isn't delivered."""
@@ -663,8 +725,9 @@ async def main():
     repairs_needed = any(None in db_repairs.get(f"{o}|{n}|{i}", (None,)) for o, n, i, *_ in repair_steps() if o in db_objective_ids)
 
     places_needed = bool(set(garage_zones()) - db_map_ids)
+    visits_needed = bool({f"{o}|{n}|{i}|v" for o, n, i, *_ in visit_steps() if o in db_objective_ids} - set(await ObjectiveVisit.all().values_list("id", flat=True)))
 
-    if not todo and not new_areas and not new_trucks and not args.positions and not args.reset_positions and not givers_needed and not repairs_needed and not places_needed:
+    if not todo and not new_areas and not new_trucks and not args.positions and not args.reset_positions and not givers_needed and not repairs_needed and not places_needed and not visits_needed:
         print("Nothing to import.")
         return
 
@@ -710,6 +773,12 @@ async def main():
 
     if missing_repairs:
         print("Repair steps whose vehicle isn't in the database: " + ", ".join(missing_repairs))
+
+    added_visits, missing_visits = await fill_visits()
+    print(f"Visit steps added: {added_visits}")
+
+    if missing_visits:
+        print("Visit steps whose zone is not in the level files: " + ", ".join(missing_visits))
 
     if not args.no_images:
         for path in create_placeholder_images(new_areas, all_rows):

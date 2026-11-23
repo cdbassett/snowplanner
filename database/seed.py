@@ -9,7 +9,7 @@ from database.config import TABLE_ORDER, FIXTURE_PATH
 from database import models
 from utils.timer_utils import timefunction
 
-EMPTY_FILL_TABLES = {"region_area", "truck_info", "task_giver", "objective_repair"} # reference tables filled from the fixture whenever they are empty
+EMPTY_FILL_TABLES = {"region_area", "truck_info", "task_giver", "objective_repair", "objective_visit"} # reference tables filled from the fixture whenever they are empty
 USER_STATE_COLUMNS = {"completed", "current_cnt"} # set by playing, never overwritten from the fixture
 
 @timefunction

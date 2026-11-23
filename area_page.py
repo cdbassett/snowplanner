@@ -278,6 +278,12 @@ async def area(area_slug: str):
         if target_id:
             ic(target_id)
 
+            if target_id.startswith("gate:"): # the gate icon: go to the area it leads to
+                if (map_item := await MapItem.filter(id=target_id.removeprefix("gate:")).first()) and map_item.to_area_id:
+                    ui.navigate.to(f"/area/{slugify(areas_by_area_id[map_item.to_area_id])}")
+
+                return
+
             if not (rec := location_items.get(target_id)):
                 return
 
@@ -457,6 +463,26 @@ async def area(area_slug: str):
 
 
     async def handle_clicked_id(target_id):
+        if target_id.startswith(("gate:", "place:", "source:")): # the game icon of a gate / garage / trailer store
+            kind, _, map_id = target_id.partition(":")
+
+            if (map_item := await MapItem.filter(id=map_id).prefetch_related("obj_locker").first()):
+                if kind == "gate" and map_item.obj_locker and not map_item.obj_locker.completed:
+                    select_single_top_tree_node(obj_tree, map_item.obj_locker.obj_type + "s")
+                    await select_tree_node("O_" + map_item.obj_locker.id, map_item.obj_locker.id, map_item.obj_locker.id)
+                else:
+                    select_single_top_tree_node(obj_tree, {"gate": "gates", "source": "sources"}.get(kind, "buildings"))
+                    await select_tree_node({"gate": "G_", "source": "S_"}.get(kind, "B_") + map_id, map_id)
+
+            return
+
+        if target_id.startswith("visit:"): # the flag of a place to visit: its step in the tree
+            if (visit := await ObjectiveVisit.filter(id=target_id.removeprefix("visit:")).prefetch_related("objective").first()):
+                select_single_top_tree_node(obj_tree, visit.objective.obj_type + "s")
+                await select_tree_node("VS_" + visit.id, visit.id, visit.objective_id)
+
+            return
+
         if target_id.startswith("objective:"): # a game icon of a task start / objective location
             if (objective := await Objective.filter(id=target_id.removeprefix("objective:")).first()):
                 select_single_top_tree_node(obj_tree, objective.obj_type + "s")

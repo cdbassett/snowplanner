@@ -664,6 +664,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
 
 
     gate_lines = []
+    gate_links = [] # (position of a delivery, position of the gate its cargo comes through): the gate icon has no box for the line to end at
 
         # gates
     if "Gates" not in hide_types:
@@ -674,7 +675,10 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 gate_color = "teal" if (obj_locker := map_item.obj_locker) and not obj_locker.completed else "mediumturquoise"
                 map_item_dest = await MapItem.filter(id=map_item.to_map_item_id).first()
                 gate_dest = ((get_compass_repr_of_pos_int((map_item_dest.x, map_item_dest.y)) + " ") if map_item_dest else "") + abbreviations_by_area_id[map_item.to_area_id]
-                cargo_by_pos[db_pos(map_item)].append(make_draw_item(MapItem.filter(id=map_item.id), map_item.id, map_item.id, "loc" if loc_mode else "gate", "Gate", [gate_dest], False, False, back=gate_color, extra="gate", classes=klass, arrow=list(dict.fromkeys(incoming_by_gate.get(db_pos(map_item), []))) or None))
+                if loc_mode: # only the location editor still draws (and moves) a block; otherwise the game's gate icon marks the gate (see add_game_icons)
+                    cargo_by_pos[db_pos(map_item)].append(make_draw_item(MapItem.filter(id=map_item.id), map_item.id, map_item.id, "loc", "Gate", [gate_dest], False, False, back=gate_color, extra="gate", classes=klass, arrow=list(dict.fromkeys(incoming_by_gate.get(db_pos(map_item), []))) or None))
+                else:
+                    gate_links.extend((dest, db_pos(map_item)) for dest in dict.fromkeys(incoming_by_gate.get(db_pos(map_item), [])))
 
                 if map_item_dest and (multi_area or map_item_dest.area_id == map_item.area_id):
                     gate_lines.append(tuple(sorted((db_pos(map_item), db_pos(map_item_dest)))))
@@ -807,7 +811,7 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
                 stop_title += f" - split: {', '.join(stop.legs)}" if stop.legs else ""
                 cargo_by_pos[db_pos(stop)].append(make_draw_item(PlanStop.filter(id=stop.id), None, f"plan:{stop.id}", "plan", stop_title, stop.rows, selected, False, back, "black", stop_title, classes=klass, arrow=PlanLink(stop.id, stop.number, tuple(targets[stop.id]), stop.color), row_key="plan")) # stops at one spot sit side by side
 
-    return cargo_by_pos, gate_lines, (free_segments if plan and not loc_mode else [])
+    return cargo_by_pos, gate_lines, (free_segments if plan and not loc_mode else []), gate_links
 
 GAME_ICON_TABLE = os.path.join(snowplanner_data_dir, "map_zone_icons.tsv")
 BUILT_DIR = os.path.join(snowplanner_data_dir, "built_structures")
@@ -885,7 +889,46 @@ async def icon_state(area_id, selected_ids, full=True):
     objectives = {o.id: o for o in await Objective.filter(area_id=area_id)}
     locked = {m.id for m in await MapItem.filter(area_id=area_id).prefetch_related("obj_locker") if m.obj_locker and not m.obj_locker.completed} if full else set()
     completed = {o.id for o in objectives.values() if o.completed} if full else set()
-    return SimpleNamespace(givers=givers, locked=locked, selected=as_set(selected_ids) - {None}, completed=completed, collected=read_collected_upgrades(), objectives=objectives)
+    places = {m.id: m for m in await MapItem.filter(Q(area_id=area_id) & Q(item_type__in=["gate", "garage", "trlstore", "source", "craft"])).prefetch_related("obj_locker", "cargo_items")} # gates, garages, trailer stores: hover and click
+    selected = as_set(selected_ids) - {None}
+    visits = defaultdict(list) # zone id -> the visit steps of this area's zone
+    visit_objectives = set() # objectives (or their visit steps) selected in the tree: only these show their flags
+
+    if selected:
+        visit_objectives = set(await ObjectiveVisit.filter(id__in=list(selected)).values_list("objective_id", flat=True)) | set(await ObjectiveVisit.filter(objective_id__in=list(selected)).values_list("objective_id", flat=True))
+
+    for visit in await ObjectiveVisit.filter(area_id=area_id):
+        visits[visit.zone_id].append(visit)
+
+    open_stage = {} # objective -> its first stage that is not done: the stages after it are locked
+
+    if visit_objectives:
+        finished = set(await Objective.filter(id__in=list(visit_objectives), completed=True).values_list("id", flat=True))
+
+        for objective_id, stage, visited in await ObjectiveVisit.filter(objective_id__in=list(visit_objectives)).values_list("objective_id", "stage", "completed"):
+            if not visited and objective_id not in finished:
+                open_stage[objective_id] = min(stage, open_stage.get(objective_id, stage))
+
+    return SimpleNamespace(givers=givers, locked=locked, selected=selected, completed=completed, collected=read_collected_upgrades(), objectives=objectives, places=places, visits=visits, visit_objectives=visit_objectives, visit_open_stage=open_stage)
+
+
+HIGHLIGHT_LOCKED_FILTER = '<filter id="icon-highlight-locked" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.225 0.44 0.08 0 0  0.205 0.40 0.073 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>' # the darker yellow of a place whose stage is still locked
+HIGHLIGHT_FILTER = '<filter id="icon-highlight" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.9 1.77 0.33 0 0  0.83 1.63 0.30 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>' # whatever the icon's colours: bright yellow, shaded by its brightness (black outlines stay black)
+GATE_TINTS = {"gate-open": (72, 209, 204), "gate-locked": (0, 128, 128)} # mediumturquoise / teal: the colours the gate blocks had
+PLACE_KINDS = {"gate": "Gate", "garage": "Garage", "trlstore": "Trailer store", "source": "Source", "craft": "Crafting site"}
+
+
+def place_tip(item):
+    """(title, subtitle, click id) of a gate / garage / trailer store"""
+    locked = item.obj_locker is not None and not item.obj_locker.completed
+    sub = f"Leads to {areas_by_area_id.get(item.to_area_id, item.to_area_id)}" if item.item_type == "gate" else PLACE_KINDS[item.item_type]
+
+    if item.item_type in ("source", "craft"): # what is there: cargo with what is left of it (a crafting site's recipes are listed in the tree)
+        cargo = [f"{c.name}" + (f" x{n}" if item.item_type == "source" and (n := current_cargo_count(c)) is not None else "") for c in item.cargo_items if item.item_type == "craft" or current_cargo_count(c) != 0]
+        sub += ": " + ", ".join(cargo[:6]) + (f" +{len(cargo) - 6} more" if len(cargo) > 6 else "") if cargo else ""
+
+    kind = {"gate": "gate:", "source": "source:", "craft": "source:"}.get(item.item_type, "place:")
+    return item.name, sub + (f" - locked until {item.obj_locker.name} is completed" if locked else ""), kind + item.id
 
 
 def objective_tip(objectives, state):
@@ -914,18 +957,40 @@ CONTEST_ICONS = {"contestImg", "curciutRaceImg40", "climbRaceImg40", "heroRaceIm
 CONTEST_ZONE = re.compile(r"_CNT\d*$|CONTEST|RACE")
 
 
-def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=None, hide_contests=False):
+def highlight_filter(state, visits):
+    """Bright yellow for a place that can be visited now, darker for one whose stage is locked behind an unfinished earlier stage"""
+    locked = all(v.stage > state.visit_open_stage.get(v.objective_id, v.stage) for v in visits)
+    return "icon-highlight-locked" if locked else "icon-highlight"
+
+
+def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=None, hide_contests=False, hide_gates=False):
     """The game's own map icons, painted at their fixed spots on the map picture: they are part of the picture's group (so below every other element), take no part in overlap correction and never move"""
     scale = size / 1000
     box = GAME_ICON_BOX * size / main_scale
     gg = draw.Group(id=group_id, class_="game-icons", style="" if visible else "display:none")
 
-    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set(), collected=read_collected_upgrades(), objectives={})
+    known_places = state is not None # with the database's gates, garages ... at hand a gateway icon without a gate is only a decoy zone of the level
+    state = state or SimpleNamespace(givers={}, locked=set(), selected=set(), completed=set(), collected=read_collected_upgrades(), objectives={}, places={}, visits={}, visit_objectives=set(), visit_open_stage={})
     tips = zone_tips()
     hover = draw.Group(class_="game-icons game-icon-tips", style="" if visible else "display:none") # transparent hover areas: the icons themselves are in the map's <use> and can't take hover, so these go beside it (see add_svg_image)
 
+    top = draw.Group(class_="game-icons game-icon-top", style="" if visible else "display:none") # highlighted icons: drawn again above everything else (see add_svg_image)
+    gg.append(draw.Raw("<defs>" + HIGHLIGHT_FILTER + HIGHLIGHT_LOCKED_FILTER + "".join(f'<filter id="{name}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="{r / 255:.3f} 0 0 0 0  0 {g / 255:.3f} 0 0 0  0 0 {b / 255:.3f} 0 0  0 0 0 1 0"/></filter>' for name, (r, g, b) in GATE_TINTS.items()) + "</defs>")) # multiplies white by the colour, black stays black
+
     for zone, icon, x, y, objectives, keep, opens_with in game_zone_icons().get(area_id, ()):
         if hide_contests and (icon in CONTEST_ICONS or CONTEST_ZONE.search(zone)):
+            continue
+
+        place = state.places.get(zone)
+        shown_visits = [v for v in state.visits.get(zone, ()) if v.objective_id in state.visit_objectives]
+
+        if zone in state.visits and not shown_visits: # a place an objective has to visit: its flag is only drawn while that objective is selected
+            continue
+
+        if known_places and icon == "gatewayImg" and place is None: # e.g. Selten River National Park has two zones with a gateway model but no gate
+            continue
+
+        if hide_gates and place is not None and place.item_type == "gate":
             continue
 
         if zone in state.collected: # an upgrade the save has collected
@@ -934,7 +999,7 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
         giver = state.givers.get(zone) # the task whose start this is: gone once the task is completed
         objectives = (giver,) if giver else objectives
 
-        if done is not None and objectives and not keep and all(o in done for o in objectives): # the objective(s) it marks are completed
+        if done is not None and objectives and not keep and not shown_visits and all(o in done for o in objectives): # the objective(s) it marks are completed
             continue
 
         cx, cy = x * scale, y * scale
@@ -942,31 +1007,60 @@ def add_game_icons(parent, area_id, size, visible, group_id, done=None, state=No
         if (giver and giver in state.selected) or (icon in BUILDING_ICONS and zone in state.selected): # the task (or building) selected in the tree: a halo behind its icon
             gg.append(draw.Circle(cx, cy, box * 0.75, fill="rgba(255,235,59,0.55)", stroke="#f9a825", stroke_width=max(1.5, box / 10)))
 
-        gg.append(draw.Image(cx - box / 2, cy - box / 2, box, box, game_icon_url(icon), embed=False, pointer_events="none"))
+        tint = {}
+        highlighted = any(v.objective_id in state.selected or v.id in state.selected for v in shown_visits) # the objective selected: all its places; one step selected: just that one
+        target = top if highlighted else gg
+
+        if highlighted:
+            tint = {"filter": "url(#" + highlight_filter(state, shown_visits) + ")"}
+        elif place is not None and place.item_type == "gate": # tinted as the gate blocks were, teal while locked
+            tint = {"filter": "url(#" + ("gate-locked" if zone in state.locked or (place.obj_locker and not place.obj_locker.completed) else "gate-open") + ")"}
+
+        target.append(draw.Image(cx - box / 2, cy - box / 2, box, box, game_icon_url(icon), embed=False, pointer_events="none", **tint))
 
         click = {}
 
-        if tip := tips.get(zone):
+        if shown_visits:
+            visit = shown_visits[0]
+            tip = (visit.name, f"Visit - {state.objectives[visit.objective_id].name if visit.objective_id in state.objectives else visit.objective_id}" + (" (visited)" if visit.completed else "") + (f" +{len(shown_visits) - 1} more" if len(shown_visits) > 1 else ""))
+            click = {"data_click_id": "visit:" + visit.id}
+        elif place is not None:
+            ptip = place_tip(place)
+            tip = ptip[:2]
+            click = {"data_click_id": ptip[2]}
+        elif tip := tips.get(zone):
             pass
         elif (otip := objective_tip(objectives, state)): # a task start or delivery spot: hover names the objective, a click selects it in the tree
             tip = otip[:2]
             click = {"data_click_id": "objective:" + otip[2]}
 
         if tip:
-            hover.append(draw.Rectangle(cx - box / 2, cy - box / 2, box, box, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon="", data_tip_img=game_icon_url(icon), data_tip_title=tip[0], data_tip_sub=tip[1], **click))
+            (top if highlighted else hover).append(draw.Rectangle(cx - box / 2, cy - box / 2, box, box, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon="", data_tip_img=game_icon_url(icon), data_tip_title=tip[0], data_tip_sub=tip[1], **click))
 
         if zone in state.locked or (opens_with and not any(o in state.completed for o in opens_with)): # a place that is not open yet: a prohibition sign over it
             r = box * 0.62
             gg.append(draw.Circle(cx, cy, r, fill="none", stroke="#d32f2f", stroke_width=max(1.5, box / 7)))
             gg.append(draw.Line(cx - r * 0.7, cy - r * 0.7, cx + r * 0.7, cy + r * 0.7, stroke="#d32f2f", stroke_width=max(1.5, box / 7)))
 
+    drawn = {zone for zone, *_ in game_zone_icons().get(area_id, ())}
+
+    for zone, visits in state.visits.items(): # a visit zone the game has no icon for: a flag anyway
+        shown = [v for v in visits if v.objective_id in state.visit_objectives and v.x is not None]
+
+        if zone not in drawn and shown:
+            visit = shown[0]
+            cx, cy = visit.x * scale, visit.y * scale
+            highlighted = any(v.objective_id in state.selected or v.id in state.selected for v in shown)
+            (top if highlighted else gg).append(draw.Image(cx - box / 2, cy - box / 2, box, box, game_icon_url("flagImg"), embed=False, pointer_events="none", **({"filter": "url(#" + highlight_filter(state, shown) + ")"} if highlighted else {})))
+            (top if highlighted else hover).append(draw.Rectangle(cx - box / 2, cy - box / 2, box, box, fill="black", fill_opacity=0, pointer_events="all", data_tip_icon="", data_tip_img=game_icon_url("flagImg"), data_tip_title=visit.name, data_tip_sub="Visit", data_click_id="visit:" + visit.id))
+
     parent.append(gg)
-    return hover
+    return hover, top
 
 
-def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None, icon_state=None, hide_contests=False):
+def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None, icon_state=None, hide_contests=False, hide_gates=False, top_layer=None):
     ig = draw.Group(id=map_id + "_group")
-    hover = None
+    hover = top = None
 
     if img_path:
         if link:
@@ -983,12 +1077,25 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
         add_built_shapes(ig, built_shapes, size)
 
     if img_path and icons_area_id:
-        hover = add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state, hide_contests)
+        hover, top = add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id, done_objectives, icon_state, hide_contests, hide_gates)
 
     parent.append(draw.Use(ig, x_ofs, y_ofs))
 
     if hover is not None: # tooltips of the icons (hidden with them)
-        parent.append(draw.Group(hover, transform=f"translate({x_ofs} {y_ofs})") if (x_ofs or y_ofs) else hover)
+        if x_ofs or y_ofs:
+            shifted = draw.Group(transform=f"translate({x_ofs} {y_ofs})")
+            shifted.append(hover)
+            hover = shifted
+
+        parent.append(hover)
+
+    if top is not None and top.children:
+        if x_ofs or y_ofs:
+            shifted = draw.Group(transform=f"translate({x_ofs} {y_ofs})")
+            shifted.append(top)
+            top = shifted
+
+        (top_layer.append(top) if top_layer is not None else parent.append(top)) # the caller appends top_layer after everything else is drawn
 
 
 async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps=False, size=main_scale, text_height = 8, loc_mode = False,
@@ -997,6 +1104,7 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
     multi_area = overall_group is not None
     cargo_by_pos, gate_lines, *extra = objects
     plan_free_segments = extra[0] if extra else []
+    gate_links = extra[1] if len(extra) > 1 else []
 
     text_v_margin = text_height / 4
     text_h_margin = text_height / 2
@@ -1292,6 +1400,9 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
                 xf, yf = scaled_pos(*dest)
                 links.append((xf, yf, xt, yt, entry.selected))
 
+    for dest, gate_pos in gate_links:
+        links.append((*scaled_pos(*dest), *scaled_pos(*gate_pos), False))
+
         # each layer is drawn for every link before the next, so a link's casing never covers another link's line
     for width, color, opacity in LINK_CASING_LAYERS:
         for xf, yf, xt, yt, selected in links:
@@ -1423,8 +1534,11 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True, water_path=None, show_water=False, built_shapes=(), done_objectives=None):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
     objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan, show_ids=show_ids)
-    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes, done_objectives=done_objectives, icon_state=await icon_state(area_ids_by_area[area], selected_ids), hide_contests="Contests" in hide_types and not show_all)
+    top_layer = []
+    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes, done_objectives=done_objectives, icon_state=await icon_state(area_ids_by_area[area], selected_ids), hide_contests="Contests" in hide_types and not show_all, hide_gates="Gates" in hide_types, top_layer=top_layer)
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
+    for layer in top_layer:
+        d.append(layer) # highlighted icons: above the entries
     s = d.as_svg(header="")
 #    s = d.as_svg()
     return s
@@ -1558,7 +1672,8 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         ]
 
 #    hide_types = set(svg_vis_togglers)
-    all_objects, all_gate_lines, all_plan_segments = dict(), set(), []
+    all_objects, all_gate_lines, all_plan_segments, all_gate_links = dict(), set(), [], []
+    top_layer = [] # highlighted icons of every area, drawn last
     hlink_groups = []
 
     for area, img_path, offset, hlink in zip(areas, img_paths, best_offsets, hlinks):
@@ -1570,13 +1685,17 @@ async def generate_region_svg(region, areas, best_offsets, x_tiles, img_paths, h
         all_objects.update(objects[0])
         all_gate_lines.update(objects[1])
         all_plan_segments.extend(objects[2])
+        all_gate_links.extend(objects[3])
         d.append(hlink_group)
         hlink_groups.append(hlink_group)
-        add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True, icons_area_id=area_id, icon_state=await icon_state(area_id, None, full=False), hide_contests="Contests" in hide_types and not show_all)
+        add_svg_image(hlink_group, img_path, map_id = "map_svg_image_"+area_id, size=sub_size, x_ofs=x_ofs, y_ofs=y_ofs, link=True, icons_area_id=area_id, icon_state=await icon_state(area_id, selected_ids, full=False), hide_contests="Contests" in hide_types and not show_all, hide_gates="Gates" in hide_types, top_layer=top_layer)
 
 #    await render_area_svg_objects(d, (all_objects, all_gate_lines), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, map_id = "map_svg_image_"+area_id, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region)
-    await render_area_svg_objects(d, (all_objects, all_gate_lines, all_plan_segments), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
+    await render_area_svg_objects(d, (all_objects, all_gate_lines, all_plan_segments, all_gate_links), id_gen, size=sub_size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, x_ofs=x_ofs, y_ofs=y_ofs,overall_group=overall_group, desc=region, bounds=(size // 2 * x_tiles, size))
     d.append(overall_group)
+
+    for layer in top_layer:
+        d.append(layer) # highlighted icons: above the entries
 
         # draw hlink text on top of everything (inter-area lines)
     for area, img_path, offset, hlink, hlink_group in zip(areas, img_paths, best_offsets, hlinks, hlink_groups):

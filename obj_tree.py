@@ -194,6 +194,13 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
     for repair in await ObjectiveRepair.filter(objective_id__in=list(obj_ids)).prefetch_related("map_item").order_by("stage", "id"):
         repairs_by_objective[repair.objective_id].append(repair)
 
+    visits_by_objective = defaultdict(list)
+
+    for visit in await ObjectiveVisit.filter(objective_id__in=list(obj_ids)).order_by("stage", "id"):
+        visits_by_objective[visit.objective_id].append(visit)
+
+    multi_visit_stages = {o: len({v.stage for v in visits}) > 1 for o, visits in visits_by_objective.items()}
+
     for objective in await Objective.filter(id__in=obj_ids).prefetch_related("obj_items__deliver_loc", "obj_items__map_item", "obj_prereqs__prereq_obj", "map_items_locked_by").order_by("name"):
         o_id = "O_" + objective.id
 
@@ -286,6 +293,21 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
                     loc_node["children"] = oi_children
                 else:
                     obj_children.extend(oi_children)
+
+        open_stage = min((v.stage for v in visits_by_objective.get(objective.id, ()) if not v.completed), default=None) if not objective.completed else None # a stage is locked until the stages before it are done
+
+        for visit in visits_by_objective.get(objective.id, ()): # places to visit; each one's flag is drawn on the map while the objective (or the step) is selected
+            vs_id = "VS_" + visit.id
+            ids.append(vs_id)
+            vs_node = {"id": vs_id, "label": (f"Stage {visit.stage + 1}: " if multi_visit_stages.get(objective.id) else "") + "Visit: " + get_area_desc(visit.name, visit.area_id)}
+
+            if open_stage is not None and visit.stage > open_stage:
+                vs_node["header"] = "disabled"
+
+            obj_children.append(vs_node)
+
+            if visit.completed:
+                ticked.append(vs_id)
 
         for repair in repairs_by_objective.get(objective.id, ()): # repair steps of vehicles (tickable; the vehicle is drawn with a wrench until it is done)
             rp_id = "RP_" + repair.id
@@ -420,6 +442,9 @@ async def apply_tree_ticks(ticked_ids, unticked_ids, old_ticked_ids=None):
 
     ticked_rp_ids, unticked_rp_ids = get_actual_ids(ticked_ids, unticked_ids, "RP_")
     await update_completed(ticked_rp_ids, unticked_rp_ids, ObjectiveRepair)
+
+    ticked_vs_ids, unticked_vs_ids = get_actual_ids(ticked_ids, unticked_ids, "VS_")
+    await update_completed(ticked_vs_ids, unticked_vs_ids, ObjectiveVisit)
 
     ticked_t_ids, unticked_t_ids = get_actual_ids(ticked_ids, unticked_ids, "T_")
     ticked_s_ids, unticked_s_ids = get_actual_ids(ticked_ids, unticked_ids, "S_")

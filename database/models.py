@@ -103,6 +103,18 @@ class ObjectiveRepair(Model):
     class Meta:
         table = "objective_repair"
 
+class ObjectiveVisit(Model, PositionMixin):
+    """A place an objective stage has to be visited (the stages' visitAllZones entries of the game files); its flag icon is shown on the map while the objective is selected. area_id is the area the zone is in."""
+    id = string_id(pk=True) # objective id | stage | index | v
+    objective = fields.ForeignKeyField(Objective, related_name="visits")
+    stage = fields.SmallIntField()
+    zone_id = string_id()
+    name = fields.CharField(max_length=200) # the game's text of the step
+    completed = fields.BooleanField(default=False)
+
+    class Meta:
+        table = "objective_visit"
+
 class ObjectivePrereq(Model):
     id = fields.IntField(pk=True)
     objective = fields.ForeignKeyField(Objective, related_name='obj_prereqs')

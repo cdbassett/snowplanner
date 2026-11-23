@@ -274,6 +274,32 @@ async def apply_repair_progress(save):
     return done_count
 
 
+async def apply_visit_progress(save):
+    """Set ObjectiveVisit.completed: done for a finished objective, otherwise by the save's visitAllZonesState of the objective's stage (zone isVisited)."""
+    states = save.get("objectiveStates", {})
+    finished = set(save.get("finishedObjs", ()))
+    changed = []
+
+    for visit in await ObjectiveVisit.all():
+        done = visit.objective_id in finished
+
+        if not done and (state := states.get(visit.objective_id)):
+            try:
+                zone_states = state["stagesState"][visit.stage]["visitAllZonesState"]["zoneStates"]
+                done = any(z["zone"] == visit.zone_id and z["isVisited"] for z in zone_states)
+            except (KeyError, IndexError, TypeError):
+                done = False
+
+        if visit.completed != done:
+            visit.completed = done
+            changed.append(visit)
+
+    if changed:
+        await ObjectiveVisit.bulk_update(changed, fields=["completed"])
+
+    return len(changed)
+
+
 async def apply_game_save(filename):
     """Update the DB from the game save: finished objectives, objective item deliveries and source cargo counts.
 
@@ -285,6 +311,7 @@ async def apply_game_save(filename):
     source_items, source_unmatched = await apply_source_counts(save)
     obj_items = await apply_objective_item_progress(save)
     repairs = await apply_repair_progress(save)
+    await apply_visit_progress(save)
     write_collected_upgrades(save)
     return SaveResult(len(finishedObjs), source_items, source_unmatched, obj_items, repairs)
 
