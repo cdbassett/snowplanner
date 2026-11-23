@@ -49,5 +49,6 @@ utils/level_objects.py (used by import_game_maps.py)
 
 ### utils/level_scene.py, utils/level_structures.py
 `level_scene.load_scene(area_id)` reads every placed 3D object of a level (model library + per-object matrix and contract tag) from data_for_ssl.bin. `level_structures` picks the bridges, rails and
-pipelines out of it and draws them from above; `python3 import_game_maps.py --structures-only` rewrites just those layers (`<slug>_structures.png`, and `<slug>_built.png` for what contracts build).
+pipelines out of it and draws them from above; `python3 import_game_maps.py --structures-only` redoes just those (see the notes on objective_models.py below).
 `utils/level_splines.py` reads the rails (`iron_road*`, `rails_*`) and pipelines (`pipe_oil_us_01`, `overlay_water_pipe`) that are splines in the start of data.stg, not placed objects.
+`utils/objective_models.py` links each contract model tag of the scene to the objectives whose scripts build it. `import_game_maps.py` draws the always-present bridges, rails and pipelines into `map_images/<slug>_normal.png` (and cuts the water overlay transparent under them; the plain pictures are kept in `extracted_map_textures/plain/`, so `--structures-only` takes about a minute), and writes `data/built_structures/<area id>.json`: per contract model tag the objective ids and the vector shapes of what it builds. The area page draws a tag's shapes when one of its objectives is completed, or all of them when "All" is checked.

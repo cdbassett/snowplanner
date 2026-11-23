@@ -20,7 +20,7 @@ from snowrunner_read_game_save import find_newest_game_save, apply_game_save, ap
 from app_state import *
 
 
-def create_map_header(region_name, partial_title, prev_item, next_item, is_region, update_svg, all_changed, make_visibility_toggler, toggle_panel=None, switch_map=None, switch_water=None, has_water=False, switch_built=None, has_built=False, all_areas=None, edit_save_locations=None, group_locations=None, cancel_save_locations=None, ids_changed=None):
+def create_map_header(region_name, partial_title, prev_item, next_item, is_region, update_svg, all_changed, make_visibility_toggler, toggle_panel=None, switch_map=None, switch_water=None, has_water=False, all_areas=None, edit_save_locations=None, group_locations=None, cancel_save_locations=None, ids_changed=None):
     """The header row shared by the region and area pages: buttons, title with prev / next links and the view checkboxes.
 
     The callbacks come from the page (they are only called when the user acts, so late-bound lambdas are fine). Returns a namespace with the widgets the page needs afterwards.
@@ -34,7 +34,7 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
         if ids_changed:
             await ids_changed()
 
-    w = SimpleNamespace(checkbox_water=None, checkbox_built=None, checkboxes=None, checkbox_all=None, checkbox_overlap=None, checkbox_ids=None, save_button=None, group_button=None, cancel_button=None)
+    w = SimpleNamespace(checkbox_water=None, checkboxes=None, checkbox_all=None, checkbox_overlap=None, checkbox_ids=None, save_button=None, group_button=None, cancel_button=None)
 
     with ui.row(align_items='center').classes('gap-1 no-wrap flex-none'):
         if not is_region:
@@ -104,9 +104,6 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
 
             if has_water: # the level has a water depth overlay
                 w.checkbox_water = checkbox("Water", value=False, on_change=lambda e: switch_water(e.value)).bind_value(app.storage.tab, 'Water')
-
-            if has_built: # the level has bridges / pipes that contracts build
-                w.checkbox_built = checkbox("Built", value=False, on_change=lambda e: switch_built(e.value)).bind_value(app.storage.tab, 'Built')
 
             with ui.column().classes('gap-0'):
                 w.checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).bind_value(app.storage.tab, 'Overlap')

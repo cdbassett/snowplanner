@@ -141,7 +141,7 @@ def pipelines(scene):
 
 
 def structures(scene, has_pipeline_spline=False):
-    """[(kind, corners, height, built, top)] of the bridges, rails and pipes of a scene, lowest first (so that higher structures are painted over lower ones)."""
+    """[(kind, corners, height, tag, top)] of the bridges, rails and pipes of a scene, lowest first (so that higher structures are painted over lower ones)."""
     boxes = {name: bbox for name, _, bbox in scene.library}
     out = []
 
@@ -159,7 +159,7 @@ def structures(scene, has_pipeline_spline=False):
         if kind in ("rail", "pipe", "water pipe", "rusty pipe"):
             corners = widen(corners, RAIL_BED_WIDTH if kind == "rail" else MIN_WIDTH)
 
-        out.append((kind, corners, height, bool(obj.tag), obj.y))
+        out.append((kind, corners, height, obj.tag, obj.y))
 
     if not has_pipeline_spline:
         out.extend(pipelines(scene))
@@ -224,15 +224,29 @@ def draw(items, size, metres_per_pixel, lines=()):
         if kind in ROAD: # the driving surface between lighter edges
             d.polygon(pts(inset(corners, ROAD_SHARE.get(kind, DEFAULT_ROAD_SHARE))), fill=ROAD[kind] + (255,))
 
-        d.line(p + [p[0]], fill=(BUILT_OUTLINE if built else outline) + (255,), width=S // 2 if built else max(1, S // 3))
+        d.line(p + [p[0]], fill=outline + (255,), width=max(1, S // 3))
 
     return img.resize(size, Image.LANCZOS)
 
 
+def built_shapes(items, metres_per_pixel):
+    """{contract model tag: [shape]} for the structures that contracts build, as plain data to be drawn as vectors on the 0-1000 map (x to the right, y down):
+    shape = {"k": kind (a key of STYLE), "c": the four corners [x0, y0, ..., x3, y3], "r": the driving surface's corners or None, "s": shadow shift to the east}"""
+    def flat(corners):
+        return [round(v, 1) for x, z in corners for v in (500 + x / metres_per_pixel, 500 - z / metres_per_pixel)]
+
+    out = {}
+
+    for kind, corners, height, tag, _ in items:
+        if tag:
+            road = flat(inset(corners, ROAD_SHARE.get(kind, DEFAULT_ROAD_SHARE))) if kind in ROAD else None
+            out.setdefault(tag, []).append({"k": kind, "c": flat(corners), "r": road, "s": round(min(MAX_SHIFT, LIGHT_SHIFT * max(height, 1.5)) / metres_per_pixel, 2)})
+
+    return dict(sorted(out.items()))
+
+
 def render_layers(scene, size, metres_per_pixel, splines=None):
-    """(layer with the structures that are always there, layer with the ones a contract builds or None) as RGBA images. splines: utils.level_splines.load_splines(area id)"""
+    """(RGBA picture of the structures that are always there, {contract model tag: vector shapes of what it builds}); splines: utils.level_splines.load_splines(area id)"""
     lines = spline_lines(splines)
     items = structures(scene, any(s in ("pipe", "water pipe") for s, _ in lines))
-    base = [s for s in items if not s[3]]
-    built = [s for s in items if s[3]]
-    return draw(base, size, metres_per_pixel, lines), (draw(built, size, metres_per_pixel) if built else None)
+    return draw([s for s in items if not s[3]], size, metres_per_pixel, lines), built_shapes(items, metres_per_pixel)

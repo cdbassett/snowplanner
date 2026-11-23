@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import functools
+import json
 import itertools
 import os
 from collections import defaultdict, namedtuple
@@ -14,6 +15,7 @@ from tortoise.expressions import Q
 from tortoise import Tortoise, run_async
 
 from snowplanner_utils import *
+from utils import level_structures
 from utils.iter_utils import arithtuple, first_true, flatten
 from utils.correct_overlaps import Rectangle, correct_rect_overlaps, correct_rect_overlaps_cached
 from database.models import *
@@ -831,8 +833,48 @@ async def generate_area_svg_objects(region, area, text_height = 8, loc_mode = Fa
     return cargo_by_pos, gate_lines, (free_segments if plan and not loc_mode else [])
 
 GAME_ICON_TABLE = os.path.join(snowplanner_data_dir, "map_zone_icons.tsv")
+BUILT_DIR = os.path.join(snowplanner_data_dir, "built_structures")
 GAME_ICON_URL = "/assets/map_icons/"
 GAME_ICON_BOX = 26 # icon size on the 925 unit map
+
+
+@functools.cache
+def built_structures(area_id):
+    """{contract model tag: {"objectives": [objective ids], "shapes": [shape]}}: the bridges / pipes etc. that objectives build in the area, as vector shapes on the 0-1000 map
+    (written by import_game_maps.py; see utils/level_structures.py for the shape)"""
+    path = os.path.join(BUILT_DIR, f"{area_id}.json")
+
+    if not os.path.exists(path):
+        return {}
+
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def add_built_shapes(parent, shapes, size):
+    """Draw built structures (shapes of built_structures()) the way the map's own are drawn: shadow to the east, deck, driving surface, outline (in yellow: they are not part of the map picture)"""
+    scale = size / 1000
+    g = draw.Group(class_="game-built", pointer_events="none")
+
+    def lines(coords, dx=0.0, **kw):
+        pts = []
+
+        for i in range(0, len(coords), 2):
+            pts += [(coords[i] + dx) * scale, coords[i + 1] * scale]
+
+        return draw.Lines(*pts, close=True, **kw)
+
+    for shape in shapes:
+        g.append(lines(shape["c"], shape["s"], fill="rgba(0,0,0,0.35)"))
+
+    for shape in shapes:
+        fill, _ = level_structures.STYLE[shape["k"]]
+        g.append(lines(shape["c"], fill=f"rgb{fill}", stroke=f"rgb{level_structures.BUILT_OUTLINE}", stroke_width=1.2 * scale))
+
+        if shape["r"]:
+            g.append(lines(shape["r"], fill=f"rgb{level_structures.ROAD[shape['k']]}"))
+
+    parent.append(g)
 
 
 @functools.cache
@@ -863,7 +905,7 @@ def add_game_icons(parent, area_id, size, visible, group_id):
     parent.append(gg)
 
 
-def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, structures_path=None, built_path=None, show_built=False):
+def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_scale, x_ofs=0, y_ofs=0, link=False, icons_area_id=None, show_icons=True, water_path=None, show_water=False, built_shapes=()):
     ig = draw.Group(id=map_id + "_group")
 
     if img_path:
@@ -877,11 +919,8 @@ def add_svg_image(parent, img_path=None, map_id = "map_svg_image", size=main_sca
     if img_path and water_path: # the water depth overlay (transparent png): between the map and the icons
         ig.append(draw.Image(0, 0, size, size, water_path, embed=False, pointer_events="none", class_="game-water", style="" if show_water else "display:none"))
 
-    if img_path and structures_path: # bridges, rails and pipelines (transparent png): above the water, below the icons
-        ig.append(draw.Image(0, 0, size, size, structures_path, embed=False, pointer_events="none", class_="game-structures"))
-
-    if img_path and built_path: # what the contracts build (e.g. bridges), drawn when asked for
-        ig.append(draw.Image(0, 0, size, size, built_path, embed=False, pointer_events="none", class_="game-built", style="" if show_built else "display:none"))
+    if img_path and built_shapes: # what completed contracts built (bridges, pipes ...), drawn as vectors between the water and the icons
+        add_built_shapes(ig, built_shapes, size)
 
     if img_path and icons_area_id:
         add_game_icons(ig, icons_area_id, size, show_icons, "game_icons_" + icons_area_id)
@@ -1318,10 +1357,10 @@ async def render_area_svg_objects(d, objects, id_gen, guides=False, fix_overlaps
 
     return d
 
-async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True, water_path=None, show_water=False, structures_path=None, built_path=None, show_built=False):
+async def generate_area_svg(region, area, img_path=None, size=main_scale, text_height=11, loc_mode=False, location_items=None, element_classes = {}, hide_types = set(), fix_overlaps=False, show_all=False, selected_ids=None, detail_in_loc_mode=False, override_positions=None, plan=None, show_ids=False, show_game_icons=True, water_path=None, show_water=False, built_shapes=()):
     d, id_gen = create_drawing(width=size, height=size, text_height=text_height, loc_mode = loc_mode)
     objects = await generate_area_svg_objects(region, area, text_height=text_height, loc_mode = loc_mode, element_classes = element_classes, hide_types = hide_types, show_all=show_all, selected_ids=selected_ids, detail_in_loc_mode=detail_in_loc_mode, override_positions=override_positions, plan=plan, show_ids=show_ids)
-    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, structures_path=structures_path, built_path=built_path, show_built=show_built)
+    add_svg_image(d, img_path, size=size, icons_area_id=area_ids_by_area[area], show_icons=show_game_icons, water_path=water_path, show_water=show_water, built_shapes=built_shapes)
     await render_area_svg_objects(d, objects, id_gen, size=size, text_height=text_height, loc_mode = loc_mode, location_items = location_items, fix_overlaps=fix_overlaps, desc=area)
     s = d.as_svg(header="")
 #    s = d.as_svg()

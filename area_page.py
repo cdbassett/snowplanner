@@ -10,7 +10,7 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import main_scale, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+from snowrunner_gen_map_text_svg import main_scale, built_structures, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
 import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
@@ -58,9 +58,6 @@ async def area(area_slug: str):
     img_type = "icon"
     water_on = False # the water depth overlay
     has_water = map_image_exists(cur_area_info, "water")
-    built_on = False # the bridges etc. that contracts build
-    has_structures = map_image_exists(cur_area_info, "structures")
-    has_built = map_image_exists(cur_area_info, "built")
     location_items = None
     selected_ids = []
     highlight_ids = None
@@ -557,7 +554,11 @@ async def area(area_slug: str):
 #                    ic("hide", title)
                 hide_types.add(title)
 
-        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value, show_game_icons=img_type == "icon", water_path=get_image_name("water") if has_water else None, show_water=water_on, structures_path=get_image_name("structures") if has_structures else None, built_path=get_image_name("built") if has_built else None, show_built=built_on)
+        # the bridges / pipes an objective builds: shown once it is completed, all of them when "All" is checked
+        done = set(await Objective.filter(area_id=area_id, completed=True).values_list("id", flat=True))
+        built_shapes = [shape for layer in built_structures(area_id).values() if checkbox_all.value or done.intersection(layer["objectives"]) for shape in layer["shapes"]]
+
+        return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value, show_game_icons=img_type == "icon", water_path=get_image_name("water") if has_water else None, show_water=water_on, built_shapes=built_shapes)
 
     def initialize_d3():
         print(f"initialize_d3 {cur_area_info.area_id}")
@@ -678,11 +679,6 @@ async def area(area_slug: str):
         water_on = bool(show)
         ui.run_javascript(f"document.querySelectorAll('.game-water').forEach(e => e.style.display = '{'' if show else 'none'}')")
 
-    async def switch_built(show):
-        nonlocal built_on
-        built_on = bool(show)
-        ui.run_javascript(f"document.querySelectorAll('.game-built').forEach(e => e.style.display = '{'' if show else 'none'}')")
-
     async def switch_map(icons):
         nonlocal img_type
         img_type = "icon" if icons else "normal"
@@ -723,10 +719,9 @@ async def area(area_slug: str):
             # Header row
         prev_area_item = (prev_area.area_slug, prev_area.partial_abbrev) if prev_area else None
         next_area_item = (next_area.area_slug, next_area.partial_abbrev) if next_area else None
-        header = create_map_header(cur_area_info.region, cur_area_info.partial_abbrev, prev_area_item, next_area_item, False, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler, toggle_panel=lambda: toggle_panel(), switch_map=lambda icons: switch_map(icons), switch_water=lambda show: switch_water(show), has_water=has_water, switch_built=lambda show: switch_built(show), has_built=has_built, all_areas=all_areas, edit_save_locations=lambda: edit_save_locations(), group_locations=lambda: group_locations(), cancel_save_locations=lambda: cancel_save_locations(), ids_changed=lambda: update_obj_tree_all())
+        header = create_map_header(cur_area_info.region, cur_area_info.partial_abbrev, prev_area_item, next_area_item, False, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler, toggle_panel=lambda: toggle_panel(), switch_map=lambda icons: switch_map(icons), switch_water=lambda show: switch_water(show), has_water=has_water, all_areas=all_areas, edit_save_locations=lambda: edit_save_locations(), group_locations=lambda: group_locations(), cancel_save_locations=lambda: cancel_save_locations(), ids_changed=lambda: update_obj_tree_all())
         checkboxes, checkbox_all, checkbox_overlap, checkbox_ids = header.checkboxes, header.checkbox_all, header.checkbox_overlap, header.checkbox_ids
         water_on = bool(header.checkbox_water and header.checkbox_water.value) # the checkbox keeps its state per browser tab
-        built_on = bool(header.checkbox_built and header.checkbox_built.value)
         save_button, group_button, cancel_button = header.save_button, header.group_button, header.cancel_button
 
             # Container holding both the side panel and content

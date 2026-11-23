@@ -17,11 +17,14 @@ Positions of the map items are not touched here: run `python3 import_new_regions
 """
 import argparse
 import concurrent.futures
+import functools
+import json
 import shutil
 import sqlite3
 import sys
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
@@ -32,7 +35,7 @@ import extract_gfx_icons
 import extract_gfx_textures
 import extract_map_textures
 from database.config import snowplanner_db_filename
-from utils import gamefiles, level_data, level_objects, level_scene, level_splines, level_structures, terrain_maps
+from utils import gamefiles, level_data, level_objects, level_scene, level_splines, level_structures, objective_models, terrain_maps
 from utils.snowrunner_utils import slugify_region_area
 
 MAP_SIZE = 1000
@@ -65,19 +68,42 @@ def padded(image):
     return square
 
 
+BUILT_DIR = ROOT / "data" / "built_structures"
+PLAIN_DIR = TEXTURE_DIR / "plain" # the map and water pictures before the structures are drawn in, so that the structures can be redone without rebuilding the trees
+
+
+@functools.cache
+def objective_ids():
+    con = sqlite3.connect(f"file:{snowplanner_db_filename}?mode=ro", uri=True)
+    return {r[0] for r in con.execute("select id from objective")}
+
+
 def import_structures(area_id, slug, size, metres_per_pixel):
-    """Write the bridge / rail / pipeline layers of an area's map (<slug>_structures.png, and <slug>_built.png for what its contracts build); returns a note for the log."""
-    for layer in ("structures", "built"):
-        (MAP_IMAGE_DIR / f"{slug}_{layer}.png").unlink(missing_ok=True)
+    """Draw the bridges, rails and pipelines that are always there into the area's map picture (from the plain picture in PLAIN_DIR; the water overlay is made transparent under them, so
+    that they are not tinted), and write data/built_structures/<area id>.json with the vector shapes of what each contract model builds and the objectives that build it. Returns a note for the log."""
+    BUILT_DIR.mkdir(parents=True, exist_ok=True)
+    (BUILT_DIR / f"{area_id}.json").unlink(missing_ok=True)
 
     try:
-        always, built = level_structures.render_layers(level_scene.load_scene(area_id), size, metres_per_pixel, level_splines.load_splines(area_id))
-        padded(always).save(MAP_IMAGE_DIR / f"{slug}_structures.png", optimize=True)
+        scene = level_scene.load_scene(area_id)
+        always, built = level_structures.render_layers(scene, size, metres_per_pixel, level_splines.load_splines(area_id))
+        always = padded(always)
+        plain = Image.open(PLAIN_DIR / f"{slug}_normal.png").convert("RGBA")
+        plain.alpha_composite(always)
+        plain.convert("RGB").save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
 
-        if built:
-            padded(built).save(MAP_IMAGE_DIR / f"{slug}_built.png", optimize=True)
+        if (PLAIN_DIR / f"{slug}_water.png").exists():
+            water = np.array(Image.open(PLAIN_DIR / f"{slug}_water.png").convert("RGBA"))
+            water[..., 3] = (water[..., 3] * (1 - np.array(always)[..., 3] / 255.0)).astype(np.uint8)
+            Image.fromarray(water, "RGBA").save(MAP_IMAGE_DIR / f"{slug}_water.png", optimize=True)
 
-        return ", bridges / rails / pipes" + (" + built" if built else "")
+        owners = objective_models.objective_models(objective_ids())
+        layers = {tag: {"objectives": list(owners.get((area_id, tag), ())), "shapes": shapes} for tag, shapes in built.items()}
+
+        if layers:
+            (BUILT_DIR / f"{area_id}.json").write_text(json.dumps(layers, separators=(",", ":")), encoding="utf-8")
+
+        return ", bridges / rails / pipes" + (f" + {len(layers)} built ({sum(1 for v in layers.values() if not v['objectives'])} without objective)" if layers else "")
     except Exception as e:
         print(f"{area_id}: no bridges / pipes ({e})", flush=True)
         return ""
@@ -132,6 +158,13 @@ def import_one_map(area_id, slug, level, trees, structures=True):
         padded(image.convert("RGB").resize(size, Image.LANCZOS)).save(MAP_IMAGE_DIR / f"{slug}_normal.png", optimize=True)
 
     if structures:
+        PLAIN_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.copy(MAP_IMAGE_DIR / f"{slug}_normal.png", PLAIN_DIR / f"{slug}_normal.png")
+        (PLAIN_DIR / f"{slug}_water.png").unlink(missing_ok=True)
+
+        if water_path.exists():
+            shutil.copy(water_path, PLAIN_DIR / f"{slug}_water.png")
+
         note += import_structures(area_id, slug, size, metres_per_pixel)
 
     return area_id, scale, f"{area_id}: {image.size[0]}x{image.size[1]} -> {slug}_normal.png; {note}"

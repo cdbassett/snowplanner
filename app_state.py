@@ -100,17 +100,21 @@ svg_classes = dict(class_togglers.items())
 svg_classes["Hide"] = "hide-me"
 
 
+def map_image_url(name):
+    """Url of a file in the map image folder, with its change time so that a browser that cached the old picture fetches a replaced one"""
+    try:
+        return f"/map_images/{name}?v={int(os.path.getmtime(os.path.join(snowplanner_map_image_dir, name)))}"
+    except OSError:
+        return f"/map_images/{name}"
+
+
 def get_image_name_ex(area_info, typ="normal", actual=False):
-    base = snowplanner_map_image_dir + "\\" if actual else "/map_images/"
     name = f"{slugify_region_area(area_info.region, area_info.abbrev)}_{typ}.png"
 
     if actual:
-        return base + name
+        return snowplanner_map_image_dir + "\\" + name
 
-    try: # the file's change time in the url, so a browser that cached the old picture fetches a replaced one
-        return f"{base}{name}?v={int(os.path.getmtime(os.path.join(snowplanner_map_image_dir, name)))}"
-    except OSError:
-        return base + name
+    return map_image_url(name)
 
 
 def map_image_exists(area_info, typ="normal"):
