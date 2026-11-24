@@ -311,19 +311,126 @@ def push_off_fixed(rectangles, max_x=None, max_y=None):
             rect.top += dy
 
 
-def correct_rect_overlaps(rectangles, max_x=None, max_y=None, max_tries = 1000):
-    stepper = strategy(rectangles, max_x, max_y)
+def overlapping_pairs(rectangles):
+    """Index pairs of overlapping rectangles (two fixed ones are left out), found by sweeping over the left edges instead of testing every pair"""
+    order = sorted(range(len(rectangles)), key=lambda i: rectangles[i].left)
+    pairs = []
+
+    for pos, i in enumerate(order):
+        a = rectangles[i]
+        right = a.right
+
+        for j in order[pos + 1:]:
+            b = rectangles[j]
+
+            if b.left >= right:
+                break
+
+            if not (a.fixed and b.fixed) and a.top < b.bottom and b.top < a.bottom:
+                pairs.append((i, j))
+
+    return pairs
+
+
+def separation_step(rectangles, pairs, max_x=None, max_y=None):
+    """Moves every rectangle out of the ones it overlaps, along the way that needs the least movement and by the amount it overlaps (half each between two movable ones, all of it for the one that is not fixed). Returns whether anything moved."""
+    push = {}  # index -> [left, right, up, down] largest push in each direction
+
+    def add(i, direction, amount):
+        if not rectangles[i].fixed:
+            slot = push.setdefault(i, [0, 0, 0, 0])
+            slot[direction] = max(slot[direction], amount)
+
+    for i, j in pairs:
+        a, b = rectangles[i], rectangles[j]
+        ox, oy = a.overlapx(b), a.overlapy(b)
+        amount = ox if ox <= oy else oy
+        share_a = amount if b.fixed else (amount + 1) // 2
+        share_b = amount if a.fixed else amount // 2 + (amount % 2 if b.fixed else 0)
+
+        if ox <= oy:
+            a_is_left = a.midx < b.midx or (a.midx == b.midx and i < j) # identical centers: break the tie by index
+            add(i, 0 if a_is_left else 1, share_a)
+            add(j, 1 if a_is_left else 0, share_b)
+        else:
+            a_is_up = a.midy < b.midy or (a.midy == b.midy and i < j)
+            add(i, 2 if a_is_up else 3, share_a)
+            add(j, 3 if a_is_up else 2, share_b)
+
+    moved = False
+    helper = BaseStrategy(rectangles, max_x, max_y)
+
+    for i, (left, right, up, down) in push.items():
+        rect = rectangles[i]
+        before = (rect.left, rect.top)
+        rect.left += right - left
+        rect.top += down - up
+        helper.correct_rect_bounds(rect)
+        moved = moved or (rect.left, rect.top) != before
+
+    return moved
+
+
+def unit_step(rectangles, pairs, max_x=None, max_y=None):
+    """Moves each rectangle one pixel away from the center of the ones it overlaps (finer than separation_step, which can swing back and forth between neighbours)"""
+    vecs = {}
+
+    for i, j in pairs:
+        a, b = rectangles[i], rectangles[j]
+        v = a.center_vec(b) if any(a.center_vec(b)) else ((0, 1) if i < j else (0, -1))
+        va = vecs.setdefault(i, [0, 0])
+        va[0] += v[0]
+        va[1] += v[1]
+        vb = vecs.setdefault(j, [0, 0])
+        vb[0] -= v[0]
+        vb[1] -= v[1]
+
+    helper = BaseStrategy(rectangles, max_x, max_y)
+
+    for i, (vx, vy) in vecs.items():
+        rect = rectangles[i]
+
+        if rect.fixed:
+            continue
+
+        mag = math.hypot(vx, vy)
+
+        if mag:
+            rect.left += round(vx / mag)
+            rect.top += round(vy / mag)
+            helper.correct_rect_bounds(rect)
+
+
+def correct_rect_overlaps(rectangles, max_x=None, max_y=None, max_tries = 300, patience = 8):
+    best = None
+    stale = 0
+
+    for t in range(max_tries):  # big steps first
+        pairs = overlapping_pairs(rectangles)
+
+        if not pairs:
+            break
+
+        if best is None or len(pairs) < best:
+            best, stale = len(pairs), 0
+        else:
+            stale += 1
+
+            if stale >= patience: # the big steps are swinging back and forth: finish with one pixel steps
+                break
+
+        if not separation_step(rectangles, pairs, max_x, max_y):
+            break
 
     for t in range(max_tries):
-        if Rectangle.has_overlaps(stepper.check_rectangles):
-            stepper.step()
+        pairs = overlapping_pairs(rectangles)
+
+        if not pairs:
+            break
+
+        unit_step(rectangles, pairs, max_x, max_y)
 
     push_off_fixed(rectangles, max_x, max_y)
-
-#    ic(Rectangle.has_overlaps(stepper.rectangles))
-#    ic(Rectangle.has_overlaps(stepper.check_rectangles))
-
-#    print(Rectangle.total_movement(stepper.rectangles))
 
 
 # Cache of finished corrections, keyed by geometry only so that highlight/filter changes which leave

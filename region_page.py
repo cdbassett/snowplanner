@@ -10,7 +10,7 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+from snowrunner_gen_map_text_svg import water_zone_ids, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
 import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
@@ -53,7 +53,7 @@ async def region(region_slug: str):
             obj_tree.filter = ""
 
     async def build_obj_tree_data():
-        return await build_obj_tree_data_base(region_area_ids, all_objs=True, completed_objs=switch_completed_objs.value, show_ids=bool(checkbox_ids and checkbox_ids.value))
+        return await build_obj_tree_data_base(region_area_ids, all_objs=True, completed_objs=checkbox_all.value, show_ids=bool(checkbox_ids and checkbox_ids.value))
 
     async def update_obj_tree():
 #        tree_and_map.refresh()
@@ -95,7 +95,7 @@ async def region(region_slug: str):
         map_updated.emit(info)
 
     async def highlight_cargo_highlight_ids(cargo_item_name):
-        set_highlighted_ids(await get_cargo_highlight_ids(region_area_ids, cargo_item_name, not switch_completed_objs.value))
+        set_highlighted_ids(await get_cargo_highlight_ids(region_area_ids, cargo_item_name, not checkbox_all.value))
 
     async def obj_tree_selected(e):
         if (tree_id := e.value):
@@ -271,6 +271,7 @@ async def region(region_slug: str):
         await update_svg()
 
     async def all_changed():
+        await update_obj_tree() # completed objectives are listed in the tree only with Completed
         await update_svg()
         filter_cargo_items is not None and await fill_cargo_filter_list(filter_cargo_items, region_area_ids, filter_list_item_clicked, checkbox_all.value)
 
@@ -309,9 +310,6 @@ async def region(region_slug: str):
                 with ui.row(align_items='center').classes('gap-1 w-full'):
                     ui.icon('refresh', color='primary').on('click', update_obj_tree).classes('text-3xl cursor-pointer')
                     obj_filter = ui.input('Objective filter', on_change=filter_changed).props('clearable').classes('flex-1')
-
-                    with ui.column().classes('gap-0'):
-                        switch_completed_objs = ui.switch("Completed", on_change=update_obj_tree).props("dense")
 
                 tree_nodes, tree_ticked_ids, tree_ids, expanded = await build_obj_tree_data()
 
@@ -367,7 +365,11 @@ async def region(region_slug: str):
         if str(e.args['id']).startswith(("gate:", "place:", "source:")): # the game icon of a gate / garage / trailer store
             kind, _, map_id = e.args['id'].partition(":")
 
-            if (map_item := await MapItem.filter(id=map_id).prefetch_related("obj_locker").first()):
+            if kind == "place" and not await MapItem.filter(id=map_id).exists(): # a gas station or water spot
+                water = map_id in water_zone_ids()
+                select_single_top_tree_node(obj_tree, "sources" if water else "buildings")
+                await select_clicked_node(("S_" if water else "B_") + map_id, map_id)
+            elif (map_item := await MapItem.filter(id=map_id).prefetch_related("obj_locker").first()):
                 if kind == "gate" and map_item.obj_locker and not map_item.obj_locker.completed:
                     select_single_top_tree_node(obj_tree, map_item.obj_locker.obj_type + "s")
                     await select_clicked_node("O_" + map_item.obj_locker.id, map_item.obj_locker.id, map_item.obj_locker.id)

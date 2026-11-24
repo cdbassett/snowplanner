@@ -10,7 +10,7 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+from snowrunner_gen_map_text_svg import fuel_stations, water_sources, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
 import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
@@ -369,6 +369,32 @@ async def build_obj_tree_data_base(region_area_ids, all_objs, completed_objs, cu
 
         ids.append(b_id)
         building_children.append(building_node)
+
+    open_objectives = {}
+
+    async def place_node(node_id, prefix, title, area_id, x, y, opens_with):
+        """A tree node for a place only known from the game's icons: blocked (with the objectives that open it) until one of them is completed"""
+        node = {"id": node_id, "label": get_area_desc(title, area_id) + f" ({get_compass_repr_of_pos_int((x, y))})", "noTick": True, "children": []}
+        wanted = [o for o in opens_with if o not in open_objectives]
+
+        if wanted:
+            open_objectives.update({o.id: o for o in await Objective.filter(id__in=wanted)})
+
+        openers = [open_objectives[o] for o in opens_with if o in open_objectives]
+
+        if openers and not any(o.completed for o in openers):
+            node["header"] = "blocked"
+            node["children"] = [{"id": prefix + "|".join((node_id[2:], o.id)), "label": get_area_desc(o.name, o.area_id), "header": "prereq", "noTick": True} for o in openers]
+
+        ids.append(node_id)
+        return node
+
+    for icon_area_id in (region_area_ids if all_objs else [cur_area_id]): # gas stations and water spots: only known from the game's icons
+        for zone, fx, fy, opens_with in fuel_stations(icon_area_id):
+            building_children.append(await place_node("B_" + zone, "BPR_", "Gas Station", icon_area_id, fx, fy, opens_with))
+
+        for zone, wx, wy, opens_with in water_sources(icon_area_id):
+            source_children.append(await place_node("S_" + zone, "SPR_", "Water Source", icon_area_id, wx, wy, opens_with))
 
     return tree_nodes, ticked, ids, expanded
 

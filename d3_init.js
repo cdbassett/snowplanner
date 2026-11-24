@@ -8,11 +8,6 @@ function initialize_d3_js() {
     const map_image = svg.select(map_svg_image_group);
 //    console.log("g", g);
 
-    g.selectAll("circle")
-      .attr("fill", "steelblue");
-
-    //console.log(d3.selectAll("circle").size());
-
     if (loc_mode)
         {
         svg.classed("unselectable", true); // disable drag-to-select text behavior

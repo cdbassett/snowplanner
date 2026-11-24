@@ -18,6 +18,7 @@ Positions of the map items are not touched here: run `python3 import_new_regions
 import argparse
 import concurrent.futures
 import functools
+import math
 import json
 import re
 import shutil
@@ -26,7 +27,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
@@ -41,8 +42,58 @@ from utils.snowrunner_utils import slugify_region_area
 
 MAP_SIZE = 1000
 ICON_SIZE = 64
-ICON_SUBSTITUTES = {"trailerShopImg40": "trailerStoreImg40"} # the game's trailer shop symbol draws nothing here: its trailer store symbol is the same picture (without an outline, which is added)
-ICON_TINTS = {"garageImg": (165, 212, 245), "trailerShopImg40": (165, 212, 245), "fuelStationImg": (255, 205, 145)} # the white of these icons: garages and trailer stores light blue, fuel stations light orange
+ICON_SUBSTITUTES = {"trailerShopImg40": "trailerStoreImg40", "farmImg": "farmingRecommendImg40", "factoryImg": "rePairValueImg40", "serviceHubImg": "repairImg40", "drillingSiteImg": "SpecialCargoDrillingRigImg30", "constructionWarehouseImg": "craftStorage40"} # symbols that draw nothing here: the trailer shop's trailer store symbol is the same picture (without an outline, which is added), the log station and sawmill show the game's log trailer pictures (already outlined)
+OUTLINED_ALREADY = set()
+DRAWN_ICONS = ("lumberjackImg", "sawmillImg") # pictures made here (see log_station_icon, sawmill_icon)
+
+
+def sawmill_icon(size=ICON_SIZE):
+    """The sawmill: a table with a big rotary saw blade coming out of its top (white, outlined like the other stand-ins)"""
+    k = 8
+    big = Image.new("RGBA", (size * k, size * k), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    u = size * k / 64
+    white, black = (255, 255, 255, 255), (0, 0, 0, 255)
+    cx, cy, teeth = 32 * u, 38 * u, 18
+    points = []
+
+    for i in range(teeth, teeth * 2 + 1): # the blade's upper half only (the rest is below the table): a row of teeth
+        angle = math.pi * i / teeth
+        radius = (22 if i % 2 == 0 else 17.5) * u
+        points.append((cx + radius * math.cos(angle), cy + radius * math.sin(angle)))
+
+    d.polygon(points, fill=white)
+    hub = cy - 9 * u
+    d.ellipse((cx - 5 * u, hub - 5 * u, cx + 5 * u, hub + 5 * u), fill=black) # the arbor
+    d.ellipse((cx - 2 * u, hub - 2 * u, cx + 2 * u, hub + 2 * u), fill=white)
+    d.rectangle((4 * u, 38 * u, 60 * u, 49 * u), fill=black) # the table's edge separates it from the blade
+    d.rectangle((6 * u, 40 * u, 58 * u, 47 * u), fill=white)
+
+    for left in (10, 49): # legs
+        d.rectangle((left * u, 47 * u, (left + 5) * u, 59 * u), fill=white)
+
+    return big.resize((size, size), Image.LANCZOS)
+
+
+def log_station_icon(size=ICON_SIZE):
+    """The log station: a ground line with a pine tree on its left and a stump on its right (white, outlined like the other stand-ins)"""
+    k = 8 # drawn big, then shrunk, for smooth edges
+    big = Image.new("RGBA", (size * k, size * k), (0, 0, 0, 0))
+    d = ImageDraw.Draw(big)
+    u = size * k / 64
+    white = (255, 255, 255, 255)
+    d.rounded_rectangle((3 * u, 52 * u, 61 * u, 57 * u), radius=2.5 * u, fill=white) # the line
+    cx = 21 * u
+
+    for top, half, bottom in ((4, 9, 22), (14, 12, 34), (26, 15, 47)): # the pine: three stacked triangles
+        d.polygon([(cx, top * u), (cx - half * u, bottom * u), (cx + half * u, bottom * u)], fill=white)
+
+    d.rectangle((cx - 2.5 * u, 46 * u, cx + 2.5 * u, 52 * u), fill=white) # its trunk
+    d.rectangle((41 * u, 36 * u, 57 * u, 52 * u), fill=white) # the stump
+    d.ellipse((41 * u, 32 * u, 57 * u, 40 * u), fill=white)
+    d.ellipse((46 * u, 34 * u, 52 * u, 38 * u), fill=(0, 0, 0, 255)) # its rings, as one dark ellipse
+    return big.resize((size, size), Image.LANCZOS)
+ICON_TINTS = {"garageImg": (255, 205, 145), "trailerShopImg40": (255, 205, 145), "fuelStationImg": (255, 205, 145), "repairRefuelZoneImg": (255, 205, 145), "resupplyImg": (255, 205, 145), "serviceHubImg": (255, 205, 145)} # the white of these icons: garages, trailer stores, fuel stations, repair and resupply spots all light orange
 COURSE_POINT = re.compile(r"(RACE|RING|DOWNHILL|CONTEST)\w*_(\d+|FINISH)$|_FINISH$|SCOUT_(\d+|END)$") # zone names of race / contest checkpoints
 PERMANENT_ICONS = {"garageImg", "watchTowerImg", "gatewayImg", "serviceHubImg", "townStorage", "fuelStationImg", "trailerShopImg40", "trailerShopImg", "factoryImg", "sawmillImg", "lumberjackImg"} # places that stay, whatever objectives use them
 MAP_IMAGE_DIR = ROOT / "map_images"
@@ -260,16 +311,24 @@ def import_icons(area_ids):
                 rows.append((area_id, zone_id, zone.model_kind, *level_data.world_to_db(p.x, p.z, half)))
 
     names = sorted({r[2] for r in rows} | {r[2][:-2] for r in rows if r[2].endswith("40")} | set(ICON_SUBSTITUTES.values())) # some zones name a 40 px icon that only exists without the size
+    smaller = {n: n.replace("40", "30", 1) for n in names if "40" in n} # the 30 px picture stands in for a 40 px one the game left empty (the ruins)
     ICON_WORK_DIR.mkdir(parents=True, exist_ok=True)
-    extract_gfx_icons.main(ICON_WORK_DIR, ["icons_lib"], only=names)
+    extract_gfx_icons.main(ICON_WORK_DIR, ["icons_lib"], only=sorted(set(names) | set(smaller.values())))
     ICON_DIR.mkdir(parents=True, exist_ok=True)
     found = {p.stem for p in (ICON_WORK_DIR / "icons_lib").glob("*.png")}
 
-    for name in sorted(found & set(names)):
-        icon = Image.open(ICON_WORK_DIR / "icons_lib" / f"{ICON_SUBSTITUTES.get(name, name)}.png").convert("RGBA")
+    for name in sorted(found & set(names) - (set(ICON_SUBSTITUTES.values()) - {r[2] for r in rows})): # a substitute's source picture is only kept when a zone uses it itself
+        icon = {"lumberjackImg": log_station_icon, "sawmillImg": sawmill_icon}[name]() if name in DRAWN_ICONS else Image.open(ICON_WORK_DIR / "icons_lib" / f"{ICON_SUBSTITUTES.get(name, name)}.png").convert("RGBA")
         icon.thumbnail((ICON_SIZE, ICON_SIZE), Image.LANCZOS) # extracted at 4x
 
-        if name in ICON_SUBSTITUTES:
+        if not icon.getchannel("A").getbbox() and name in smaller and (small := ICON_WORK_DIR / "icons_lib" / f"{smaller[name]}.png").exists(): # an empty picture (e.g. the ruins' markers): the small one scaled up, outlined to show on the map
+            icon = Image.open(small).convert("RGBA")
+            icon = outlined(icon.resize((icon.width * 3 // 2, icon.height * 3 // 2), Image.LANCZOS))
+
+        if (name in ICON_SUBSTITUTES or name in DRAWN_ICONS) and name not in OUTLINED_ALREADY:
+            if max(icon.size) < 50: # a small stand-in picture (the tractor) would look tiny next to the others
+                icon = icon.resize((icon.width * 56 // max(icon.size), icon.height * 56 // max(icon.size)), Image.LANCZOS)
+
             icon = outlined(icon)
 
         if name in ICON_TINTS: # white -> the colour, black stays black

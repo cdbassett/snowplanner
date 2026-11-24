@@ -90,6 +90,8 @@ svg_vis_togglers = [
     "Framing",
     "Spawns",
     "Contests",
+    "Watchtowers",
+    "Upgrades",
     ]
 
 svg_vis_default_off = {"Contests"} # toggles that start unchecked

@@ -79,7 +79,7 @@ class CargoStack(namedtuple("CargoStack", "name,count,text,loaded,note,kind,shor
             return VEHICLE_BORDERS[self.kind], 2
 
         if self.shortage:
-            return "red", 2.5
+            return "red", 1.5
 
         return ("blue", 1) if self.loaded else ("#555", 1)
 

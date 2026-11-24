@@ -1,4 +1,5 @@
 """The header row shared by the region and area pages."""
+import asyncio
 from collections import defaultdict, namedtuple
 from types import SimpleNamespace
 import itertools
@@ -28,13 +29,19 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
     def checkbox(text, **kw):
         return ui.checkbox(text, **kw).props("dense")
 
+    bulk = [False] # while the All / None buttons change many checkboxes, the map is redrawn once at the end instead of once per checkbox
+
+    async def toggled():
+        if not bulk[0]:
+            await update_svg()
+
     async def update_ids(): # map ids instead of names: redraw the map and relabel the objective tree
         await update_svg()
 
         if ids_changed:
             await ids_changed()
 
-    w = SimpleNamespace(checkbox_water=None, checkboxes=None, checkbox_all=None, checkbox_overlap=None, checkbox_ids=None, save_button=None, group_button=None, cancel_button=None)
+    w = SimpleNamespace(checkbox_water=None, checkboxes=None, checkbox_all=None, checkbox_built=None, checkbox_overlap=None, checkbox_ids=None, save_button=None, group_button=None, cancel_button=None)
 
     with ui.row(align_items='center').classes('gap-1 no-wrap flex-none'):
         if not is_region:
@@ -99,30 +106,51 @@ def create_map_header(region_name, partial_title, prev_item, next_item, is_regio
                         next_target_url = f'/region/{next_slug}' if is_region else f'/area/{next_slug}'
                         ui.link(next_name + ">>", next_target_url).classes('m-0')
 
+        view = [] # the checkboxes are laid out three to a column, in this order
+
         if not is_region:
-            checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).bind_value(app.storage.tab, 'Icons')
+            view.append(lambda: checkbox("Icons", value=True, on_change=lambda e: switch_map(e.value)).bind_value(app.storage.tab, 'Icons'))
 
             if has_water: # the level has a water depth overlay
-                w.checkbox_water = checkbox("Water", value=False, on_change=lambda e: switch_water(e.value)).bind_value(app.storage.tab, 'Water')
+                view.append(lambda: setattr(w, "checkbox_water", checkbox("Water", value=False, on_change=lambda e: switch_water(e.value)).bind_value(app.storage.tab, 'Water')))
 
-            with ui.column().classes('gap-0'):
-                w.checkbox_overlap = checkbox("Ovl", value=True, on_change=update_svg).bind_value(app.storage.tab, 'Overlap')
-                w.checkbox_ids = checkbox("Ids", value=False, on_change=update_ids).bind_value(app.storage.tab, 'MapIds') # show map ids instead of location names
+        view.append(lambda: checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot")))
+        view.append(lambda: setattr(w, "checkbox_overlap", checkbox("Spread", value=is_region is False, on_change=update_svg).bind_value(app.storage.tab, 'RegionOverlap' if is_region else 'Overlap'))) # moves overlapping boxes apart
+        view.append(lambda: setattr(w, "checkbox_ids", checkbox("Ids", value=False, on_change=update_ids).bind_value(app.storage.tab, 'MapIds'))) # show map ids instead of location names
+        view.append(lambda: setattr(w, "checkbox_all", checkbox("Completed", value=False, on_change=lambda: all_changed()).bind_value(app.storage.tab, 'Completed')))
 
-            with ui.column().classes('gap-0'):
-                checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot"))
-                w.checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).bind_value(app.storage.tab, 'Completed')
-        else:
-            with ui.column().classes('gap-0'):
-                w.checkbox_overlap = checkbox("Ovl", value=False, on_change=update_svg).bind_value(app.storage.tab, 'RegionOverlap')
-                checkbox("Dots", value=True, on_change=make_visibility_toggler("location-dot"))
+        if not is_region:
+            view.append(lambda: setattr(w, "checkbox_built", checkbox("Built", value=False, on_change=toggled).bind_value(app.storage.tab, 'Built'))) # every structure the objectives build, finished or not
 
+        for start in range(0, len(view), 3):
             with ui.column().classes('gap-0'):
-                w.checkbox_all = checkbox("All", value=False, on_change=lambda: all_changed()).bind_value(app.storage.tab, 'Completed')
-                w.checkbox_ids = checkbox("Ids", value=False, on_change=update_ids).bind_value(app.storage.tab, 'MapIds')
+                for make in view[start:start + 3]:
+                    make()
 
-        with ui.grid(columns=3).classes('gap-y-0 gap-x-2'):
-            w.checkboxes = dict((title, checkbox(title, value=title not in svg_vis_default_off, on_change=update_svg).bind_value(app.storage.tab, title)) for title in svg_vis_togglers)
+        async def set_all(value): # every layer checkbox at once
+            bulk[0] = True
+
+            try:
+                for cb in (*w.checkboxes.values(), w.checkbox_built):
+                    if cb is not None:
+                        cb.value = value
+
+                await asyncio.sleep(0.1) # the checkboxes' own change handlers run as tasks: let them see the flag first
+            finally:
+                bulk[0] = False
+
+            await update_svg()
+
+        with ui.column().classes('gap-0'):
+            ui.button("All", on_click=lambda: set_all(True)).props("dense size=sm").classes('m-0')
+            ui.button("None", on_click=lambda: set_all(False)).props("dense size=sm").classes('m-0')
+
+        w.checkboxes = {}
+
+        for start in range(0, len(svg_vis_togglers), 3):
+            with ui.column().classes('gap-0'):
+                for title in svg_vis_togglers[start:start + 3]:
+                    w.checkboxes[title] = checkbox(title, value=title not in svg_vis_default_off, on_change=toggled).bind_value(app.storage.tab, title)
 
         if not is_region: # editing the positions of locations is only available per area
             w.save_button = ui.button('Edit', on_click=lambda: edit_save_locations())

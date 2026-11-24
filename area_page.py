@@ -10,7 +10,7 @@ from icecream import ic
 from tortoise.expressions import Q
 
 from snowplanner_utils import *
-from snowrunner_gen_map_text_svg import main_scale, built_structures, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
+from snowrunner_gen_map_text_svg import main_scale, built_structures, water_zone_ids, generate_area_svg, generate_region_svg, calculate_area_offsets_for_region, region_layout, svg_point_to_db
 import delivery_plans as dp
 from plan_panel import PlanPanel
 from database import db
@@ -322,7 +322,7 @@ async def area(area_slug: str):
     tree_ticked_ids = None
 
     async def build_obj_tree_data():
-        return await build_obj_tree_data_base(region_area_ids, all_objs=switch_all_objs.value, completed_objs=switch_completed_objs.value, cur_area_id=cur_area_info.area_id, show_ids=bool(checkbox_ids and checkbox_ids.value))
+        return await build_obj_tree_data_base(region_area_ids, all_objs=False, completed_objs=checkbox_all.value, cur_area_id=cur_area_info.area_id, show_ids=bool(checkbox_ids and checkbox_ids.value))
 
     async def update_obj_tree():
 #        tree_and_map.refresh()
@@ -384,7 +384,7 @@ async def area(area_slug: str):
 
     async def highlight_cargo_highlight_ids(cargo_item_name):
         ic(cargo_item_name)
-        to_highlight_ids = await get_cargo_highlight_ids([area_id], cargo_item_name, not switch_completed_objs.value)
+        to_highlight_ids = await get_cargo_highlight_ids([area_id], cargo_item_name, not checkbox_all.value)
         ic(to_highlight_ids)
         set_highlighted_ids(to_highlight_ids)
 
@@ -451,7 +451,7 @@ async def area(area_slug: str):
             return
 
 #        obj_tree.filter = e.value
-        to_highlight_ids = await get_cargo_highlight_ids(region_area_ids, e.value, not switch_completed_objs.value)
+        to_highlight_ids = await get_cargo_highlight_ids(region_area_ids, e.value, not checkbox_all.value)
         set_highlighted_ids(to_highlight_ids)
         await update_svg()
 
@@ -466,7 +466,11 @@ async def area(area_slug: str):
         if target_id.startswith(("gate:", "place:", "source:")): # the game icon of a gate / garage / trailer store
             kind, _, map_id = target_id.partition(":")
 
-            if (map_item := await MapItem.filter(id=map_id).prefetch_related("obj_locker").first()):
+            if kind == "place" and not await MapItem.filter(id=map_id).exists(): # a gas station or water spot
+                water = map_id in water_zone_ids()
+                select_single_top_tree_node(obj_tree, "sources" if water else "buildings")
+                await select_tree_node(("S_" if water else "B_") + map_id, map_id)
+            elif (map_item := await MapItem.filter(id=map_id).prefetch_related("obj_locker").first()):
                 if kind == "gate" and map_item.obj_locker and not map_item.obj_locker.completed:
                     select_single_top_tree_node(obj_tree, map_item.obj_locker.obj_type + "s")
                     await select_tree_node("O_" + map_item.obj_locker.id, map_item.obj_locker.id, map_item.obj_locker.id)
@@ -589,7 +593,7 @@ async def area(area_slug: str):
 
         # the bridges / pipes an objective builds: shown once it is completed, all of them when "All" is checked
         done = set(await Objective.filter(area_id=area_id, completed=True).values_list("id", flat=True))
-        built_shapes = [shape for layer in built_structures(area_id).values() if checkbox_all.value or done.intersection(layer["objectives"]) for shape in layer["shapes"]]
+        built_shapes = [{**shape, "o": layer["objectives"]} for layer in built_structures(area_id).values() if checkbox_built.value or done.intersection(layer["objectives"]) for shape in layer["shapes"]] # "o": what builds it, for the hover
 
         return await generate_area_svg(cur_area_info.region, cur_area_info.area, img_src, loc_mode=loc_mode, location_items=location_items, element_classes = use_svg_classes, hide_types=hide_types, show_all=checkbox_all.value, fix_overlaps=not loc_mode and checkbox_overlap.value, selected_ids=highlight_ids, override_positions=temp_positions, plan=None if loc_mode else await dp.get_plan_view(cur_area_info.region), show_ids=checkbox_ids.value, show_game_icons=img_type == "icon", water_path=get_image_name("water") if has_water else None, show_water=water_on, built_shapes=built_shapes, done_objectives=None if checkbox_all.value else done)
 
@@ -616,6 +620,7 @@ async def area(area_slug: str):
         await update_svg()
 
     async def all_changed():
+        await update_obj_tree() # completed objectives are listed in the tree only with Completed
         await update_svg()
         filter_cargo_items is not None and await fill_cargo_filter_list(filter_cargo_items, [cur_area_info.area_id], filter_list_item_clicked, checkbox_all.value)
 
@@ -700,6 +705,7 @@ async def area(area_slug: str):
 
     checkboxes = {}
     checkbox_all = None
+    checkbox_built = None
     filter_cargo_items = None
     checkbox_overlap = None
     checkbox_ids = None
@@ -753,7 +759,7 @@ async def area(area_slug: str):
         prev_area_item = (prev_area.area_slug, prev_area.partial_abbrev) if prev_area else None
         next_area_item = (next_area.area_slug, next_area.partial_abbrev) if next_area else None
         header = create_map_header(cur_area_info.region, cur_area_info.partial_abbrev, prev_area_item, next_area_item, False, update_svg=lambda: update_svg(), all_changed=lambda: all_changed(), make_visibility_toggler=make_visibility_toggler, toggle_panel=lambda: toggle_panel(), switch_map=lambda icons: switch_map(icons), switch_water=lambda show: switch_water(show), has_water=has_water, all_areas=all_areas, edit_save_locations=lambda: edit_save_locations(), group_locations=lambda: group_locations(), cancel_save_locations=lambda: cancel_save_locations(), ids_changed=lambda: update_obj_tree_all())
-        checkboxes, checkbox_all, checkbox_overlap, checkbox_ids = header.checkboxes, header.checkbox_all, header.checkbox_overlap, header.checkbox_ids
+        checkboxes, checkbox_all, checkbox_built, checkbox_overlap, checkbox_ids = header.checkboxes, header.checkbox_all, header.checkbox_built, header.checkbox_overlap, header.checkbox_ids
         water_on = bool(header.checkbox_water and header.checkbox_water.value) # the checkbox keeps its state per browser tab
         save_button, group_button, cancel_button = header.save_button, header.group_button, header.cancel_button
 
@@ -772,9 +778,6 @@ async def area(area_slug: str):
                     obj_filter = ui.input('Objective filter', on_change=filter_changed).props('clearable')
 #                    ui.icon('clear all', color='primary').on('click', update_obj_tree).classes('text-4xl')
 #                    ui.icon('done all', color='primary', on_click=update_obj_tree) # .classes('text-4xl')
-                    with ui.column().classes('gap-0'):
-                        switch_all_objs = ui.switch("Region", on_change=update_obj_tree).props("dense")
-                        switch_completed_objs = ui.switch("Completed", on_change=update_obj_tree).props("dense")
 
                 tree_nodes, tree_ticked_ids, tree_ids, expanded = await build_obj_tree_data()
 
